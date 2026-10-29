@@ -66,16 +66,19 @@ export class Panels {
         ${s.needName ? `<h2>なまえを きめてください</h2>
           <form data-form="name" class="row"><input id="name" name="name" maxlength="10" placeholder="1〜10文字" autocomplete="off" required><button class="primary">はじめる</button></form>` : `
           <h2>あそびかた</h2>
-          <div class="row">
+          ${this.app.staticHost && !this.app.hasServer ? `<div class="row">
+            <button class="primary" data-act="offline">ひとりで遊ぶ</button>
+          </div>
+          <p class="dim" style="margin:8px 0 0">このページはサーバーなしで動いています。データはこのブラウザに保存されます。<br>みんなで遊ぶには、サーバーを立てて「接続先の設定」にURLを入れてください。</p>` : `<div class="row">
             <button class="primary" data-act="online">オンラインで遊ぶ</button>
             <button data-act="offline">ひとりで遊ぶ（オフライン）</button>
-          </div>`}
+          </div>`}`}
         ${s.message ? `<p class="${s.error ? 'bad' : 'dim'}">${esc(s.message)}</p>` : ''}
       </div>
       <div class="win"><h3>そうさ</h3>
         <p class="dim" style="margin:0">移動 WASD／矢印・攻撃 J／Z／左クリック・技1 K／X／右クリック・技2 L／C・回避 Space・調べる E・回復薬 Q<br>スマホは左のスティックと右のボタン。狙いは近くの敵に自動で向きます。</p>
         <details style="margin-top:8px"><summary class="dim">接続先の設定</summary>
-          <form data-form="server" class="row" style="margin-top:6px"><input id="server-url" name="url" value="${esc(this.app.serverUrl)}" style="flex:1;min-width:0"><button>保存</button></form>
+          <form data-form="server" class="row" style="margin-top:6px"><input id="server-url" name="url" value="${esc(this.app.hasServer || !this.app.staticHost ? this.app.serverUrl : '')}" placeholder="wss://example.com/ws" style="flex:1;min-width:0"><button>保存</button></form>
           <p class="dim" style="margin:6px 0 0">オフラインのデータを消す <button data-act="reset-offline">消す</button></p>
         </details>
       </div>`;
@@ -343,7 +346,7 @@ export class Panels {
     const data = Object.fromEntries(new FormData(f));
     switch (f.dataset.form) {
       case 'name': return this.app.submitName(String(data.name || ''));
-      case 'server': this.app.setServerUrl(String(data.url || '')); this.state.message = '接続先を保存しました'; return this.render();
+      case 'server': this.app.setServerUrl(String(data.url || '')); this.state.message = this.app.hasServer ? '接続先を保存しました' : '接続先を消しました'; return this.render();
       case 'pjoin': return this.send({ type: 'party:join', code: String(data.code || '').toUpperCase() });
       case 'mlist': return this.send({ type: 'market:list', kind: f.dataset.kind, id: f.dataset.id, price: Number(data.price) });
       case 'naming': {

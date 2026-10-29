@@ -2,7 +2,7 @@
 import { Renderer } from './render.js';
 import { Input } from './input.js';
 import { Panels } from './ui.js';
-import { NetTransport, LocalTransport, defaultServerUrl } from './net.js';
+import { NetTransport, LocalTransport, defaultServerUrl, isStaticHost, hasSavedServer } from './net.js';
 import { TOWN, SPOTS, moveInTown } from './town.js';
 import { moveCircle } from '../shared/dungeon.js';
 import { playerStats } from '../shared/items.js';
@@ -17,6 +17,8 @@ const app = {
   transport: null,
   offline: false,
   serverUrl: defaultServerUrl(),
+  staticHost: isStaticHost(),
+  hasServer: hasSavedServer(),
   scene: 'title',
   me: null,
   areas: [],
@@ -66,7 +68,12 @@ app.startOffline = () => {
 };
 
 app.resetOffline = () => { LocalTransport.reset(); try { localStorage.removeItem('ed-token-offline'); } catch { /* 無視 */ } };
-app.setServerUrl = (url) => { app.serverUrl = url.trim() || defaultServerUrl(); try { localStorage.setItem('ed-server-url', app.serverUrl); } catch { /* 無視 */ } };
+app.setServerUrl = (url) => {
+  const u = url.trim();
+  try { if (u) localStorage.setItem('ed-server-url', u); else localStorage.removeItem('ed-server-url'); } catch { /* 無視 */ }
+  app.hasServer = !!u;
+  app.serverUrl = u || defaultServerUrl();
+};
 app.submitName = (name) => app.send({ type: 'hello', name });
 
 function attach(t) {

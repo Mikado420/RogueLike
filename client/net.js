@@ -93,6 +93,15 @@ export class LocalTransport {
   static reset() { try { localStorage.removeItem(OFFLINE_KEY); } catch { /* 無視 */ } }
 }
 
+/** GitHub Pages などサーバーのない場所で開かれているか */
+export function isStaticHost() {
+  return location.hostname.endsWith('github.io') || location.protocol === 'file:';
+}
+
+export function hasSavedServer() {
+  try { return !!localStorage.getItem('ed-server-url'); } catch { return false; }
+}
+
 export function defaultServerUrl() {
   try {
     const saved = localStorage.getItem('ed-server-url');
