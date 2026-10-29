@@ -144,8 +144,46 @@ export class Renderer {
     const { ctx } = this;
     ctx.fillStyle = '#000';
     ctx.fillRect(0, 0, this.w, this.h);
-    this.cx = Math.round(cam.x - this.w / 2);
-    this.cy = Math.round(cam.y - this.h / 2);
+    let sx = 0, sy = 0;
+    if (this.shakeT > 0) {
+      const a = this.shakeAmp * Math.min(1, this.shakeT / 0.15);
+      sx = Math.round((Math.random() * 2 - 1) * a);
+      sy = Math.round((Math.random() * 2 - 1) * a);
+    }
+    this.cx = Math.round(cam.x - this.w / 2) + sx;
+    this.cy = Math.round(cam.y - this.h / 2) + sy;
+  }
+
+  /** 画面を揺らす（被弾・会心） */
+  shake(amp, dur = 0.15) {
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    this.shakeAmp = Math.max(this.shakeT > 0 ? this.shakeAmp : 0, amp);
+    this.shakeT = Math.max(this.shakeT || 0, dur);
+  }
+  tickShake(dt) { this.shakeT = Math.max(0, (this.shakeT || 0) - dt); }
+
+  /** 自動で狙っている敵の目印 */
+  drawTarget(x, y, r, time) {
+    const { ctx } = this;
+    const px = Math.round(x - this.cx), py = Math.round(y - this.cy);
+    const s = Math.round(r + 5 + Math.sin(time * 8) * 1.5), L = 3;
+    ctx.fillStyle = '#f8b800';
+    for (const [dx, dy] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) {
+      const cx = px + dx * s, cy = py - 3 + dy * s;
+      ctx.fillRect(cx - (dx > 0 ? L - 1 : 0), cy, L, 1);
+      ctx.fillRect(cx, cy - (dy > 0 ? L - 1 : 0), 1, L);
+    }
+  }
+
+  /** 足元の範囲（攻撃の向き） */
+  drawAim(x, y, a, len) {
+    const { ctx } = this;
+    const px = x - this.cx, py = y - this.cy;
+    ctx.fillStyle = 'rgba(252,252,252,.55)';
+    for (let i = 1; i <= 3; i++) {
+      const d = 8 + i * (len / 4);
+      ctx.fillRect(Math.round(px + Math.cos(a) * d), Math.round(py + 2 + Math.sin(a) * d), 1, 1);
+    }
   }
 
   drawTown(time, raidOpen, near) {

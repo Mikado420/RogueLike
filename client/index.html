@@ -12,16 +12,18 @@
 <body>
 <div id="app">
   <canvas id="screen" width="320" height="180" aria-label="ゲーム画面"></canvas>
+  <canvas id="minimap" width="46" height="34" hidden aria-label="ミニマップ"></canvas>
   <div id="hud" hidden></div>
   <div id="touch" hidden>
+    <div id="stick-zone"></div>
     <div id="stick"><div id="stick-knob"></div></div>
     <div id="buttons">
-      <button data-btn="atk" class="tb big">攻撃</button>
-      <button data-btn="s1" class="tb">技1</button>
-      <button data-btn="s2" class="tb">技2</button>
-      <button data-btn="dodge" class="tb">回避</button>
-      <button data-btn="act" class="tb">調べる</button>
-      <button data-btn="potion" class="tb">薬</button>
+      <button data-btn="atk" class="tb atk" aria-label="攻撃"><span>攻撃</span></button>
+      <button data-btn="s1" class="tb s1" aria-label="技1"><i class="cd"></i><span class="lbl">技1</span></button>
+      <button data-btn="s2" class="tb s2" aria-label="技2"><i class="cd"></i><span class="lbl">技2</span></button>
+      <button data-btn="dodge" class="tb dodge" aria-label="回避"><i class="cd"></i><span>回避</span></button>
+      <button data-btn="potion" class="tb potion" aria-label="回復薬"><span>薬</span><b class="cnt">0</b></button>
+      <button data-btn="act" class="tb act" aria-label="調べる" hidden><span class="lbl">調べる</span></button>
     </div>
   </div>
   <div id="toasts" aria-live="polite"></div>

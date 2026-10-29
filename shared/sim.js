@@ -119,6 +119,49 @@ export class DungeonSim {
     return m;
   }
 
+  /** 生きているプレイヤーからの歩数の地図（魔物の経路探索用） */
+  computeFlow() {
+    const { w, h, tiles } = this.map;
+    const dist = new Int16Array(w * h).fill(-1);
+    const q = [];
+    for (const p of this.alivePlayers()) {
+      const i = Math.floor(p.y / 16) * w + Math.floor(p.x / 16);
+      if (dist[i] !== 0) { dist[i] = 0; q.push(i); }
+    }
+    for (let qi = 0; qi < q.length; qi++) {
+      const i = q[qi], x = i % w, y = (i - x) / w, nd = dist[i] + 1;
+      if (nd > 40) continue;
+      if (x > 0 && dist[i - 1] < 0 && tiles[i - 1] === 1) { dist[i - 1] = nd; q.push(i - 1); }
+      if (x < w - 1 && dist[i + 1] < 0 && tiles[i + 1] === 1) { dist[i + 1] = nd; q.push(i + 1); }
+      if (y > 0 && dist[i - w] < 0 && tiles[i - w] === 1) { dist[i - w] = nd; q.push(i - w); }
+      if (y < h - 1 && dist[i + w] < 0 && tiles[i + w] === 1) { dist[i + w] = nd; q.push(i + w); }
+    }
+    this.flow = dist;
+  }
+
+  flowStep(m) {
+    if (!this.flow) return null;
+    const w = this.map.w;
+    const tx = Math.floor(m.x / 16), ty = Math.floor(m.y / 16);
+    const here = this.flow[ty * w + tx];
+    let best = null, bd = here < 0 ? 9999 : here;
+    for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+      const v = this.flow[(ty + dy) * w + (tx + dx)];
+      if (v >= 0 && v < bd) { bd = v; best = { x: (tx + dx) * 16 + 8, y: (ty + dy) * 16 + 8 }; }
+    }
+    return best;
+  }
+
+  clearLine(a, b) {
+    const d = Math.hypot(b.x - a.x, b.y - a.y);
+    const n = Math.ceil(d / 6);
+    for (let i = 1; i < n; i++) {
+      const t = i / n;
+      if (isWall(this.map, a.x + (b.x - a.x) * t, a.y + (b.y - a.y) * t)) return false;
+    }
+    return true;
+  }
+
   activePlayers() { return [...this.players.values()].filter((p) => !p.lost && !p.escaped); }
   alivePlayers() { return this.activePlayers().filter((p) => !p.down); }
 
@@ -126,6 +169,7 @@ export class DungeonSim {
   step(dt = TICK) {
     if (this.finished || !this.map) return;
     this.tick++;
+    if (this.tick % 4 === 1) this.computeFlow();
     for (const p of this.players.values()) this.updatePlayer(p, dt);
     for (const m of [...this.monsters.values()]) this.updateMonster(m, dt);
     this.updateProjectiles(dt);
@@ -454,7 +498,12 @@ export class DungeonSim {
       m.target = target?.id ?? null;
     }
     const speed = m.speed * (m.status.slow ? 0.5 : 1);
-    const moveToward = (tx, ty, mul = 1) => {
+    const moveToward = (tx, ty, mul = 1, chase = false) => {
+      // 壁の向こうにいる相手には、通路をたどって近づく
+      if (chase && !this.clearLine(m, { x: tx, y: ty })) {
+        const step = this.flowStep(m);
+        if (step) { tx = step.x; ty = step.y; }
+      }
       const a = Math.atan2(ty - m.y, tx - m.x);
       m.dir = a;
       moveCircle(this.map, m, Math.cos(a) * speed * mul * dt, Math.sin(a) * speed * mul * dt, m.r * 0.7);
@@ -477,7 +526,7 @@ export class DungeonSim {
     } else if (m.behavior === 'ranged' || (m.genome.atk !== 'none' && m.behavior === 'flee')) {
       const want = m.behavior === 'flee' ? 100 : 80;
       if (d < want - 12) moveToward(m.x * 2 - target.x, m.y * 2 - target.y, 0.9);
-      else if (d > want + 20) moveToward(target.x, target.y);
+      else if (d > want + 20) moveToward(target.x, target.y, 1, true);
       m.dir = Math.atan2(target.y - m.y, target.x - m.x);
       if (canAttack && m.cd.shot <= 0 && d < 170) {
         m.cd.shot = 1.6 + this.rng.float() * 0.6;
@@ -493,7 +542,7 @@ export class DungeonSim {
         for (const o of this.monsters.values()) if (o !== m && dist2(o, m) < 50 ** 2) n++;
         mul = 1 + Math.min(0.4, n * 0.15);
       }
-      if (d > m.r + PLAYER_R + 2) moveToward(target.x, target.y, mul);
+      if (d > m.r + PLAYER_R + 2) moveToward(target.x, target.y, mul, true);
       if (m.behavior === 'charge' && canAttack && m.cd.charge <= 0 && d < 70 && d > 24) {
         m.cd.charge = 3 + this.rng.float() * 2;
         m.dashT = 0.32;
@@ -518,7 +567,7 @@ export class DungeonSim {
     if (m.dashT > 0) {
       m.dashT -= dt;
       moveCircle(this.map, m, Math.cos(m.dashDir) * 210 * dt, Math.sin(m.dashDir) * 210 * dt, m.r * 0.7);
-    } else if (d > 40) moveToward(target.x, target.y);
+    } else if (d > 40) moveToward(target.x, target.y, 1, true);
     if (!canAttack) return;
     if (m.cd.ring <= 0) {
       m.cd.ring = 3.5;

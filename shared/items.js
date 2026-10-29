@@ -181,6 +181,6 @@ export function playerStats(profile) {
     resist, effects,
     skill1: WEAPON_SKILLS[weapon.element] || WEAPON_SKILLS.none,
     skill2: ARMOR_SKILLS[armor.element || 'none'],
-    speed: 78 * (1 + effects.speed),
+    speed: 92 * (1 + effects.speed),
   };
 }
