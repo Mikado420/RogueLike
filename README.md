@@ -12,7 +12,7 @@
 
 ### ブラウザですぐ遊ぶ（GitHub Pages）
 
-**https://mikado420.github.io/roguelike/** を開くだけで遊べます（PC・スマホ）。
+**https://mikado420.github.io/RogueLike/** を開くだけで遊べます（PC・スマホ）。
 
 - サーバーなしで動く「ひとりで遊ぶ」モードです。データはそのブラウザに保存されます
 - `main` に push すると、テストが通ったあと自動で公開し直されます（`.github/workflows/pages.yml`）
