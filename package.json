@@ -1,0 +1,15 @@
+{
+  "name": "evolving-depths",
+  "version": "0.1.0",
+  "description": "進化の迷宮 — プレイヤーの狩りで魔物が進化する、ドット絵のオンライン・アクションハクスラ",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "start": "node server/index.js",
+    "dev": "ECO_INTERVAL_SEC=60 node server/index.js",
+    "test": "node --test test/*.test.js"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
