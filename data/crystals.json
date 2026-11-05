@@ -1,0 +1,13 @@
+{
+  "cr_ember":    { "name": "灼熱の結晶",   "slots": ["weapon"], "mods": { "fireDmgPct": 8, "atkPct": 4 }, "color": "#ff7a2a", "recover": 1500 },
+  "cr_tidal":    { "name": "潮騒の結晶",   "slots": ["weapon"], "mods": { "waterDmgPct": 8, "matkPct": 4 }, "color": "#4ab3ff", "recover": 1500 },
+  "cr_gale":     { "name": "疾風の結晶",   "slots": "any",      "mods": { "aspdPct": 6, "moveSpeedPct": 3 }, "color": "#6fe39a", "recover": 1500 },
+  "cr_bedrock":  { "name": "岩盤の結晶",   "slots": ["body", "head", "sub"], "mods": { "defPct": 8, "maxHp": 120 }, "color": "#d8a24a", "recover": 1500 },
+  "cr_dawn":     { "name": "暁の結晶",     "slots": "any",      "mods": { "lightDmgPct": 8, "healPct": 8 }, "color": "#fff27a", "recover": 2500 },
+  "cr_dusk":     { "name": "宵闇の結晶",   "slots": "any",      "mods": { "darkDmgPct": 8, "lifestealPct": 1 }, "color": "#b57dff", "recover": 2500 },
+  "cr_hunter":   { "name": "狩人の結晶",   "slots": ["weapon", "accessory"], "mods": { "critRate": 4, "critDamage": 8 }, "color": "#ffd23a", "recover": 2500 },
+  "cr_guardian": { "name": "守護の結晶",   "slots": ["body", "head", "sub"], "mods": { "dmgReductionPct": 4, "statusResistPct": 10 }, "color": "#9fd8ff", "recover": 2500 },
+  "cr_sage":     { "name": "賢者の結晶",   "slots": ["accessory", "head"], "mods": { "cooldownPct": -6, "maxMp": 30 }, "color": "#c0a0ff", "recover": 4000 },
+  "cr_tower":    { "name": "天塔の結晶",   "slots": "any",      "mods": { "atkPct": 6, "matkPct": 6, "maxHpPct": 4 }, "color": "#ffffff", "recover": 6000 },
+  "cr_titan":    { "name": "巨神の結晶",   "slots": "any",      "mods": { "bossDmgPct": 10, "breakPct": 15 }, "color": "#ff4f7a", "recover": 8000 }
+}

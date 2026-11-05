@@ -249,10 +249,14 @@ export interface MythicDef {
   effect: 'fireballAttack' | 'dodgeClone' | 'chainLightning' | 'extraHits' | 'deathBurst' | 'timeSand' | 'echoSkill';
   value: number;
   mods?: Mods;
+  attack?: AttackDef;
+  power?: number;
+  delay?: number;
 }
 
 export interface SetDef {
   name: string;
+  /** 部位 → その部位の名前 */
   pieces: Partial<Record<EquipSlot, string>>;
   bonus: { count: number; mods: Mods }[];
 }
@@ -262,6 +266,16 @@ export interface CrystalDef {
   slots: EquipSlot[] | 'any';
   mods: Mods;
   color: string;
+  /** 外して回収するときのゴールド */
+  recover: number;
+}
+
+export interface RefineDef {
+  max: number;
+  stone: string;
+  goldTierMul: number;
+  pityPerFail: number;
+  levels: { rate: number; gold: number; stones: number; drop: number }[];
 }
 
 export interface DropTable {
@@ -386,6 +400,21 @@ export interface Content {
     tiers: EquipTier[];
     bases: Record<string, EquipBaseDef>;
     subRules: Record<string, SubType[]>;
+    /** 段（tier）で大きく増やさない値（ブロック率など） */
+    flatStats: ModKey[];
+    flatTierGrowth: number;
+  };
+  uniques: Record<string, UniqueDef>;
+  mythics: Record<string, MythicDef>;
+  sets: Record<string, SetDef>;
+  crystals: Record<string, CrystalDef>;
+  refine: RefineDef;
+  storage: { base: number; step: number; max: number; costBase: number; costGrowth: number; sortKeys: string[] };
+  looks: { bodyColors: string[]; hairColors: string[]; tierColors: string[]; names: Record<string, string> };
+  time: {
+    dayLength: number; hourOffset: number;
+    phases: { id: string; from: number; to: number }[];
+    night: { from: number; to: number; darkDmgPct: number; lightDmgPct: number; aggroMul: number };
   };
   rarities: { order: Rarity[]; defs: Record<Rarity, RarityDef> };
   options: { pool: OptionDef[]; weaponElementChance: number; weaponElements: Element[] };

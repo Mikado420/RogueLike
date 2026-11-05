@@ -43,6 +43,22 @@ const DRAWERS: Record<string, Drawer> = {
     g.ellipse(0, -47, 12, 4).fill(0x3a6a3a);
     g.roundRect(12, -26, 12, 14, 3).fill(0xc89a5a).stroke({ width: 1.5, color: 0x5a3a1a });
   }),
+  npc_smith: () => gfx((g) => {
+    shadow(g, 18);
+    g.roundRect(-12, -34, 24, 28, 7).fill(0x6a4a3a).stroke({ width: 2, color: 0x2a1a10 });
+    g.rect(-12, -22, 24, 14).fill(0x3a3a40);
+    g.circle(0, -41, 9).fill(0xe0b088).stroke({ width: 2, color: 0x7a5236 });
+    g.rect(-9, -38, 18, 4).fill(0x5a3a22);
+    g.rect(13, -30, 4, 18).fill(0x8a6a4a);
+    g.roundRect(9, -36, 12, 7, 2).fill(0x9aa0b0);
+  }),
+  npc_keeper: () => gfx((g) => {
+    shadow(g, 16);
+    g.roundRect(-10, -33, 20, 27, 7).fill(0x4a6a5a).stroke({ width: 2, color: 0x1a2a20 });
+    g.circle(0, -40, 9).fill(0xf2c9a0).stroke({ width: 2, color: 0x7a5236 });
+    g.moveTo(-9, -44).arc(0, -41, 9.5, Math.PI, 0).fill(0xb0b0b0);
+    g.roundRect(-22, -20, 14, 14, 2).fill(0xa07a4a).stroke({ width: 1.5, color: 0x4a3a1a });
+  }),
   slime: () => gfx((g) => {
     shadow(g, 16);
     g.ellipse(0, -11, 16, 13).fill({ color: 0x46a8ff, alpha: 0.92 }).stroke({ width: 2, color: 0x1f5b99 });
@@ -211,20 +227,59 @@ const DRAWERS: Record<string, Drawer> = {
     g.ellipse(-2, 3, 7, 6).fill(0xc8843a).stroke({ width: 1.5, color: 0x5a3a1a });
     g.moveTo(3, -1).lineTo(10, -10).stroke({ width: 2.5, color: 0x6a4a2a });
   }),
+  item_shield: () => gfx((g) => {
+    g.poly([-8, -9, 8, -9, 8, 2, 0, 10, -8, 2]).fill(0x8a94a6).stroke({ width: 1.5, color: 0x3a3e48 });
+    g.rect(-1, -8, 2, 16).fill(0xd8c070);
+  }),
+  item_book: () => gfx((g) => {
+    g.roundRect(-8, -9, 16, 18, 2).fill(0x5a3a8a).stroke({ width: 1.5, color: 0x2a1a4a });
+    g.rect(-6, -7, 12, 2).fill(0xe0c070);
+  }),
+  item_hat: () => gfx((g) => {
+    g.ellipse(0, 4, 11, 4).fill(0x8a6a4a);
+    g.roundRect(-6, -8, 12, 12, 4).fill(0x8a6a4a).stroke({ width: 1.5, color: 0x4a3a2a });
+  }),
   item_ring: () => gfx((g) => {
     g.circle(0, 0, 6).stroke({ width: 3, color: 0xf3d36a });
     g.circle(0, -6, 3).fill(0x7cf0ff);
   }),
 };
 
-/** 見た目（服・髪の色）つきのプレイヤー */
-export function makePlayerSprite(body: number, hair: number): Container {
+/**
+ * 見た目つきのプレイヤー。body/hair は作成時の色、armor/head は装備（アバター）の見た目。
+ * armor = { kind: light|heavy|cloth, color }、head = { kind: helm|hat|hood, color }
+ */
+export function makePlayerSprite(body: number, hair: number, armor?: { kind: string; color: number } | null, head?: { kind: string; color: number } | null): Container {
   return gfx((g) => {
     shadow(g, 13);
     g.roundRect(-9, -34, 18, 26, 7).fill(body).stroke({ width: 2, color: 0x1a1d26 });
+    if (armor) {
+      if (armor.kind === 'heavy') {
+        g.roundRect(-11, -33, 22, 18, 5).fill(armor.color).stroke({ width: 2, color: 0x2a2e38 });
+        g.circle(-11, -31, 5).fill(armor.color).stroke({ width: 1.5, color: 0x2a2e38 });
+        g.circle(11, -31, 5).fill(armor.color).stroke({ width: 1.5, color: 0x2a2e38 });
+      } else if (armor.kind === 'cloth') {
+        g.poly([-11, -32, 11, -32, 13, -6, -13, -6]).fill(armor.color).stroke({ width: 1.5, color: 0x2a2e38 });
+        g.rect(-2, -32, 4, 26).fill({ color: 0xffffff, alpha: 0.35 });
+      } else {
+        g.roundRect(-9, -31, 18, 14, 4).fill(armor.color).stroke({ width: 1.5, color: 0x2a2e38 });
+      }
+    }
     g.rect(-9, -16, 18, 4).fill(0x6b4a2b);
     g.circle(0, -40, 9).fill(0xf2c9a0).stroke({ width: 2, color: 0x7a5236 });
     g.moveTo(-9, -44).arc(0, -41, 9.5, Math.PI, 0).fill(hair);
+    if (head) {
+      if (head.kind === 'helm') {
+        g.moveTo(-10, -40).arc(0, -41, 10.5, Math.PI, 0).fill(head.color);
+        g.rect(-10, -42, 20, 3).fill(head.color).stroke({ width: 1, color: 0x2a2e38 });
+        g.rect(-1.5, -52, 3, 8).fill(0xd84a3a);
+      } else if (head.kind === 'hood') {
+        g.moveTo(-11, -36).arc(0, -41, 11.5, Math.PI * 0.95, Math.PI * 0.05).fill(head.color);
+      } else {
+        g.ellipse(0, -47, 14, 4).fill(head.color).stroke({ width: 1, color: 0x2a2e38 });
+        g.roundRect(-7, -56, 14, 10, 4).fill(head.color).stroke({ width: 1, color: 0x2a2e38 });
+      }
+    }
   });
 }
 
@@ -244,7 +299,13 @@ export function makeSprite(name: string): Container {
 }
 
 /** 武器の見た目（キャラの手元に出す） */
-export function makeWeaponGlyph(weaponType: string | undefined): Graphics {
+export function makeWeaponGlyph(weaponType: string | undefined, tint?: number): Graphics {
+  const g = makeWeaponGlyphRaw(weaponType);
+  if (tint !== undefined) g.tint = tint;
+  return g;
+}
+
+function makeWeaponGlyphRaw(weaponType: string | undefined): Graphics {
   const g = new Graphics();
   switch (weaponType) {
     case 'bow':

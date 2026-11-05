@@ -1,0 +1,23 @@
+{
+  "max": 15,
+  "stone": "refine_stone",
+  "goldTierMul": 0.6,
+  "pityPerFail": 6,
+  "levels": [
+    { "rate": 100, "gold": 100,  "stones": 1, "drop": 0 },
+    { "rate": 95,  "gold": 150,  "stones": 1, "drop": 0 },
+    { "rate": 90,  "gold": 220,  "stones": 1, "drop": 0 },
+    { "rate": 85,  "gold": 300,  "stones": 2, "drop": 0 },
+    { "rate": 80,  "gold": 400,  "stones": 2, "drop": 0 },
+    { "rate": 70,  "gold": 550,  "stones": 2, "drop": 1 },
+    { "rate": 60,  "gold": 750,  "stones": 3, "drop": 1 },
+    { "rate": 50,  "gold": 1000, "stones": 3, "drop": 1 },
+    { "rate": 42,  "gold": 1300, "stones": 4, "drop": 1 },
+    { "rate": 35,  "gold": 1700, "stones": 4, "drop": 1 },
+    { "rate": 28,  "gold": 2200, "stones": 5, "drop": 1 },
+    { "rate": 22,  "gold": 2800, "stones": 5, "drop": 1 },
+    { "rate": 17,  "gold": 3500, "stones": 6, "drop": 1 },
+    { "rate": 13,  "gold": 4300, "stones": 7, "drop": 1 },
+    { "rate": 10,  "gold": 5200, "stones": 8, "drop": 1 }
+  ]
+}

@@ -26,7 +26,7 @@ describe('セーブデータ', () => {
     const old = JSON.parse(serializeAccount(acc));
     old.version = SAVE_VERSION - 1;
     const prev = MIGRATIONS[SAVE_VERSION - 1];
-    MIGRATIONS[SAVE_VERSION - 1] = (d) => ({ ...d, migrated: true });
+    MIGRATIONS[SAVE_VERSION - 1] = (d) => ({ ...(prev ? prev(d) : d), migrated: true });
     try {
       const m = migrateAccount(old) as unknown as { migrated: boolean; version: number };
       expect(m.migrated).toBe(true);

@@ -19,6 +19,27 @@ export function itemMods(it: Item, c: Content): Mods {
     m[key] = (m[key] ?? 0) + Math.round((it.stats[key] ?? 0) * refineMul);
   }
   for (const o of it.options) m[o.key] = (m[o.key] ?? 0) + o.value;
+  for (const cr of it.crystals) if (cr && c.crystals[cr]) addMods(m, c.crystals[cr].mods);
+  if (it.unique) addMods(m, c.uniques[it.unique]?.mods);
+  if (it.mythic) addMods(m, c.mythics[it.mythic]?.mods);
+  return m;
+}
+
+/** 装備中のセットの数と、そろった分のボーナス */
+export function setCounts(char: CharacterData): Record<string, number> {
+  const out: Record<string, number> = {};
+  for (const slot of EQUIP_SLOTS) {
+    const s = char.equipment[slot]?.set;
+    if (s) out[s] = (out[s] ?? 0) + 1;
+  }
+  return out;
+}
+
+export function setMods(char: CharacterData, c: Content): Mods {
+  const m: Mods = {};
+  for (const [id, n] of Object.entries(setCounts(char))) {
+    for (const b of c.sets[id]?.bonus ?? []) if (n >= b.count) addMods(m, b.mods);
+  }
   return m;
 }
 
@@ -67,6 +88,7 @@ export function staticMods(char: CharacterData, c: Content): Mods {
   }
   addMods(m, passiveMods(char, weaponTypeOf(char), c));
   addMods(m, c.weapons[weaponTypeOf(char)]?.mods);
+  addMods(m, setMods(char, c));
   for (const src of extraSources) addMods(m, src(char, c));
   return m;
 }

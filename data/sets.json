@@ -1,0 +1,12 @@
+{
+  "set_meadow": { "name": "翠風", "pieces": { "head": "翠風の羽帽子", "body": "翠風の軽衣", "accessory": "翠風の首飾り", "sub": "翠風の護符" },
+    "bonus": [ { "count": 2, "mods": { "moveSpeedPct": 6, "aspdPct": 6 } }, { "count": 4, "mods": { "windDmgPct": 15, "evasion": 5, "dodgeCostPct": -20 } } ] },
+  "set_marsh":  { "name": "蒼雫", "pieces": { "head": "蒼雫の頭巾", "body": "蒼雫の法衣", "accessory": "蒼雫の耳飾り", "sub": "蒼雫の魔導書" },
+    "bonus": [ { "count": 2, "mods": { "maxMp": 30, "cspdPct": 8 } }, { "count": 4, "mods": { "waterDmgPct": 15, "mpOnHit": 2, "cooldownPct": -10 } } ] },
+  "set_ember":  { "name": "灰燼", "pieces": { "head": "灰燼の兜", "body": "灰燼の重鎧", "accessory": "灰燼の指輪", "sub": "灰燼の盾" },
+    "bonus": [ { "count": 2, "mods": { "maxHpPct": 8, "defPct": 8 } }, { "count": 4, "mods": { "fireDmgPct": 15, "dmgReductionPct": 8, "fireResPct": 25 } } ] },
+  "set_twilight": { "name": "黄昏", "pieces": { "head": "黄昏の仮面", "body": "黄昏の外套", "accessory": "黄昏の耳飾り", "sub": "黄昏の短剣" },
+    "bonus": [ { "count": 2, "mods": { "critRate": 6, "critDamage": 10 } }, { "count": 4, "mods": { "darkDmgPct": 15, "lightDmgPct": 15, "lifestealPct": 2 } } ] },
+  "set_frost":  { "name": "白銀", "pieces": { "head": "白銀の冠", "body": "白銀の鎧", "accessory": "白銀の首飾り", "sub": "白銀の護符" },
+    "bonus": [ { "count": 2, "mods": { "atkPct": 6, "matkPct": 6 } }, { "count": 4, "mods": { "skillDmgPct": 12, "bossDmgPct": 12, "statusResistPct": 20 } } ] }
+}

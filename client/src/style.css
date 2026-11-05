@@ -302,3 +302,31 @@ button:disabled { opacity: 0.4; cursor: default; }
 .res-sub { font-size: 10px; color: var(--muted); }
 .beat { width: 14px; height: 14px; border-radius: 50%; border: 2px solid #ff9ad8; background: transparent; }
 .beat.on { background: #ff9ad8; box-shadow: 0 0 12px #ff9ad8; }
+
+/* M3 装備 */
+.inv-tools { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; margin: 8px 0 4px; }
+.inv-tools .sub-title { margin: 0; }
+.seg.small .seg-btn { padding: 5px 10px; font-size: 11px; }
+.set-label.small { font-size: 12px; color: var(--muted); }
+.filter-row { display: flex; flex-direction: column; gap: 6px; margin: 8px 0; }
+.cell-set { display: block; font-size: 9px; color: #9be04a; margin-top: 2px; }
+.d-unique, .d-mythic, .d-set { border-radius: 8px; padding: 8px; display: flex; flex-direction: column; gap: 2px; }
+.d-unique { background: rgba(255,176,46,0.1); border: 1px solid rgba(255,176,46,0.4); }
+.d-mythic { background: rgba(255,79,122,0.1); border: 1px solid rgba(255,79,122,0.45); }
+.d-set { background: rgba(155,224,74,0.08); border: 1px solid rgba(155,224,74,0.35); }
+.u-name { font-weight: 900; font-size: 13px; }
+.d-unique .u-name { color: #ffb02e; } .d-mythic .u-name { color: #ff4f7a; } .d-set .u-name { color: #9be04a; }
+.u-line { font-size: 12px; color: var(--text); }
+.d-set .u-line { color: var(--muted); } .d-set .u-line.on { color: #9be04a; font-weight: 800; }
+.compare { display: flex; flex-wrap: wrap; gap: 4px 10px; font-size: 12px; font-weight: 800; }
+.compare .up { color: var(--good); } .compare .down { color: var(--bad); }
+.sockets { display: flex; flex-direction: column; gap: 6px; }
+.socket-row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; padding: 6px; border: 1px dashed var(--line); border-radius: 8px; }
+.socket-row .name { font-weight: 800; font-size: 13px; margin-right: auto; }
+.storage-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 6px; }
+.storage-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+@media (max-width: 640px) { .storage-cols { grid-template-columns: 1fr; } }
+.storage-col { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.look-row { display: flex; flex-wrap: wrap; gap: 6px; }
+.look-btn { display: flex; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 8px; border: 1px solid var(--line); background: var(--panel2); font-size: 12px; font-weight: 700; }
+.look-btn.on { outline: 2px solid var(--accent); }

@@ -1,0 +1,11 @@
+{
+  "dayLength": 3600,
+  "hourOffset": 8,
+  "phases": [
+    { "id": "dawn",    "from": 5,  "to": 7 },
+    { "id": "day",     "from": 7,  "to": 17 },
+    { "id": "dusk",    "from": 17, "to": 19 },
+    { "id": "night",   "from": 19, "to": 29 }
+  ],
+  "night": { "from": 19, "to": 5, "darkDmgPct": 20, "lightDmgPct": -10, "aggroMul": 1.3 }
+}

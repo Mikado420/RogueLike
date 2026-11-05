@@ -1,3 +1,10 @@
 {
-  "general": { "items": ["potion_s", "potion_m", "ether"] }
+ "general": {
+  "items": [
+   "potion_s",
+   "potion_m",
+   "ether",
+   "refine_stone"
+  ]
+ }
 }

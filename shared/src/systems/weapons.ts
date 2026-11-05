@@ -5,6 +5,7 @@ import { buildSpec, launchAttack } from './combat';
 import { weaponTypeOf } from './stats';
 import type { Aim } from './skills';
 import { sec } from './util';
+import { normalAttackOverride } from './effects';
 
 /**
  * 武器ごとの仕組み（溜め・弾数とリロード・コンボ・リズム・間合い・吸収）。
@@ -205,7 +206,9 @@ export function updateNormalAttack(w: World, p: Player, input: PlayerInput, aimF
   }
 
   let atk = wdef.attack;
-  if (wdef.chain && wdef.chain.length > 0) {
+  const override = normalAttackOverride(w, p);
+  if (override) atk = { ...wdef.attack, ...override.attack, interval: wdef.attack.interval * override.interval };
+  else if (wdef.chain && wdef.chain.length > 0) {
     if (w.tick > p.chainUntil) p.chainIndex = 0;
     const step = p.chainIndex % (wdef.chain.length + 1);
     if (step > 0) atk = { ...wdef.attack, ...wdef.chain[step - 1] };

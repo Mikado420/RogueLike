@@ -7,6 +7,7 @@ import { slotsFor } from './progression';
 import { weaponTypeOf } from './stats';
 import { sec } from './util';
 import { skillHooks } from './weapons';
+import { echoOf, extraHitsBonus } from './effects';
 
 export function skillMpCost(p: Player, d: SkillDef, lv: number): number {
   return Math.max(0, Math.round(scaled(d.mp, lv) * (1 + (p.stats.m.mpCostPct ?? 0) / 100)));
@@ -76,11 +77,20 @@ export function castSkill(w: World, p: Player, id: string, aimFor: (range: numbe
     heal(w, p, base * scaled(d.heal.power, lv) * mul.buff);
   }
   const attacks = d.attacks ?? (d.attack ? [d.attack] : []);
-  for (const atk of attacks) {
+  const extra = extraHitsBonus(w, p);
+  const eo = echoOf(w, p);
+  const echo = !!eo && w.rng.next() * 100 < eo.chance;
+  for (const base of attacks) {
+    const atk = extra > 0 && (base.hits ?? 1) > 1 ? { ...base, hits: (base.hits ?? 1) + extra } : base;
     const spec = buildSpec(p, atk, 'skill', lv, dmgType, id);
     spec.power *= mul.power;
     launchAttack(w, p, atk, a.dir, a.target, spec, { rangeMul: 1 + (p.stats.m.rangePct ?? 0) / 100 });
+    if (echo) {
+      const spec2 = { ...spec, power: spec.power * eo!.power, tags: [...(spec.tags ?? []), 'proc'] };
+      launchAttack(w, p, atk, a.dir, a.target, spec2, { rangeMul: 1 + (p.stats.m.rangePct ?? 0) / 100, delay: sec(w, (atk.delay ?? 0) + eo!.delay) });
+    }
   }
+  if (echo) w.events.push({ type: 'proc', playerId: p.id, name: eo!.name, x: p.x, y: p.y });
   skillHooks.after(w, p, d, lv);
   w.events.push({ type: 'attack', src: p.id, dir: a.dir, skill: id, weapon: weaponTypeOf(p.char) });
   return true;

@@ -203,6 +203,8 @@ export class Hud {
         this.toast(txt(e.key, ...(e.args ?? [])), e.key.startsWith('err.') ? '#ff8a7a' : '#9fe8ff');
       }
       if (e.type === 'levelUp' && e.playerId === this.myId) this.toast(txt('notice.levelUp', e.level), '#ffe14a');
+      if (e.type === 'refine' && e.playerId === this.myId) this.toast(txt(e.success ? 'smith.success' : 'smith.failed', e.level), e.success ? '#ffe14a' : '#ff8a7a');
+      if (e.type === 'autoSell' && e.playerId === this.myId) this.toast(txt('notice.autoSell', e.gold), '#ffd76a');
     }
   }
 

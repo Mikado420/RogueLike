@@ -192,6 +192,120 @@
     "maxHp": 15,
     "mdef": 3
    }
+  },
+  "s_shield": {
+   "name": "盾",
+   "slot": "sub",
+   "kind": "shield",
+   "look": "shield",
+   "stats": {
+    "def": 6,
+    "blockRate": 8
+   }
+  },
+  "s_quiver": {
+   "name": "矢筒",
+   "slot": "sub",
+   "kind": "quiver",
+   "look": "quiver",
+   "stats": {
+    "atk": 5,
+    "critRate": 2
+   }
+  },
+  "s_grimoire": {
+   "name": "魔導書",
+   "slot": "sub",
+   "kind": "grimoire",
+   "look": "grimoire",
+   "stats": {
+    "matk": 6,
+    "cspdPct": 3
+   }
+  },
+  "s_dagger": {
+   "name": "短剣",
+   "slot": "sub",
+   "kind": "dagger",
+   "look": "dagger",
+   "stats": {
+    "atk": 5,
+    "critDamage": 4
+   }
+  },
+  "s_magazine": {
+   "name": "拡張弾倉",
+   "slot": "sub",
+   "kind": "magazine",
+   "look": "magazine",
+   "stats": {
+    "atk": 4,
+    "magazine": 2,
+    "reloadPct": 5
+   }
+  },
+  "s_talisman": {
+   "name": "護符",
+   "slot": "sub",
+   "kind": "talisman",
+   "look": "talisman",
+   "stats": {
+    "maxHp": 15,
+    "statusResistPct": 4
+   }
+  },
+  "h_helm": {
+   "name": "兜",
+   "slot": "head",
+   "kind": "heavy",
+   "look": "helm",
+   "stats": {
+    "def": 5,
+    "maxHp": 12
+   }
+  },
+  "h_hat": {
+   "name": "帽子",
+   "slot": "head",
+   "kind": "light",
+   "look": "hat",
+   "stats": {
+    "def": 3,
+    "evasion": 1
+   }
+  },
+  "h_hood": {
+   "name": "頭巾",
+   "slot": "head",
+   "kind": "cloth",
+   "look": "hood",
+   "stats": {
+    "def": 2,
+    "mdef": 4,
+    "maxMp": 5
+   }
+  },
+  "x_earring": {
+   "name": "耳飾り",
+   "slot": "accessory",
+   "kind": "accessory",
+   "look": "earring",
+   "stats": {
+    "critRate": 1,
+    "atk": 2,
+    "matk": 2
+   }
   }
- }
+ },
+ "flatStats": [
+  "blockRate",
+  "critRate",
+  "critDamage",
+  "cspdPct",
+  "magazine",
+  "reloadPct",
+  "statusResistPct",
+  "evasion"
+ ],
+ "flatTierGrowth": 0.1
 }

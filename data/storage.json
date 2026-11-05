@@ -1,0 +1,1 @@
+{ "base": 40, "step": 20, "max": 200, "costBase": 2000, "costGrowth": 1.6, "sortKeys": ["rarity", "slot", "level", "new"] }

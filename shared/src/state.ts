@@ -68,7 +68,13 @@ export interface CharacterData {
   location: { area: string; x: number; y: number };
   hp: number;
   mp: number;
+  /** アバター：登録した見た目と、選んでいる見た目 */
+  appearance: { looks: string[]; selected: Partial<Record<'weapon' | 'body' | 'head', string>> };
+  /** ルートフィルター：これより下のレア度は表示しない／自動で売る */
+  lootFilter: { hideBelow: Rarity | null; sellBelow: Rarity | null };
 }
+
+export interface StorageData { items: Item[]; bag: Record<string, number>; capacity: number }
 
 export interface AccountData {
   version: number;
@@ -77,6 +83,8 @@ export interface AccountData {
   nextUid: number;
   characters: CharacterData[];
   lastCharacterId: string | null;
+  /** 倉庫はアカウントで共有 */
+  storage: StorageData;
 }
 
 // ═════════════ 入力とコマンド ═════════════
@@ -110,7 +118,18 @@ export type Command =
   | { type: 'sell'; uid: number }
   | { type: 'sellBag'; id: string; n: number }
   | { type: 'buy'; shop: string; id: string; n: number }
-  | { type: 'lock'; uid: number; locked: boolean };
+  | { type: 'lock'; uid: number; locked: boolean }
+  | { type: 'refine'; uid: number }
+  | { type: 'insertCrystal'; uid: number; socket: number; crystal: string }
+  | { type: 'removeCrystal'; uid: number; socket: number; recover: boolean }
+  | { type: 'deposit'; uid: number }
+  | { type: 'withdraw'; uid: number }
+  | { type: 'depositBag'; id: string; n: number }
+  | { type: 'withdrawBag'; id: string; n: number }
+  | { type: 'expandStorage' }
+  | { type: 'sortInventory'; key: string }
+  | { type: 'setAppearance'; slot: 'weapon' | 'body' | 'head'; look: string | null }
+  | { type: 'setLootFilter'; hideBelow: Rarity | null; sellBelow: Rarity | null };
 
 export const emptyInput = (): PlayerInput => ({
   move: { x: 0, y: 0 }, aim: null, attack: false, skill: -1, dodge: false, interact: false, commands: [],
@@ -186,6 +205,9 @@ export interface Player extends ActorBase {
   lastDodgeTick: number;
   lastCombatTick: number;
   regenAcc: number;
+  /** 固有効果の条件（HP・回避直後など）の今の状態 */
+  condKey: string;
+  cheatDeathAt: number;
 }
 
 export type AiState = 'wander' | 'chase' | 'return';
@@ -360,4 +382,7 @@ export type GameEvent =
   | { type: 'npc'; playerId: number; npc: string; npcId: number }
   | { type: 'rhythm'; playerId: number; onBeat: boolean; stacks: number }
   | { type: 'reload'; playerId: number; done: boolean }
+  | { type: 'refine'; playerId: number; uid: number; success: boolean; level: number }
+  | { type: 'proc'; playerId: number; name: string; x: number; y: number }
+  | { type: 'autoSell'; playerId: number; gold: number; rarity: Rarity }
   | { type: 'areaChanged'; playerId: number; area: string };

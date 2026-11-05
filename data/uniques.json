@@ -1,0 +1,18 @@
+{
+  "vampire":      { "name": "吸血の刃",   "slots": ["weapon"], "mods": { "lifestealPct": 4 } },
+  "inferno":      { "name": "業火の心",   "slots": ["weapon", "accessory"], "mods": { "fireDmgPct": 20, "statusChancePct": 15 } },
+  "gale_step":    { "name": "疾風迅雷",   "slots": ["body", "head"], "when": { "afterDodge": 3 }, "whenMods": { "atkPct": 25, "matkPct": 25 } },
+  "iron_will":    { "name": "鉄壁の意志", "slots": ["body", "sub"], "when": { "hpBelow": 30 }, "whenMods": { "defPct": 50, "dmgReductionPct": 15 } },
+  "hunter":       { "name": "狩人の誇り", "slots": ["weapon", "accessory"], "mods": { "bossDmgPct": 15 } },
+  "echo_strike":  { "name": "連撃",       "slots": ["weapon"], "proc": { "on": "hit", "chance": 10, "effect": "extraHit", "value": 0.6 } },
+  "starlight":    { "name": "星の加護",   "slots": ["accessory"], "mods": { "mpOnHit": 3 } },
+  "undying":      { "name": "不屈",       "slots": ["body"], "cheatDeath": 60 },
+  "night_walker": { "name": "夜歩き",     "slots": ["head", "accessory"], "when": { "night": true }, "whenMods": { "atkPct": 15, "matkPct": 15 } },
+  "berserker":    { "name": "狂戦士",     "slots": ["weapon"], "when": { "hpBelow": 50 }, "whenMods": { "atkPct": 30, "critRate": 10 } },
+  "full_power":   { "name": "万全",       "slots": ["accessory", "head"], "when": { "fullHp": true }, "whenMods": { "physDmgPct": 15, "magDmgPct": 15 } },
+  "thunder":      { "name": "雷鳴",       "slots": ["weapon"], "proc": { "on": "hit", "chance": 8, "effect": "status", "value": 4, "status": "shock" } },
+  "blizzard":     { "name": "氷晶",       "slots": ["weapon"], "proc": { "on": "hit", "chance": 6, "effect": "status", "value": 1.5, "status": "freeze" } },
+  "lucky_star":   { "name": "幸運の星",   "slots": ["accessory", "head"], "mods": { "dropRatePct": 15, "rareRatePct": 10 } },
+  "soul_reaper":  { "name": "魂狩り",     "slots": ["weapon", "accessory"], "proc": { "on": "kill", "chance": 100, "effect": "heal", "value": 8 } },
+  "phoenix":      { "name": "不死鳥の羽", "slots": ["accessory", "body"], "proc": { "on": "hurt", "chance": 10, "effect": "heal", "value": 10 } }
+}

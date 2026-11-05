@@ -9,10 +9,26 @@ import { createItem } from './systems/loot';
  * セーブデータの形。構造を変えたら SAVE_VERSION を上げ、MIGRATIONS に変換を足す。
  * 保存先（IndexedDB・サーバーのDB）は client 側の SaveStore が決める。
  */
-export const SAVE_VERSION = 1;
+export const SAVE_VERSION = 2;
+
+type Raw = Record<string, unknown>;
 
 /** version n のデータを n+1 に変換する関数 */
-export const MIGRATIONS: Record<number, (d: Record<string, unknown>) => Record<string, unknown>> = {};
+export const MIGRATIONS: Record<number, (d: Raw) => Raw> = {
+  /** 1 → 2：アバター・ルートフィルター・倉庫を追加 */
+  1: (d) => {
+    const chars = (d.characters as Raw[] | undefined) ?? [];
+    for (const ch of chars) {
+      const looks: string[] = [];
+      const items = [...((ch.inventory as { look?: string }[]) ?? []), ...Object.values((ch.equipment as Record<string, { look?: string } | null>) ?? {})];
+      for (const it of items) if (it?.look && !looks.includes(it.look)) looks.push(it.look);
+      ch.appearance = { looks, selected: {} };
+      ch.lootFilter = { hideBelow: null, sellBelow: null };
+    }
+    d.storage = { items: [], bag: {}, capacity: CONTENT.storage.base };
+    return d;
+  },
+};
 
 /** 保存先のインターフェース。後でサーバーの DB に置き換える */
 export interface SaveStore {
@@ -29,6 +45,7 @@ export function newAccount(now: number, seed: number): AccountData {
     nextUid: 1,
     characters: [],
     lastCharacterId: null,
+    storage: { items: [], bag: {}, capacity: CONTENT.storage.base },
   };
 }
 
@@ -63,7 +80,10 @@ export function newCharacter(acc: AccountData, name: string, look: { body: numbe
     location: { area, x: sp.x, y: sp.y },
     hp: 0,
     mp: 0,
+    appearance: { looks: [], selected: {} },
+    lootFilter: { hideBelow: null, sellBelow: null },
   };
+  for (const it of [...inventory, ...Object.values(equipment)]) if (it && !ch.appearance.looks.includes(it.look)) ch.appearance.looks.push(it.look);
   acc.characters.push(ch);
   acc.lastCharacterId = ch.id;
   return ch;
@@ -91,6 +111,10 @@ export function normalizeCharacter(ch: CharacterData, c: Content = CONTENT): Cha
   ch.location ??= { area: c.balance.world.startArea, x: 0, y: 0 };
   ch.hp ??= 0;
   ch.mp ??= 0;
+  ch.appearance ??= { looks: [], selected: {} };
+  ch.appearance.looks ??= [];
+  ch.appearance.selected ??= {};
+  ch.lootFilter ??= { hideBelow: null, sellBelow: null };
   return ch;
 }
 
@@ -113,12 +137,17 @@ export function migrateAccount(raw: unknown, c: Content = CONTENT): AccountData 
   if (!Array.isArray(acc.characters)) throw new Error('save: characters missing');
   acc.nextUid ??= 1;
   acc.lastCharacterId ??= null;
+  acc.storage ??= { items: [], bag: {}, capacity: c.storage.base };
+  acc.storage.items ??= [];
+  acc.storage.bag ??= {};
+  acc.storage.capacity ??= c.storage.base;
   // uid が重ならないように
   let maxUid = acc.nextUid;
   for (const ch of acc.characters) {
     normalizeCharacter(ch, c);
     for (const it of [...ch.inventory, ...Object.values(ch.equipment)]) if (it && it.uid >= maxUid) maxUid = it.uid + 1;
   }
+  for (const it of acc.storage.items) if (it.uid >= maxUid) maxUid = it.uid + 1;
   acc.nextUid = maxUid;
   return acc;
 }

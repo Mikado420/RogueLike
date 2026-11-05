@@ -7,12 +7,15 @@ import { updateNormalAttack, updateWeaponTimers, weaponDef } from './weapons';
 import { applyCommand } from './commands';
 import { heal } from './combat';
 import { interact } from './interact';
+import { conditionalMods, procOnDodge } from './effects';
 import { DT, nearestMonster, sec } from './util';
 
 export function refreshPlayerStats(w: World, p: Player) {
   const ratioHp = p.stats.maxHp > 0 ? p.hp / p.stats.maxHp : 1;
   const oldMax = p.stats.maxHp;
-  p.stats = derivePlayerStats(p.char, p.statuses, w.content);
+  const cond = conditionalMods(w, p);
+  p.condKey = cond.key;
+  p.stats = derivePlayerStats(p.char, p.statuses, w.content, cond.mods);
   if (p.stats.maxHp !== oldMax && oldMax > 0) p.hp = Math.min(p.stats.maxHp, Math.max(1, Math.round(p.stats.maxHp * ratioHp)));
   p.hp = Math.min(p.hp, p.stats.maxHp);
   p.mp = Math.min(p.mp, p.stats.maxMp);
@@ -23,6 +26,7 @@ export function refreshPlayerStats(w: World, p: Player) {
 export function updatePlayer(w: World, p: Player, input: PlayerInput) {
   const c = w.content, pb = c.balance.player;
   for (const cmd of input.commands) applyCommand(w, p, cmd);
+  if (!p.dead && conditionalMods(w, p).key !== p.condKey) p.statsDirty = true;
   if (p.statsDirty) refreshPlayerStats(w, p);
 
   if (p.dead) {
@@ -73,6 +77,7 @@ export function updatePlayer(w: World, p: Player, input: PlayerInput) {
       p.dodgeDir = d;
       p.facing = Math.atan2(d.y, d.x);
       w.events.push({ type: 'dodge', id: p.id });
+      procOnDodge(w, p);
     }
   }
 

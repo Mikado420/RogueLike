@@ -5,14 +5,15 @@ import {
 import { depth, isoRadii, TILE_H, TILE_W, toScreen } from './iso';
 import { makeBagIcon, makePlayerSprite, makeSprite, makeWeaponGlyph } from './sprites';
 import { drawIsoShape, Effects } from './fx';
-import { chargeLevel } from '../../shared/src';
-import { BODY_COLORS, ELEMENT_COLOR, hex, HAIR_COLORS, rarityColorNum, statusColor } from './colors';
+import { chargeLevel, rarityRank, shownLook } from '../../shared/src';
+import { BODY_COLORS, ELEMENT_COLOR, hex, HAIR_COLORS, lookInfo, rarityColorNum, statusColor } from './colors';
 import type { Settings } from './settings';
 import type { Sfx } from './audio';
 
 interface ActorView {
   root: Container;
   body: Container;
+  lookKey?: string;
   weapon?: Graphics;
   weaponType?: string;
   bar?: Graphics;
@@ -38,6 +39,8 @@ export function itemIconName(it: Item): string {
     return map[it.kind] ?? 'item_sword';
   }
   if (it.slot === 'accessory') return 'item_ring';
+  if (it.slot === 'head') return 'item_hat';
+  if (it.slot === 'sub') return it.kind === 'shield' ? 'item_shield' : it.kind === 'grimoire' ? 'item_book' : 'item_ring';
   return 'item_armor';
 }
 
@@ -223,6 +226,12 @@ export class WorldView {
             if (e.onBeat) { this.fx.burst(p.x, p.y, 0xff9ad8, 0.9, 0.25); this.sfx.play('note'); }
           }
           break;
+        case 'proc':
+          if (e.playerId === this.myId) { this.fx.text(e.x, e.y, e.name, 0xffb02e); this.sfx.play('skill', 0.5); }
+          break;
+        case 'refine':
+          if (e.playerId === this.myId) this.sfx.play(e.success ? 'legend' : 'death', 0.7);
+          break;
         case 'levelUp':
           if (e.playerId === this.myId) {
             const p = this.me();
@@ -241,14 +250,14 @@ export class WorldView {
       const root = new Container();
       root.sortableChildren = true;
       let body: Container;
-      if (a.kind === 'player') body = makePlayerSprite(BODY_COLORS[a.char.look.body % BODY_COLORS.length], HAIR_COLORS[a.char.look.hair % HAIR_COLORS.length]);
+      if (a.kind === 'player') body = this.playerBody(a);
       else body = makeSprite(CONTENT.monsters[a.defId].sprite);
       if (a.kind === 'monster') {
         const sc = (CONTENT.monsters[a.defId].scale ?? 1) * (a.elite ? 1.15 : 1);
         body.scale.set(sc);
       }
       root.addChild(body);
-      v = { root, body, prev: { x: a.x, y: a.y }, cur: { x: a.x, y: a.y }, hurt: 0, float: Math.random() * 10 };
+      v = { root, body, prev: { x: a.x, y: a.y }, cur: { x: a.x, y: a.y }, hurt: 0, float: Math.random() * 10, lookKey: a.kind === 'player' ? this.lookKey(a) : undefined };
       if (a.kind === 'monster') {
         if (!CONTENT.monsters[a.defId].boss) { v.bar = new Graphics(); v.bar.zIndex = 5; root.addChild(v.bar); }
         if (a.elite) {
@@ -263,6 +272,16 @@ export class WorldView {
       this.actors.set(a.id, v);
     }
     return v;
+  }
+
+  private lookKey(p: Player): string {
+    return `${p.char.look.body}/${p.char.look.hair}/${shownLook(p.char, 'body')}/${shownLook(p.char, 'head')}/${shownLook(p.char, 'weapon')}`;
+  }
+
+  private playerBody(p: Player): Container {
+    const armor = lookInfo(shownLook(p.char, 'body'));
+    const head = lookInfo(shownLook(p.char, 'head'));
+    return makePlayerSprite(BODY_COLORS[p.char.look.body % BODY_COLORS.length], HAIR_COLORS[p.char.look.hair % HAIR_COLORS.length], armor, head);
   }
 
   render(alpha: number, dtMs: number) {
@@ -294,13 +313,26 @@ export class WorldView {
       const facingLeft = Math.cos(a.facing) - Math.sin(a.facing) < 0;
 
       if (a.kind === 'player') {
+        const lk = this.lookKey(a);
+        if (lk !== v.lookKey) {
+          v.lookKey = lk;
+          const nb = this.playerBody(a);
+          v.root.addChildAt(nb, v.root.getChildIndex(v.body));
+          v.body.destroy({ children: true });
+          v.body = nb;
+          v.weaponType = undefined;
+        }
         v.root.visible = !a.dead;
         v.root.alpha = a.dodgeTicks > 0 ? 0.55 : a.iframes > 0 ? 0.75 + Math.sin(this.time * 30) * 0.2 : 1;
-        const wt = a.char.equipment.weapon?.kind;
-        if (v.weaponType !== wt) {
+        const look = shownLook(a.char, 'weapon');
+        const lookKind = look ? Object.values(CONTENT.equipment.bases).find((b) => b.look === look.split(':')[0])?.kind : undefined;
+        const wt = lookKind ?? a.char.equipment.weapon?.kind;
+        const wkey = `${wt}:${look}`;
+        if (v.weaponType !== wkey) {
           v.weapon?.destroy();
-          v.weapon = makeWeaponGlyph(wt);
-          v.weaponType = wt;
+          const wl = lookInfo(look);
+          v.weapon = makeWeaponGlyph(wt, wl && wl.color !== 0xffffff ? wl.color : undefined);
+          v.weaponType = wkey;
           v.root.addChild(v.weapon);
         }
         if (v.weapon) {
@@ -368,7 +400,9 @@ export class WorldView {
 
     // ドロップ
     const seenD = new Set<number>();
+    const hide = this.me().char.lootFilter.hideBelow;
     for (const d of w.area.drops) {
+      if (d.item && hide && d.ownerId === this.myId && rarityRank(d.item.rarity) < rarityRank(hide)) continue;
       seenD.add(d.id);
       let v = this.drops.get(d.id);
       if (!v) { v = this.makeDrop(d); this.drops.set(d.id, v); }

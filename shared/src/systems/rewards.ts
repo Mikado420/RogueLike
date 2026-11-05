@@ -1,7 +1,9 @@
 import type { Item, Monster, Player, World, Drop, Actor } from '../state';
 import { circleHitsMap } from '../map';
 import { gainExp, levelDiffMul, monsterExp } from './progression';
-import { rollEquipDrops } from './loot';
+import { rollEquipDrops, sellPrice } from './loot';
+import { procOnKill } from './effects';
+import { rarityRank } from '../core';
 import { findPlayer, isBoss, newId, sec } from './util';
 import { addCounter } from './counters';
 
@@ -38,9 +40,22 @@ export function onMonsterKilled(w: World, m: Monster, by: Actor | null) {
 
   // ドロップは最も削った人のもの
   const owner = killer ?? [...players][0];
+  if (killer) procOnKill(w, killer, m);
   const mods = owner.stats.m;
   const table = def.boss ? def.drops : m.elite ? 'elite' : def.drops;
-  for (const item of rollEquipDrops(w, table, m.level, mods)) placeDrop(w, m, { item }, owner.id);
+  for (const item of rollEquipDrops(w, table, m.level, mods)) {
+    const f = owner.char.lootFilter;
+    if (f.sellBelow && rarityRank(item.rarity) < rarityRank(f.sellBelow)) {
+      const gold = sellPrice(item, c);
+      owner.char.gold += gold;
+      w.events.push({ type: 'autoSell', playerId: owner.id, gold, rarity: item.rarity });
+      continue;
+    }
+    placeDrop(w, m, { item }, owner.id);
+  }
+  if (def.crystal && w.rng.chance(def.crystal.chance * (1 + (mods.dropRatePct ?? 0) / 100))) {
+    placeDrop(w, m, { bag: { id: def.crystal.id, n: 1 } }, owner.id);
+  }
   for (const mat of def.mats ?? []) {
     const chance = Math.min(1, mat.chance * (1 + (mods.dropRatePct ?? 0) / 100));
     if (!w.rng.chance(chance)) continue;

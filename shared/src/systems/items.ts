@@ -1,5 +1,6 @@
-import { EQUIP_SLOTS, type EquipSlot, type WeaponType } from '../core';
-import type { CharacterData, Item, Player, World } from '../state';
+import { EQUIP_SLOTS, RARITIES, rarityRank, type EquipSlot, type Rarity, type WeaponType } from '../core';
+import type { AccountData, CharacterData, Item, Player, World } from '../state';
+import type { Content } from '../content/types';
 import { heal } from './combat';
 import { sellPrice } from './loot';
 import { nearRole } from './interact';
@@ -29,6 +30,7 @@ export function equipItem(w: World, ch: CharacterData, uid: number): string | nu
   ch.inventory.splice(idx, 1);
   if (prev) ch.inventory.splice(idx, 0, prev);
   ch.equipment[it.slot] = it;
+  registerLook(ch, it);
   // 武器を替えて合わなくなったサブ武器は外す
   if (it.slot === 'weapon' && ch.equipment.sub && canEquip(ch, ch.equipment.sub, w)) {
     ch.inventory.push(ch.equipment.sub);
@@ -126,8 +128,11 @@ export function updateDrops(w: World) {
       if (p.dead) continue;
       if (Math.hypot(p.x - d.x, p.y - d.y) > range) continue;
       if (d.item) {
+        const hide = p.char.lootFilter.hideBelow;
+        if (hide && rarityRank(d.item.rarity) < rarityRank(hide) && d.ownerId === p.id) continue;
         if (p.char.inventory.length >= max) { if (w.tick % 40 === 0) notice(w, p.id, 'err.full'); continue; }
         p.char.inventory.push(d.item);
+        registerLook(p.char, d.item);
       } else if (d.bag) {
         addToBag(p.char, d.bag.id, d.bag.n);
       }
@@ -136,4 +141,190 @@ export function updateDrops(w: World) {
     }
     return true;
   });
+}
+
+// ───────── アバター ─────────
+
+/** 手に入れた装備の見た目を登録する */
+export function registerLook(ch: CharacterData, it: Item) {
+  if (!ch.appearance.looks.includes(it.look)) ch.appearance.looks.push(it.look);
+}
+
+const LOOK_SLOT: Record<string, 'weapon' | 'body' | 'head'> = { weapon: 'weapon', body: 'body', head: 'head' };
+
+export function lookSlotOf(look: string, c: Content): 'weapon' | 'body' | 'head' | null {
+  const key = look.split(':')[0];
+  const base = Object.values(c.equipment.bases).find((b) => b.look === key);
+  return base ? LOOK_SLOT[base.slot] ?? null : null;
+}
+
+export function setAppearance(ch: CharacterData, slot: 'weapon' | 'body' | 'head', look: string | null, c: Content): string | null {
+  if (look === null) { delete ch.appearance.selected[slot]; return null; }
+  if (!ch.appearance.looks.includes(look)) return 'err.invalid';
+  if (lookSlotOf(look, c) !== slot) return 'err.invalid';
+  ch.appearance.selected[slot] = look;
+  return null;
+}
+
+/** 表示に使う見た目（選んでいなければ装備中のもの） */
+export function shownLook(ch: CharacterData, slot: 'weapon' | 'body' | 'head'): string | null {
+  return ch.appearance.selected[slot] ?? ch.equipment[slot]?.look ?? null;
+}
+
+// ───────── ルートフィルター・並べ替え ─────────
+
+export function setLootFilter(ch: CharacterData, hideBelow: Rarity | null, sellBelow: Rarity | null): string | null {
+  if (hideBelow !== null && !RARITIES.includes(hideBelow)) return 'err.invalid';
+  if (sellBelow !== null && !RARITIES.includes(sellBelow)) return 'err.invalid';
+  ch.lootFilter = { hideBelow, sellBelow };
+  return null;
+}
+
+const SLOT_ORDER: EquipSlot[] = ['weapon', 'sub', 'body', 'head', 'accessory'];
+
+export function sortItems(items: Item[], key: string): Item[] {
+  const by: Record<string, (a: Item, b: Item) => number> = {
+    rarity: (a, b) => rarityRank(b.rarity) - rarityRank(a.rarity) || b.ilvl - a.ilvl,
+    slot: (a, b) => SLOT_ORDER.indexOf(a.slot) - SLOT_ORDER.indexOf(b.slot) || a.kind.localeCompare(b.kind) || rarityRank(b.rarity) - rarityRank(a.rarity),
+    level: (a, b) => b.ilvl - a.ilvl || rarityRank(b.rarity) - rarityRank(a.rarity),
+    new: (a, b) => b.uid - a.uid,
+  };
+  const f = by[key] ?? by.rarity;
+  return [...items].sort(f);
+}
+
+// ───────── 精錬 ─────────
+
+export function refineCost(it: Item, c: Content): { gold: number; stones: number; rate: number } | null {
+  const r = c.refine;
+  if (it.refine >= r.max) return null;
+  const lv = r.levels[it.refine];
+  return {
+    gold: Math.round(lv.gold * (1 + it.tier * r.goldTierMul)),
+    stones: lv.stones,
+    rate: Math.min(100, lv.rate + it.refinePity),
+  };
+}
+
+/**
+ * 精錬。成功で +1。失敗すると段階が下がることがある（drop）。
+ * 失敗するたびに次の成功率が上がる（天井）。成功したら天井は戻る。
+ */
+export function refineItem(w: World, p: Player, uid: number): string | null {
+  const c = w.content;
+  const ch = p.char;
+  const it = findOwnedItem(ch, uid);
+  if (!it) return 'err.invalid';
+  const cost = refineCost(it, c);
+  if (!cost) return 'err.refineMax';
+  if (ch.gold < cost.gold) return 'err.gold';
+  if ((ch.bag[c.refine.stone] ?? 0) < cost.stones) return 'err.noStone';
+  ch.gold -= cost.gold;
+  takeFromBag(ch, c.refine.stone, cost.stones);
+  const ok = w.rng.next() * 100 < cost.rate;
+  if (ok) {
+    it.refine++;
+    it.refinePity = 0;
+  } else {
+    it.refine = Math.max(0, it.refine - c.refine.levels[it.refine].drop);
+    it.refinePity += c.refine.pityPerFail;
+  }
+  if (it.trade === 'free') it.trade = 'once';
+  w.events.push({ type: 'refine', playerId: p.id, uid, success: ok, level: it.refine });
+  return null;
+}
+
+export function findOwnedItem(ch: CharacterData, uid: number): Item | undefined {
+  return ch.inventory.find((x) => x.uid === uid) ?? (Object.values(ch.equipment).find((x) => x?.uid === uid) ?? undefined);
+}
+
+// ───────── 結晶 ─────────
+
+export function crystalFits(it: Item, crystal: string, c: Content): boolean {
+  const d = c.crystals[crystal];
+  if (!d) return false;
+  return d.slots === 'any' || d.slots.includes(it.slot);
+}
+
+export function insertCrystal(ch: CharacterData, uid: number, socket: number, crystal: string, c: Content): string | null {
+  const it = findOwnedItem(ch, uid);
+  if (!it || socket < 0 || socket >= it.crystals.length) return 'err.invalid';
+  if (it.crystals[socket]) return 'err.socketUsed';
+  if (!crystalFits(it, crystal, c)) return 'err.crystalSlot';
+  if (it.crystals.includes(crystal)) return 'err.crystalDup';
+  if (!takeFromBag(ch, crystal, 1)) return 'err.none';
+  it.crystals[socket] = crystal;
+  return null;
+}
+
+/** 結晶を外す。recover ならゴールドを払って取り戻す。そうでなければ壊れる */
+export function removeCrystal(ch: CharacterData, uid: number, socket: number, recover: boolean, c: Content): string | null {
+  const it = findOwnedItem(ch, uid);
+  if (!it || socket < 0 || socket >= it.crystals.length) return 'err.invalid';
+  const cr = it.crystals[socket];
+  if (!cr) return 'err.invalid';
+  if (recover) {
+    const cost = c.crystals[cr]?.recover ?? 0;
+    if (ch.gold < cost) return 'err.gold';
+    ch.gold -= cost;
+    addToBag(ch, cr, 1);
+  }
+  it.crystals[socket] = null;
+  return null;
+}
+
+// ───────── 倉庫（アカウントで共有） ─────────
+
+export function storageExpandCost(acc: AccountData, c: Content): number | null {
+  const s = c.storage;
+  if (acc.storage.capacity >= s.max) return null;
+  const n = Math.round((acc.storage.capacity - s.base) / s.step);
+  return Math.round(s.costBase * Math.pow(s.costGrowth, n));
+}
+
+export function deposit(w: World, ch: CharacterData, uid: number): string | null {
+  const st = w.account.storage;
+  const i = ch.inventory.findIndex((x) => x.uid === uid);
+  if (i < 0) return 'err.invalid';
+  if (st.items.length >= st.capacity) return 'err.storageFull';
+  st.items.push(ch.inventory.splice(i, 1)[0]);
+  return null;
+}
+
+export function withdraw(w: World, ch: CharacterData, uid: number): string | null {
+  const st = w.account.storage;
+  const i = st.items.findIndex((x) => x.uid === uid);
+  if (i < 0) return 'err.invalid';
+  if (ch.inventory.length >= w.content.balance.player.inventorySize) return 'err.full';
+  const it = st.items.splice(i, 1)[0];
+  ch.inventory.push(it);
+  registerLook(ch, it);
+  return null;
+}
+
+export function depositBag(w: World, ch: CharacterData, id: string, n: number): string | null {
+  const k = Math.min(Math.floor(n), ch.bag[id] ?? 0);
+  if (k <= 0) return 'err.none';
+  takeFromBag(ch, id, k);
+  w.account.storage.bag[id] = (w.account.storage.bag[id] ?? 0) + k;
+  return null;
+}
+
+export function withdrawBag(w: World, ch: CharacterData, id: string, n: number): string | null {
+  const st = w.account.storage.bag;
+  const k = Math.min(Math.floor(n), st[id] ?? 0);
+  if (k <= 0) return 'err.none';
+  st[id] -= k;
+  if (st[id] <= 0) delete st[id];
+  addToBag(ch, id, k);
+  return null;
+}
+
+export function expandStorage(w: World, ch: CharacterData): string | null {
+  const cost = storageExpandCost(w.account, w.content);
+  if (cost === null) return 'err.storageMax';
+  if (ch.gold < cost) return 'err.gold';
+  ch.gold -= cost;
+  w.account.storage.capacity = Math.min(w.content.storage.max, w.account.storage.capacity + w.content.storage.step);
+  return null;
 }

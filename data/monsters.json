@@ -115,6 +115,10 @@
    {
     "id": "golem_core",
     "chance": 0.3
+   },
+   {
+    "id": "refine_stone",
+    "chance": 0.15
    }
   ],
   "capturable": true,
@@ -290,7 +294,11 @@
      }
     ]
    }
-  ]
+  ],
+  "crystal": {
+   "id": "cr_ember",
+   "chance": 0.5
+  }
  },
  "dummy": {
   "name": "訓練用の人形",

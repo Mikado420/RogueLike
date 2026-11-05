@@ -2,7 +2,10 @@ import type { Command, Player, World } from '../state';
 import {
   allocateStat, choosePersonal, learnSkill, loadBuild, rebirth, respec, saveBuild, setSkillSlot,
 } from './progression';
-import { buy, equipItem, sellBag, sellItem, unequipItem, useItem } from './items';
+import {
+  buy, deposit, depositBag, equipItem, expandStorage, insertCrystal, refineItem, removeCrystal, sellBag, sellItem,
+  setAppearance, setLootFilter, sortItems, unequipItem, useItem, withdraw, withdrawBag,
+} from './items';
 import { nearRole } from './interact';
 import { notice } from './util';
 
@@ -42,6 +45,17 @@ export function applyCommand(w: World, p: Player, cmd: Command) {
     case 'sell': err = sellItem(w, p, cmd.uid); break;
     case 'sellBag': err = sellBag(w, p, cmd.id, cmd.n); break;
     case 'buy': err = buy(w, p, cmd.shop, cmd.id, cmd.n); break;
+    case 'refine': err = nearRole(w, p, 'smith') ? refineItem(w, p, cmd.uid) : 'err.notNear'; break;
+    case 'insertCrystal': err = nearRole(w, p, 'smith') ? insertCrystal(ch, cmd.uid, cmd.socket, cmd.crystal, c) : 'err.notNear'; break;
+    case 'removeCrystal': err = nearRole(w, p, 'smith') ? removeCrystal(ch, cmd.uid, cmd.socket, cmd.recover, c) : 'err.notNear'; break;
+    case 'deposit': err = nearRole(w, p, 'storage') ? deposit(w, ch, cmd.uid) : 'err.notNear'; break;
+    case 'withdraw': err = nearRole(w, p, 'storage') ? withdraw(w, ch, cmd.uid) : 'err.notNear'; break;
+    case 'depositBag': err = nearRole(w, p, 'storage') ? depositBag(w, ch, cmd.id, cmd.n) : 'err.notNear'; break;
+    case 'withdrawBag': err = nearRole(w, p, 'storage') ? withdrawBag(w, ch, cmd.id, cmd.n) : 'err.notNear'; break;
+    case 'expandStorage': err = nearRole(w, p, 'storage') ? expandStorage(w, ch) : 'err.notNear'; break;
+    case 'sortInventory': ch.inventory = sortItems(ch.inventory, cmd.key); break;
+    case 'setAppearance': err = setAppearance(ch, cmd.slot, cmd.look, c); break;
+    case 'setLootFilter': err = setLootFilter(ch, cmd.hideBelow, cmd.sellBelow); break;
     case 'lock': {
       const it = ch.inventory.find((x) => x.uid === cmd.uid) ?? Object.values(ch.equipment).find((x) => x?.uid === cmd.uid);
       if (it) it.locked = cmd.locked; else err = 'err.invalid';

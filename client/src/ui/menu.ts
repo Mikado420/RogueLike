@@ -1,9 +1,10 @@
 import {
-  CONTENT, EQUIP_SLOTS, PERSONAL_STATS, PRIMARY_STATS, canLearnSkill, expToNext, freeSkillPoints, freeStatPoints,
-  itemMods, primaryStats, scaled, slotsFor, staticMods, txt, weaponTypeOf,
-  type EquipSlot, type Item, type ModKey, type SkillDef, type WeaponType,
+  CONTENT, EQUIP_SLOTS, PERSONAL_STATS, PRIMARY_STATS, RARITIES, bagInfo, canLearnSkill, expToNext, freeSkillPoints,
+  freeStatPoints, itemMods, lookSlotOf, primaryStats, scaled, slotsFor, staticMods, txt, weaponTypeOf,
+  type EquipSlot, type Item, type ModKey, type Rarity, type SkillDef, type WeaponType,
 } from '../../../shared/src';
-import { rarityColor } from '../colors';
+import { lookInfo } from '../colors';
+import { itemCell, itemInfo } from './itemview';
 import { btn, h, kv } from './dom';
 import { elName, modLabel, modText, type Ctx } from './ctx';
 import type { DamageDisplay } from '../settings';
@@ -41,6 +42,7 @@ export class Menu {
     const tabs = h('div', 'tabs');
     const all: { id: string; label: string }[] = [
       ...TABS.slice(0, 3).map((t) => ({ id: t, label: txt(`menu.${t}`) })),
+      { id: 'look', label: txt('menu.look') },
       ...this.extraTabs.map((t) => ({ id: t.id, label: t.label })),
       { id: 'settings', label: txt('menu.settings') },
     ];
@@ -58,6 +60,7 @@ export class Menu {
     else if (this.tab === 'status') this.renderStatus(content);
     else if (this.tab === 'skills') this.renderSkills(content);
     else if (this.tab === 'items') this.renderItems(content);
+    else if ((this.tab as string) === 'look') this.renderLook(content);
     else this.renderSettings(content);
   }
 
@@ -268,46 +271,54 @@ export class Menu {
 
   // ───────── 持ち物 ─────────
 
-  private itemCell(it: Item | null, label?: string): HTMLButtonElement {
-    const c = h('button', 'cell');
-    if (label) c.append(h('span', 'cell-slot', label));
-    if (it) {
-      c.style.borderColor = rarityColor(it.rarity);
-      c.style.color = rarityColor(it.rarity);
-      if (CONTENT.rarities.defs[it.rarity].glow) c.classList.add('glow');
-      c.style.setProperty('--rc', rarityColor(it.rarity));
-      c.append(h('span', 'cell-name', it.name + (it.refine > 0 ? ` +${it.refine}` : '')));
-      if (it.locked) c.append(h('span', 'cell-lock', '🔒'));
-      if (it.uid === this.itemSel) c.classList.add('sel');
-      c.addEventListener('click', () => { this.itemSel = it.uid; this.refresh(); });
-    } else {
-      c.classList.add('none');
-    }
-    return c;
-  }
-
   private renderItems(el: HTMLElement) {
     const p = this.ctx.me();
     const ch = p.char;
     const body = h('div', 'inv');
     const left = h('div', 'inv-left');
     const eq = h('div', 'equip');
-    for (const slot of EQUIP_SLOTS) eq.append(this.itemCell(ch.equipment[slot], txt(`slot.${slot}`)));
+    for (const slot of EQUIP_SLOTS) {
+      const it = ch.equipment[slot];
+      eq.append(itemCell(it, { label: txt(`slot.${slot}`), selected: !!it && it.uid === this.itemSel, onClick: () => { if (it) { this.itemSel = it.uid; this.refresh(); } } }));
+    }
     left.append(eq);
-    left.append(h('div', 'sub-title', `${txt('item.equipment')}  ${ch.inventory.length} / ${CONTENT.balance.player.inventorySize}`));
+    const tools = h('div', 'inv-tools');
+    tools.append(h('span', 'sub-title', `${txt('item.equipment')}  ${ch.inventory.length} / ${CONTENT.balance.player.inventorySize}`));
+    const sorts = h('div', 'seg small');
+    for (const k of CONTENT.storage.sortKeys) sorts.append(btn(txt(`sort.${k}`), () => this.ctx.send({ type: 'sortInventory', key: k }), 'seg-btn'));
+    tools.append(sorts);
+    left.append(tools);
     const grid = h('div', 'grid');
     grid.dataset.keepScroll = '1';
-    for (const it of ch.inventory) grid.append(this.itemCell(it));
+    for (const it of ch.inventory) grid.append(itemCell(it, { selected: it.uid === this.itemSel, onClick: () => { this.itemSel = it.uid; this.refresh(); } }));
     left.append(grid);
+    const f = ch.lootFilter;
+    const filt = h('div', 'filter-row');
+    const pick = (label: string, cur: Rarity | null, set: (r: Rarity | null) => void) => {
+      const row = h('div', 'set-row');
+      row.append(h('span', 'set-label small', label));
+      const g = h('div', 'seg small');
+      g.append(btn(txt('filter.none'), () => set(null), `seg-btn${cur === null ? ' on' : ''}`));
+      for (const r of RARITIES.slice(1, 4)) {
+        const b = btn(CONTENT.rarities.defs[r].name, () => set(r), `seg-btn${cur === r ? ' on' : ''}`);
+        if (cur !== r) b.style.color = CONTENT.rarities.defs[r].color;
+        g.append(b);
+      }
+      row.append(g);
+      filt.append(row);
+    };
+    pick(txt('filter.hide'), f.hideBelow, (r) => this.ctx.send({ type: 'setLootFilter', hideBelow: r, sellBelow: f.sellBelow }));
+    pick(txt('filter.sell'), f.sellBelow, (r) => this.ctx.send({ type: 'setLootFilter', hideBelow: f.hideBelow, sellBelow: r }));
+    left.append(filt);
     left.append(h('div', 'sub-title', txt('item.materials')));
     const bag = h('div', 'bag');
     for (const [id, n] of Object.entries(ch.bag)) {
-      const md = CONTENT.materials[id];
-      if (!md || n <= 0) continue;
+      if (n <= 0) continue;
+      const info = bagInfo(id);
       const b = h('button', `bag-item${this.itemSel === id ? ' sel' : ''}`);
       const dot = h('i', 'dot');
-      dot.style.background = md.color;
-      b.append(dot, h('span', '', md.name), h('b', '', `×${n}`));
+      dot.style.background = info.color;
+      b.append(dot, h('span', '', info.name), h('b', '', `×${n}`));
       b.addEventListener('click', () => { this.itemSel = id; this.refresh(); });
       bag.append(b);
     }
@@ -322,14 +333,16 @@ export class Menu {
     const ch = p.char;
     const det = h('div', 'detail');
     if (typeof this.itemSel === 'string') {
-      const md = CONTENT.materials[this.itemSel];
-      const n = ch.bag[this.itemSel] ?? 0;
-      if (!md || n <= 0) { det.classList.add('empty'); return det; }
-      const name = h('div', 'd-name', md.name);
-      name.style.color = md.color;
-      det.append(name, kv(txt('item.count'), String(n)), kv(txt('item.price'), `${md.price} G`));
-      if (md.use) {
-        const id = this.itemSel;
+      const id = this.itemSel;
+      const n = ch.bag[id] ?? 0;
+      if (n <= 0) { det.classList.add('empty'); return det; }
+      const info = bagInfo(id);
+      const name = h('div', 'd-name', info.name);
+      name.style.color = info.color;
+      det.append(name, kv(txt('item.count'), String(n)), kv(txt('item.price'), `${info.price} G`));
+      const cr = CONTENT.crystals[id];
+      if (cr) for (const [k, v] of Object.entries(cr.mods)) det.append(h('div', 'opt', modText(k as ModKey, v as number)));
+      if (CONTENT.materials[id]?.use) {
         const act = h('div', 'd-actions');
         act.append(btn(txt('item.use'), () => this.ctx.send({ type: 'useItem', id }), 'btn primary'));
         det.append(act);
@@ -339,14 +352,40 @@ export class Menu {
     const all = [...ch.inventory, ...Object.values(ch.equipment)].filter(Boolean) as Item[];
     const sel = all.find((it) => it.uid === this.itemSel);
     if (!sel) { det.classList.add('empty'); return det; }
-    det.append(itemInfo(sel, ch.level));
+    det.append(itemInfo(sel, ch));
     const equipped = Object.values(ch.equipment).some((e) => e?.uid === sel.uid);
+    if (!equipped) det.append(compareBox(sel, ch));
     const act = h('div', 'd-actions');
     if (!equipped) act.append(btn(txt('item.equip'), () => this.ctx.send({ type: 'equip', uid: sel.uid }), 'btn primary'));
     else if (sel.slot !== 'weapon') act.append(btn(txt('item.unequip'), () => this.ctx.send({ type: 'unequip', slot: sel.slot as EquipSlot }), 'btn'));
     act.append(btn(sel.locked ? txt('item.unlock') : txt('item.lock'), () => this.ctx.send({ type: 'lock', uid: sel.uid, locked: !sel.locked }), 'btn'));
     det.append(act);
     return det;
+  }
+
+  // ───────── 見た目 ─────────
+
+  private renderLook(el: HTMLElement) {
+    const ch = this.ctx.me().char;
+    for (const slot of ['weapon', 'body', 'head'] as const) {
+      const sec = h('div', 'npc-sec');
+      sec.append(h('div', 'sub-title', txt(`slot.${slot}Look`)));
+      const row = h('div', 'look-row');
+      const cur = ch.appearance.selected[slot] ?? null;
+      row.append(btn(txt('look.auto'), () => this.ctx.send({ type: 'setAppearance', slot, look: null }), `look-btn${cur === null ? ' on' : ''}`));
+      for (const look of ch.appearance.looks) {
+        if (lookSlotOf(look, CONTENT) !== slot) continue;
+        const li = lookInfo(look);
+        if (!li) continue;
+        const b = btn(li.name, () => this.ctx.send({ type: 'setAppearance', slot, look }), `look-btn${cur === look ? ' on' : ''}`);
+        const sw = h('i', 'dot');
+        sw.style.background = `#${li.color.toString(16).padStart(6, '0')}`;
+        b.prepend(sw);
+        row.append(b);
+      }
+      sec.append(row);
+      el.append(sec);
+    }
   }
 
   // ───────── 設定 ─────────
@@ -371,36 +410,19 @@ export class Menu {
   }
 }
 
-/** 装備の詳細（名前・数値・オプション） */
-export function itemInfo(it: Item, level: number): HTMLElement {
-  const box = h('div', 'item-info');
-  const rd = CONTENT.rarities.defs[it.rarity];
-  const name = h('div', 'd-name', it.name + (it.refine > 0 ? ` +${it.refine}` : ''));
-  name.style.color = rd.color;
-  box.append(name);
-  const tags = h('div', 'd-tags');
-  const rt = h('span', 'tag', rd.name);
-  rt.style.borderColor = rd.color; rt.style.color = rd.color;
-  tags.append(rt, h('span', 'tag', it.slot === 'weapon' ? CONTENT.weapons[it.kind as WeaponType]?.name ?? it.kind : txt(`slot.${it.slot}`)));
-  if (it.element !== 'neutral') tags.append(h('span', `tag el-${it.element}`, elName(it.element)));
-  box.append(tags);
-  const lines = h('div', 'd-lines');
-  const req = kv(txt('item.req'), String(it.reqLevel));
-  if (level < it.reqLevel) req.classList.add('bad');
-  lines.append(req);
-  const m = itemMods({ ...it, options: [] }, CONTENT);
-  for (const [k, v] of Object.entries(m)) lines.append(kv(modLabel(k as ModKey).label, String(v)));
-  box.append(lines);
-  if (it.options.length) {
-    const ol = h('div', 'd-opts');
-    for (const o of it.options) ol.append(h('div', 'opt', modText(o.key, o.value)));
-    box.append(ol);
-  }
-  if (it.crystals.length) {
-    const cr = h('div', 'd-crystals');
-    cr.append(h('span', 'k', txt('item.crystals')));
-    for (const c of it.crystals) cr.append(h('span', c ? 'gem on' : 'gem', '◇'));
-    box.append(cr);
+/** 持っている装備と、同じ部位の装備中のものを比べる */
+function compareBox(it: Item, ch: { equipment: Record<string, Item | null> }): HTMLElement {
+  const box = h('div', 'compare');
+  const cur = ch.equipment[it.slot];
+  const a = itemMods(it, CONTENT);
+  const b = cur ? itemMods(cur, CONTENT) : {};
+  const keys = new Set([...Object.keys(a), ...Object.keys(b)]);
+  for (const k of keys) {
+    const d = (a[k as ModKey] ?? 0) - (b[k as ModKey] ?? 0);
+    if (Math.abs(d) < 0.05) continue;
+    box.append(h('span', d > 0 ? 'up' : 'down', `${modLabel(k as ModKey).label} ${d > 0 ? '+' : ''}${Math.round(d * 10) / 10}${modLabel(k as ModKey).unit}`));
   }
   return box;
 }
+
+export { itemInfo };

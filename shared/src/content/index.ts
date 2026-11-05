@@ -13,6 +13,14 @@ import npcs from '../../../data/npcs.json';
 import shops from '../../../data/shops.json';
 import text from '../../../data/text.json';
 import tiles from '../../../data/tiles.json';
+import uniques from '../../../data/uniques.json';
+import mythics from '../../../data/mythics.json';
+import sets from '../../../data/sets.json';
+import crystals from '../../../data/crystals.json';
+import refine from '../../../data/refine.json';
+import storage from '../../../data/storage.json';
+import looks from '../../../data/looks.json';
+import time from '../../../data/time.json';
 import garden from '../../../data/maps/garden.json';
 import arena from '../../../data/maps/arena.json';
 import type { Content } from './types';
@@ -22,9 +30,18 @@ export * from './types';
 /** /data の JSON をまとめたもの。サーバーでもそのまま読み込める。 */
 export const CONTENT = {
   balance, weapons, skills: skills.skills, trees: skills.trees, statuses, monsters, equipment, rarities, options,
-  drops, materials, areas, npcs, shops, tiles, text,
+  drops, materials, areas, npcs, shops, tiles, text, uniques, mythics, sets, crystals, refine, storage, looks, time,
   maps: { garden, arena },
 } as unknown as Content;
+
+/** 袋に入るもの（素材・消耗品・結晶）の名前と色 */
+export function bagInfo(id: string): { name: string; color: string; kind: string; price: number } {
+  const m = CONTENT.materials[id];
+  if (m) return { name: m.name, color: m.color, kind: m.kind, price: m.price };
+  const c = CONTENT.crystals[id];
+  if (c) return { name: c.name, color: c.color, kind: 'crystal', price: Math.round(c.recover / 4) };
+  return { name: id, color: '#ffffff', kind: 'material', price: 0 };
+}
 
 /** data/text.json の文言。{0} {1} を差し込める */
 export function txt(key: string, ...args: (string | number)[]): string {

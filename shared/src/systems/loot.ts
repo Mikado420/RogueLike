@@ -42,16 +42,32 @@ export function rollOptions(slot: EquipSlot, count: number, ilvl: number, rarity
 export interface CreateOpts { set?: string; trade?: Item['trade'] }
 
 /** 装備を1つ作る */
-export function createItem(uid: number, baseId: string, tierIndex: number, ilvl: number, rarity: Rarity, rng: Rng, c: Content, opts: CreateOpts = {}): Item {
+export function createItem(uid: number, baseId: string, tierArg: number, ilvl: number, rarity: Rarity, rng: Rng, c: Content, opts: CreateOpts = {}): Item {
   const base = c.equipment.bases[baseId];
   if (!base) throw new Error(`unknown base ${baseId}`);
-  const tier = c.equipment.tiers[Math.max(0, Math.min(c.equipment.tiers.length - 1, tierIndex))];
+  const tier = c.equipment.tiers[Math.max(0, Math.min(c.equipment.tiers.length - 1, tierArg))];
   const rd = c.rarities.defs[rarity];
+  const tierIndex = c.equipment.tiers.indexOf(tier);
   const stats: Item['stats'] = {};
   for (const [k, v] of Object.entries(base.stats)) {
-    stats[k as keyof Item['stats']] = Math.max(1, Math.round((v as number) * tier.mul * rd.statMul * rng.range(0.95, 1.05)));
+    const key = k as keyof Item['stats'];
+    if (c.equipment.flatStats.includes(key)) {
+      stats[key] = Math.max(1, Math.round((v as number) * (1 + tierIndex * c.equipment.flatTierGrowth)));
+    } else {
+      stats[key] = Math.max(1, Math.round((v as number) * tier.mul * rd.statMul * rng.range(0.95, 1.05)));
+    }
   }
   const options = rollOptions(base.slot, rd.options, ilvl, rarity, rng, c);
+  let unique: string | undefined;
+  let mythic: string | undefined;
+  if (rarity === 'legend' || rarity === 'mythic') {
+    const mys = Object.keys(c.mythics).filter((id) => c.mythics[id].slots.includes(base.slot));
+    if (rarity === 'mythic' && mys.length) mythic = rng.pick(mys);
+    else {
+      const us = Object.keys(c.uniques).filter((id) => c.uniques[id].slots.includes(base.slot));
+      if (us.length) unique = rng.pick(us);
+    }
+  }
   let element: Item['element'] = 'neutral';
   if (base.slot === 'weapon' && rarity !== 'common' && rng.chance(c.options.weaponElementChance)) {
     element = rng.pick(c.options.weaponElements);
@@ -59,10 +75,24 @@ export function createItem(uid: number, baseId: string, tierIndex: number, ilvl:
   const slots = rng.int(rd.slots[0], rd.slots[1]);
   return {
     uid, base: baseId, name: tier.prefix + base.name, slot: base.slot, kind: base.kind,
-    tier: c.equipment.tiers.indexOf(tier), ilvl, reqLevel: tier.level, rarity, refine: 0, refinePity: 0,
-    stats, options, crystals: Array(slots).fill(null), element, set: opts.set,
-    trade: opts.trade ?? 'free', look: `${base.look}:${c.equipment.tiers.indexOf(tier)}`,
+    tier: tierIndex, ilvl, reqLevel: tier.level, rarity, refine: 0, refinePity: 0,
+    stats, options, crystals: Array(slots).fill(null), element, set: opts.set, unique, mythic,
+    trade: opts.trade ?? 'free', look: `${base.look}:${tierIndex}`,
   };
+}
+
+/** セット装備を1つ作る（部位はセットにあるものから選ぶ） */
+export function createSetPiece(uid: number, setId: string, ilvl: number, rarity: Rarity, rng: Rng, c: Content, slot?: EquipSlot): Item | null {
+  const set = c.sets[setId];
+  if (!set) return null;
+  const slots = Object.keys(set.pieces) as EquipSlot[];
+  const s = slot ?? rng.pick(slots);
+  const name = set.pieces[s];
+  if (!name) return null;
+  const bases = Object.keys(c.equipment.bases).filter((id) => c.equipment.bases[id].slot === s);
+  const it = createItem(uid, rng.pick(bases), tierFor(ilvl, c), ilvl, rarity === 'common' ? 'rare' : rarity, rng, c, { set: setId });
+  it.name = name;
+  return it;
 }
 
 /** 部位の重みから装備の土台を選ぶ */
@@ -91,6 +121,10 @@ export function rollEquipDrops(w: World, tableId: string, level: number, mods: {
   for (let i = 0; i < t.rolls; i++) {
     if (!w.rng.chance(chance)) continue;
     const rarity = rollRarity(w.rng, t.rarity, mods.rareRatePct ?? 0);
+    if (t.set && w.rng.chance(t.setChance ?? 0)) {
+      const sp = createSetPiece(newUid(w), t.set, level, rarity, w.rng, c);
+      if (sp) { out.push(sp); continue; }
+    }
     const base = pickBase(w.rng, t.slots ?? { weapon: 1, body: 1, accessory: 1 }, c);
     out.push(createItem(newUid(w), base, tierFor(level, c), level, rarity, w.rng, c));
   }

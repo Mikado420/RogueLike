@@ -1,0 +1,112 @@
+{
+ "flame_law": {
+  "name": "灼焔の理",
+  "slots": [
+   "weapon"
+  ],
+  "effect": "fireballAttack",
+  "value": 1.2,
+  "attack": {
+   "delivery": "projectile",
+   "power": 1.0,
+   "element": "fire",
+   "range": 8,
+   "breakPower": 1,
+   "projectile": {
+    "count": 1,
+    "spread": 0,
+    "speed": 12,
+    "range": 8,
+    "radius": 0.35,
+    "pierce": 1,
+    "explodeRadius": 1.4,
+    "sprite": "fireball"
+   }
+  }
+ },
+ "phantom": {
+  "name": "幻影歩法",
+  "slots": [
+   "body",
+   "head"
+  ],
+  "effect": "dodgeClone",
+  "value": 2.0,
+  "attack": {
+   "delivery": "strike",
+   "anchor": "self",
+   "shape": {
+    "type": "circle",
+    "radius": 2.0
+   },
+   "delay": 1.0,
+   "power": 2.0,
+   "element": "dark",
+   "breakPower": 3
+  }
+ },
+ "thunder_chain": {
+  "name": "雷霆の連鎖",
+  "slots": [
+   "weapon",
+   "accessory"
+  ],
+  "effect": "chainLightning",
+  "value": 0.35,
+  "mods": {
+   "windDmgPct": 10
+  }
+ },
+ "thousand_arms": {
+  "name": "千手",
+  "slots": [
+   "weapon"
+  ],
+  "effect": "extraHits",
+  "value": 2
+ },
+ "hell_gate": {
+  "name": "冥府の門",
+  "slots": [
+   "accessory",
+   "body"
+  ],
+  "effect": "deathBurst",
+  "value": 1.5,
+  "attack": {
+   "delivery": "strike",
+   "anchor": "self",
+   "shape": {
+    "type": "circle",
+    "radius": 2.5
+   },
+   "power": 1.5,
+   "element": "dark",
+   "breakPower": 2
+  }
+ },
+ "time_sand": {
+  "name": "時の砂",
+  "slots": [
+   "head",
+   "accessory"
+  ],
+  "effect": "timeSand",
+  "value": 0,
+  "mods": {
+   "cooldownPct": -30,
+   "mpCostPct": 30
+  }
+ },
+ "echo_chamber": {
+  "name": "残響",
+  "slots": [
+   "weapon",
+   "sub"
+  ],
+  "effect": "echoSkill",
+  "value": 25,
+  "power": 0.5,
+  "delay": 0.4
+ }
+}

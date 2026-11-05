@@ -6,7 +6,7 @@ import { isSolid, moveCircle } from '../map';
 import { addBreak, applyStatus, dmgTakenPct, missChance } from './status';
 import { DT, findActor, isBoss, newId, sec } from './util';
 import { onMonsterKilled, onPlayerKilled } from './rewards';
-import { procOnHit } from './effects';
+import { procOnHit, tryCheatDeath } from './effects';
 import { weaponHitMods, weaponOnHit } from './weapons';
 
 /** 攻撃定義と使い手から命中仕様を作る */
@@ -300,7 +300,7 @@ export function applyHit(w: World, src: Actor, tgt: Actor, spec: HitSpec, combo:
   }
   if (tgt.kind === 'monster' && tgt.ai !== 'chase') { tgt.ai = 'chase'; tgt.targetId = src.id; }
   procOnHit(w, src, tgt, spec, r.amount, r.crit);
-  if (tgt.hp <= 0 && !tgt.dead) kill(w, tgt, src);
+  if (tgt.hp <= 0 && !tgt.dead && !(tgt.kind === 'player' && tryCheatDeath(w, tgt))) kill(w, tgt, src);
   return true;
 }
 
@@ -314,7 +314,7 @@ export function dealDot(w: World, tgt: Actor, amount: number, statusId: string, 
     element: def?.dot?.element ?? 'neutral', combo: -1, cnt: 1, x: tgt.x, y: tgt.y, toPlayer: tgt.kind === 'player', dot: true,
   });
   if (tgt.kind === 'monster') tgt.damageBy[sourceId] = (tgt.damageBy[sourceId] ?? 0) + amount;
-  if (tgt.hp <= 0) kill(w, tgt, findActor(w, sourceId) ?? null);
+  if (tgt.hp <= 0 && !(tgt.kind === 'player' && tryCheatDeath(w, tgt))) kill(w, tgt, findActor(w, sourceId) ?? null);
 }
 
 export function heal(w: World, a: Actor, amount: number, quiet = false) {
