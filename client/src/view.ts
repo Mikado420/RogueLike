@@ -4,6 +4,7 @@ import {
 } from '../../shared/src';
 import { depth, isoRadii, TILE_H, TILE_W, toScreen } from './iso';
 import { makeBagIcon, makePlayerSprite, makeSprite, makeWeaponGlyph } from './sprites';
+import { makeMonsterSprite } from './monsters';
 import { drawIsoShape, Effects } from './fx';
 import { chargeLevel, rarityRank, shownLook } from '../../shared/src';
 import { BODY_COLORS, ELEMENT_COLOR, hex, HAIR_COLORS, lookInfo, rarityColorNum, statusColor } from './colors';
@@ -99,6 +100,20 @@ export class WorldView {
     }
     const tl = toScreen(0, 0), tr = toScreen(m.width, 0), br = toScreen(m.width, m.height), bl = toScreen(0, m.height);
     g.poly([tl.x, tl.y, tr.x, tr.y, br.x, br.y, bl.x, bl.y]).stroke({ width: 4, color: 0x0a0c10 });
+    // 出口の光
+    for (const e of this.world.area.exits) {
+      for (let j = e.rect[1]; j < e.rect[3]; j++) for (let i = e.rect[0]; i < e.rect[2]; i++) {
+        const p = toScreen(i, j);
+        g.poly([p.x, p.y, p.x + hw, p.y + hh, p.x, p.y + 2 * hh, p.x - hw, p.y + hh]).fill({ color: 0x9fe8ff, alpha: 0.35 });
+      }
+      const cx = (e.rect[0] + e.rect[2]) / 2, cy = (e.rect[1] + e.rect[3]) / 2;
+      const label = new Text({ text: CONTENT.areas[e.to]?.name ?? '', style: { fontFamily: FONT, fontSize: 12, fontWeight: '800', fill: 0x9fe8ff, stroke: { color: 0x000000, width: 3 } } });
+      label.anchor.set(0.5, 1);
+      const lp = toScreen(cx, cy);
+      label.x = lp.x; label.y = lp.y - 6;
+      label.zIndex = 1e6;
+      this.entities.addChild(label);
+    }
     // NPC
     for (const n of this.world.area.npcs) {
       const def = CONTENT.npcs[n.npc];
@@ -251,7 +266,10 @@ export class WorldView {
       root.sortableChildren = true;
       let body: Container;
       if (a.kind === 'player') body = this.playerBody(a);
-      else body = makeSprite(CONTENT.monsters[a.defId].sprite);
+      else {
+        const md = CONTENT.monsters[a.defId];
+        body = makeMonsterSprite(md.sprite, md.colors, () => makeSprite(md.sprite));
+      }
       if (a.kind === 'monster') {
         const sc = (CONTENT.monsters[a.defId].scale ?? 1) * (a.elite ? 1.15 : 1);
         body.scale.set(sc);
@@ -374,6 +392,7 @@ export class WorldView {
           }
         }
         if (v.aura) v.aura.alpha = 0.6 + Math.sin(this.time * 5) * 0.3;
+        v.root.alpha = a.hidden ? 0.12 + Math.abs(Math.sin(this.time * 2)) * 0.08 : 1;
       }
     }
     for (const [id, v] of this.actors) {

@@ -4,6 +4,7 @@ import type { Actor, CharacterData, HitSpec, Item, Monster, Player, World } from
 import { applyHit, buildSpec, enemiesOf, heal, launchAttack } from './combat';
 import { applyStatus } from './status';
 import { isNight } from './time';
+import { currentWeather, weatherDef } from './weather';
 import { sec } from './util';
 
 /**
@@ -41,6 +42,9 @@ export function conditionalMods(w: World, p: Player): { key: string; mods: Mods 
     if (c.fullHp && p.hp < p.stats.maxHp) ok = false;
     if (ok) { addMods(mods, u.whenMods); on.push(it.unique!); }
   });
+  // 天候による補正（雪で足が遅いなど）
+  const wd = weatherDef(w);
+  if (wd.moveSpeedPct) { addMods(mods, { moveSpeedPct: wd.moveSpeedPct }); on.push(`w:${currentWeather(w)}`); }
   return { key: on.join(','), mods };
 }
 

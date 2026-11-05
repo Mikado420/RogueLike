@@ -1,0 +1,230 @@
+{
+ "tracks": {
+  "town": {
+   "bpm": 88,
+   "root": 60,
+   "scale": [
+    0,
+    2,
+    4,
+    7,
+    9
+   ],
+   "wave": "tri",
+   "bass": "sine",
+   "density": 0.55,
+   "seed": 11
+  },
+  "town_night": {
+   "bpm": 70,
+   "root": 57,
+   "scale": [
+    0,
+    2,
+    3,
+    7,
+    8
+   ],
+   "wave": "sine",
+   "bass": "sine",
+   "density": 0.4,
+   "seed": 12
+  },
+  "field": {
+   "bpm": 104,
+   "root": 62,
+   "scale": [
+    0,
+    2,
+    4,
+    5,
+    7,
+    9
+   ],
+   "wave": "square",
+   "bass": "tri",
+   "density": 0.6,
+   "seed": 21
+  },
+  "field_night": {
+   "bpm": 84,
+   "root": 57,
+   "scale": [
+    0,
+    2,
+    3,
+    5,
+    7,
+    8
+   ],
+   "wave": "tri",
+   "bass": "sine",
+   "density": 0.45,
+   "seed": 22
+  },
+  "rain": {
+   "bpm": 76,
+   "root": 55,
+   "scale": [
+    0,
+    3,
+    5,
+    7,
+    10
+   ],
+   "wave": "sine",
+   "bass": "sine",
+   "density": 0.4,
+   "seed": 23
+  },
+  "storm": {
+   "bpm": 132,
+   "root": 50,
+   "scale": [
+    0,
+    1,
+    3,
+    5,
+    7,
+    8
+   ],
+   "wave": "saw",
+   "bass": "square",
+   "density": 0.7,
+   "seed": 24
+  },
+  "volcano": {
+   "bpm": 112,
+   "root": 52,
+   "scale": [
+    0,
+    1,
+    4,
+    5,
+    7,
+    8
+   ],
+   "wave": "saw",
+   "bass": "square",
+   "density": 0.6,
+   "seed": 31
+  },
+  "snow": {
+   "bpm": 80,
+   "root": 64,
+   "scale": [
+    0,
+    2,
+    4,
+    7,
+    11
+   ],
+   "wave": "sine",
+   "bass": "tri",
+   "density": 0.45,
+   "seed": 41
+  },
+  "dungeon": {
+   "bpm": 96,
+   "root": 48,
+   "scale": [
+    0,
+    2,
+    3,
+    6,
+    7,
+    10
+   ],
+   "wave": "tri",
+   "bass": "square",
+   "density": 0.5,
+   "seed": 51
+  },
+  "boss": {
+   "bpm": 150,
+   "root": 50,
+   "scale": [
+    0,
+    1,
+    3,
+    6,
+    7,
+    10
+   ],
+   "wave": "saw",
+   "bass": "square",
+   "density": 0.85,
+   "seed": 61
+  },
+  "rare": {
+   "bpm": 96,
+   "root": 67,
+   "scale": [
+    0,
+    2,
+    4,
+    7,
+    9,
+    11
+   ],
+   "wave": "sine",
+   "bass": "tri",
+   "density": 0.5,
+   "seed": 71
+  }
+ },
+ "rules": [
+  {
+   "boss": true,
+   "track": "boss"
+  },
+  {
+   "rareWeather": true,
+   "track": "rare"
+  },
+  {
+   "areaType": "dungeon",
+   "track": "dungeon"
+  },
+  {
+   "areaType": "tower",
+   "track": "dungeon"
+  },
+  {
+   "areaType": "raid",
+   "track": "boss"
+  },
+  {
+   "areaType": "town",
+   "phase": "night",
+   "track": "town_night"
+  },
+  {
+   "areaType": "town",
+   "track": "town"
+  },
+  {
+   "weather": "storm",
+   "track": "storm"
+  },
+  {
+   "weather": "rain",
+   "track": "rain"
+  },
+  {
+   "area": "volcano",
+   "track": "volcano"
+  },
+  {
+   "area": "snow",
+   "track": "snow"
+  },
+  {
+   "phase": "night",
+   "track": "field_night"
+  },
+  {
+   "track": "field"
+  }
+ ]
+}

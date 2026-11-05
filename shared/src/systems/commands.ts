@@ -56,6 +56,18 @@ export function applyCommand(w: World, p: Player, cmd: Command) {
     case 'sortInventory': ch.inventory = sortItems(ch.inventory, cmd.key); break;
     case 'setAppearance': err = setAppearance(ch, cmd.slot, cmd.look, c); break;
     case 'setLootFilter': err = setLootFilter(ch, cmd.hideBelow, cmd.sellBelow); break;
+    case 'fastTravel': {
+      const def = c.areas[cmd.town];
+      if (!nearRole(w, p, 'travel')) { err = 'err.notNear'; break; }
+      if (!def || def.type !== 'town' || !ch.visitedTowns.includes(cmd.town)) { err = 'err.invalid'; break; }
+      if (cmd.town === w.area.id) { err = 'err.invalid'; break; }
+      const cost = def.travelCost ?? 0;
+      if (ch.gold < cost) { err = 'err.gold'; break; }
+      ch.gold -= cost;
+      w.events.push({ type: 'gold', playerId: p.id, amount: -cost });
+      w.pendingTransition = { to: cmd.town, spawn: '' };
+      break;
+    }
     case 'lock': {
       const it = ch.inventory.find((x) => x.uid === cmd.uid) ?? Object.values(ch.equipment).find((x) => x?.uid === cmd.uid);
       if (it) it.locked = cmd.locked; else err = 'err.invalid';

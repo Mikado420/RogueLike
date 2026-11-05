@@ -10,11 +10,11 @@ import { derivePlayerStats, setMods } from '../src/systems/stats';
 import { conditionalMods } from '../src/systems/effects';
 import { dealDot } from '../src/systems/combat';
 import { migrateAccount, newAccount, newCharacter, serializeAccount, SAVE_VERSION } from '../src/save';
-import { makeTraining, makeWorld, tick } from './helpers';
+import { makeTraining, makeWorld, spawnAt, tick } from './helpers';
 import type { Item } from '../src/state';
 
 const C = CONTENT;
-const nearSmith = (p: { x: number; y: number }) => { p.x = 10.5; p.y = 6.3; };
+const nearSmith = (p: { x: number; y: number }) => { p.x = 26.5; p.y = 19.3; };
 
 describe('装備の生成', () => {
   it('レジェンドは固有効果、ミシックはスキルを変える効果を持つ', () => {
@@ -222,9 +222,9 @@ describe('倉庫・並べ替え・ルートフィルター・アバター', () =
   });
 
   it('自動売却：設定より下のレア度は拾わずにゴールドになる', () => {
-    const { w, p, ch } = makeWorld(12);
+    const { w, p, ch } = makeTraining('oneHandSword', 30, 6, 12);
     ch.lootFilter = { hideBelow: null, sellBelow: 'mythic' };
-    const boss = w.area.monsters.find((m) => m.defId === 'ignaros')!;
+    const boss = spawnAt(w, 'ignaros', 12, 18, 30);
     boss.hp = 1;
     p.x = boss.x - 1.2; p.y = boss.y;
     let sold = 0;

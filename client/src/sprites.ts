@@ -109,6 +109,77 @@ const DRAWERS: Record<string, Drawer> = {
     g.poly([-10, -62, 10, -62, 0, -56]).fill(0xffb02e);
     for (let i = 0; i < 5; i++) g.poly([-20 + i * 10, -66, -15 + i * 10, -82 - (i % 2) * 6, -10 + i * 10, -66]).fill({ color: 0xff7a2a, alpha: 0.8 });
   }),
+  bush: () => gfx((g) => { shadow(g, 14); g.circle(-6, -8, 8).fill(0x3a8a3a); g.circle(6, -9, 9).fill(0x45983f); g.circle(0, -14, 8).fill(0x52a84c); }),
+  mangrove: () => gfx((g) => {
+    shadow(g, 18);
+    for (const x of [-10, -3, 4, 11]) g.moveTo(x, 0).quadraticCurveTo(x * 0.5, -10, 0, -18).stroke({ width: 3, color: 0x5a4a32 });
+    g.rect(-3, -34, 6, 18).fill(0x5a4a32);
+    g.circle(0, -42, 15).fill(0x3a6a3a); g.circle(-9, -36, 10).fill(0x335f34); g.circle(9, -38, 10).fill(0x2f5a30);
+  }),
+  reed: () => gfx((g) => { for (const x of [-8, -4, 0, 4, 8]) { g.moveTo(x, 0).lineTo(x + 2, -22 - Math.abs(x)).stroke({ width: 2, color: 0x7a9a4a }); g.ellipse(x + 2, -24 - Math.abs(x), 2, 5).fill(0x6a4a2a); } }),
+  crag: () => gfx((g) => { shadow(g, 22); g.poly([-22, 0, -16, -26, -4, -38, 10, -30, 20, -14, 18, 2]).fill(0x3a3434).stroke({ width: 2, color: 0x1a1414 }); g.poly([-4, -38, 10, -30, 2, -20]).fill(0x5a4a4a); }),
+  dead_tree: () => gfx((g) => {
+    shadow(g, 14);
+    g.moveTo(0, 0).lineTo(0, -40).stroke({ width: 6, color: 0x3a2a24 });
+    g.moveTo(0, -26).lineTo(-14, -40).stroke({ width: 3, color: 0x3a2a24 }); g.moveTo(0, -32).lineTo(12, -46).stroke({ width: 3, color: 0x3a2a24 });
+  }),
+  vent: () => gfx((g) => { shadow(g, 14); g.poly([-14, 0, -8, -14, 8, -14, 14, 0]).fill(0x4a3a3a).stroke({ width: 2, color: 0x2a1a1a }); g.ellipse(0, -14, 8, 3).fill(0xff7a2a); g.circle(0, -24, 7).fill({ color: 0xff9a4a, alpha: 0.35 }); }),
+  old_tree: () => gfx((g) => {
+    shadow(g, 24);
+    g.rect(-6, -34, 12, 34).fill(0x4a3a22);
+    g.circle(0, -54, 24).fill(0x24502c); g.circle(-14, -44, 15).fill(0x2a5a32); g.circle(14, -46, 16).fill(0x1f4826); g.circle(0, -70, 14).fill(0x2f6036);
+  }),
+  big_shroom: () => gfx((g) => { shadow(g, 16); g.rect(-4, -26, 8, 26).fill(0xe0d8c0); g.ellipse(0, -28, 20, 10).fill(0x8a4ac8).stroke({ width: 2, color: 0x4a2a6a }); g.circle(-7, -30, 3).fill({ color: 0xffe0ff, alpha: 0.8 }); g.circle(7, -31, 2.5).fill({ color: 0xffe0ff, alpha: 0.8 }); }),
+  pine: () => gfx((g) => {
+    shadow(g, 18);
+    g.rect(-3, -14, 6, 14).fill(0x5a3a22);
+    g.poly([-18, -14, 0, -40, 18, -14]).fill(0x2a5a46); g.poly([-14, -30, 0, -56, 14, -30]).fill(0x2f6650); g.poly([-10, -46, 0, -68, 10, -46]).fill(0x357058);
+    g.poly([-10, -46, 0, -68, 10, -46, 0, -58]).fill({ color: 0xffffff, alpha: 0.7 });
+  }),
+  ice_rock: () => gfx((g) => { shadow(g, 20); g.poly([-20, 0, -14, -20, 0, -28, 14, -22, 20, -6, 12, 2]).fill(0xa8c8e0).stroke({ width: 2, color: 0x5a7a9a }); g.poly([0, -28, 14, -22, 4, -14]).fill(0xe0f0ff); }),
+  crystal_rock: () => gfx((g) => { shadow(g, 16); for (const [x, h, c] of [[-8, 26, 0x9fe8ff], [2, 36, 0xc8f4ff], [10, 22, 0x7fd8ff]] as [number, number, number][]) g.poly([x - 5, 0, x, -h, x + 5, 0]).fill({ color: c, alpha: 0.9 }).stroke({ width: 1, color: 0xffffff }); }),
+  town_wall: () => gfx((g) => {
+    const hw = TILE_W / 2, hh = TILE_H / 2, h = 30;
+    g.poly([-hw, 0, 0, hh, 0, hh - h, -hw, -h]).fill(0x8a8070);
+    g.poly([hw, 0, 0, hh, 0, hh - h, hw, -h]).fill(0x7a7060);
+    g.poly([0, -hh - h, hw, -h, 0, hh - h, -hw, -h]).fill(0xa49a86).stroke({ width: 1, color: 0x5a5448 });
+  }),
+  house: () => houseDrawer(0x4a6a9a),
+  house_red: () => houseDrawer(0xa84a3a),
+  tower_wall: () => gfx((g) => {
+    const hw = TILE_W / 2, hh = TILE_H / 2, h = 80;
+    g.poly([-hw, 0, 0, hh, 0, hh - h, -hw, -h]).fill(0x5a5a72);
+    g.poly([hw, 0, 0, hh, 0, hh - h, hw, -h]).fill(0x4a4a62);
+    g.poly([0, -hh - h, hw, -h, 0, hh - h, -hw, -h]).fill(0x7a7a96).stroke({ width: 1, color: 0x3a3a4a });
+    g.rect(-2, -h + 10, 4, h - 20).fill({ color: 0x9fa8ff, alpha: 0.35 });
+  }),
+  fountain: () => gfx((g) => {
+    shadow(g, 30);
+    g.ellipse(0, -6, 30, 15).fill(0x9a958a).stroke({ width: 2, color: 0x5a564c });
+    g.ellipse(0, -8, 24, 11).fill(0x4ab3ff);
+    g.rect(-4, -36, 8, 28).fill(0xb0aca0);
+    g.circle(0, -40, 9).fill({ color: 0x9fe8ff, alpha: 0.85 });
+    g.circle(0, -40, 15).fill({ color: 0x9fe8ff, alpha: 0.2 });
+  }),
+  crystal_big: () => gfx((g) => {
+    shadow(g, 26);
+    g.poly([-14, 0, -6, -50, 0, -70, 6, -50, 14, 0]).fill({ color: 0x9fe8ff, alpha: 0.85 }).stroke({ width: 2, color: 0xffffff });
+    g.poly([0, -70, 6, -50, 0, -10]).fill({ color: 0xffffff, alpha: 0.5 });
+    g.circle(0, -40, 26).fill({ color: 0x9fe8ff, alpha: 0.12 });
+  }),
+  lamp: () => gfx((g) => { shadow(g, 6); g.rect(-2, -40, 4, 40).fill(0x3a3a40); g.roundRect(-6, -50, 12, 12, 3).fill(0xffe08a).stroke({ width: 1.5, color: 0x3a3a40 }); g.circle(0, -44, 16).fill({ color: 0xffe08a, alpha: 0.15 }); }),
+  pillar: () => gfx((g) => { shadow(g, 14); g.rect(-9, -52, 18, 52).fill(0x5a5a68).stroke({ width: 2, color: 0x2a2a34 }); g.rect(-12, -56, 24, 6).fill(0x6a6a78); }),
+  npc_board: () => gfx((g) => {
+    shadow(g, 16);
+    g.rect(-12, -10, 3, 10).fill(0x5a3a22); g.rect(9, -10, 3, 10).fill(0x5a3a22);
+    g.roundRect(-16, -40, 32, 30, 3).fill(0x8a6a44).stroke({ width: 2, color: 0x4a3a22 });
+    for (const [x, y, c] of [[-10, -34, 0xf0e8d0], [2, -36, 0xffe0a0], [-6, -22, 0xe0f0ff], [6, -24, 0xf0e8d0]] as [number, number, number][]) g.rect(x, y, 8, 9).fill(c);
+  }),
+  npc_portal: () => gfx((g) => {
+    g.ellipse(0, 0, 26, 13).fill({ color: 0x6a7aff, alpha: 0.35 }).stroke({ width: 2, color: 0x9fa8ff });
+    g.ellipse(0, 0, 16, 8).stroke({ width: 2, color: 0xd0d8ff });
+    for (const x of [-14, 0, 14]) g.rect(x - 1, -30, 2, 26).fill({ color: 0x9fa8ff, alpha: 0.5 });
+  }),
   tree: () => gfx((g) => {
     shadow(g, 20);
     g.rect(-4, -26, 8, 26).fill(0x6b4423);
@@ -288,6 +359,16 @@ export function makeBagIcon(color: number): Container {
   return gfx((g) => {
     g.circle(0, 0, 7).fill(color).stroke({ width: 2, color: 0x10141c });
     g.circle(-2, -2, 2).fill({ color: 0xffffff, alpha: 0.6 });
+  });
+}
+
+function houseDrawer(roof: number): Container {
+  return gfx((g) => {
+    const hw = TILE_W / 2, hh = TILE_H / 2, h = 28;
+    g.poly([-hw, 0, 0, hh, 0, hh - h, -hw, -h]).fill(0xd8ccb0);
+    g.poly([hw, 0, 0, hh, 0, hh - h, hw, -h]).fill(0xc0b498);
+    g.rect(-hw / 2 - 4, -h + 10, 8, 10).fill(0x6a8aaa);
+    g.poly([-hw - 4, -h, 0, -h - 26, hw + 4, -h, 0, hh - h + 4]).fill(roof).stroke({ width: 1.5, color: 0x2a2018 });
   });
 }
 

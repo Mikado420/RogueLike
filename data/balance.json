@@ -218,7 +218,14 @@
     "materialMul": 0.5
   },
   "world": {
-    "startArea": "garden"
+    "startArea": "lumina",
+    "startTown": "lumina",
+    "fieldBossInterval": 15,
+    "exitCooldown": 1.0,
+    "spawnMinDist": 9,
+    "spawnInterval": 1.0,
+    "eliteChance": 0.04,
+    "levelSpread": 1
   },
   "start": {
     "gold": 100,

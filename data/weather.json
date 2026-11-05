@@ -1,0 +1,61 @@
+{
+ "slotMinutes": 10,
+ "seed": 20261105,
+ "forecastSlots": 6,
+ "types": {
+  "clear": {
+   "name": "晴れ"
+  },
+  "rain": {
+   "name": "雨",
+   "elements": {
+    "water": 20,
+    "fire": -20
+   }
+  },
+  "storm": {
+   "name": "嵐",
+   "elements": {
+    "wind": 20
+   },
+   "rareRatePct": 50,
+   "eliteMul": 1.5
+  },
+  "fog": {
+   "name": "霧",
+   "ambushMul": 3
+  },
+  "snow": {
+   "name": "雪",
+   "elements": {
+    "water": 10
+   },
+   "moveSpeedPct": -10
+  },
+  "heatwave": {
+   "name": "熱波",
+   "elements": {
+    "fire": 20,
+    "water": -10
+   }
+  },
+  "aurora": {
+   "name": "極光",
+   "rare": true,
+   "elements": {
+    "light": 30
+   },
+   "rareRatePct": 100
+  },
+  "bloodmoon": {
+   "name": "紅い月",
+   "rare": true,
+   "nightOnly": true,
+   "elements": {
+    "dark": 30
+   },
+   "eliteMul": 3,
+   "rareRatePct": 50
+  }
+ }
+}

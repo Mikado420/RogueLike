@@ -72,6 +72,8 @@ export interface CharacterData {
   appearance: { looks: string[]; selected: Partial<Record<'weapon' | 'body' | 'head', string>> };
   /** ルートフィルター：これより下のレア度は表示しない／自動で売る */
   lootFilter: { hideBelow: Rarity | null; sellBelow: Rarity | null };
+  /** 訪れた街（ファストトラベル先） */
+  visitedTowns: string[];
 }
 
 export interface StorageData { items: Item[]; bag: Record<string, number>; capacity: number }
@@ -85,6 +87,8 @@ export interface AccountData {
   lastCharacterId: string | null;
   /** 倉庫はアカウントで共有 */
   storage: StorageData;
+  /** 世界の状態（オフライン用。オンライン化したらサーバー側に移す） */
+  world: { fieldBoss: Record<string, number> };
 }
 
 // ═════════════ 入力とコマンド ═════════════
@@ -129,7 +133,8 @@ export type Command =
   | { type: 'expandStorage' }
   | { type: 'sortInventory'; key: string }
   | { type: 'setAppearance'; slot: 'weapon' | 'body' | 'head'; look: string | null }
-  | { type: 'setLootFilter'; hideBelow: Rarity | null; sellBelow: Rarity | null };
+  | { type: 'setLootFilter'; hideBelow: Rarity | null; sellBelow: Rarity | null }
+  | { type: 'fastTravel'; town: string };
 
 export const emptyInput = (): PlayerInput => ({
   move: { x: 0, y: 0 }, aim: null, attack: false, skill: -1, dodge: false, interact: false, commands: [],
@@ -237,6 +242,9 @@ export interface Monster extends ActorBase {
   shielded: boolean;
   brokenUntil: number;
   scale: { hp: number; atk: number; def: number; exp: number; gold: number };
+  /** 奇襲型：近づくまで見えない */
+  hidden: boolean;
+  fieldBoss: boolean;
   /** 誰がどれだけ削ったか（経験値の分配用） */
   damageBy: Record<number, number>;
 }
@@ -338,6 +346,12 @@ export interface AreaInstance {
   spawns: SpawnState[];
   playerSpawn: { x: number; y: number };
   safeRadius: number;
+  exits: { rect: [number, number, number, number]; to: string; spawn: string }[];
+  spawnPoints: Record<string, { x: number; y: number }>;
+  spots: Record<string, { x: number; y: number }>;
+  /** フィールドの湧き */
+  spawnTimer: number;
+  fieldBossSlot: number;
 }
 
 export interface World {
@@ -351,6 +365,9 @@ export interface World {
   players: Player[];
   nextId: number;
   events: GameEvent[];
+  /** 区切り（天候の切り替わり）を見張る */
+  lastWeatherSlot: number;
+  pendingTransition: { to: string; spawn: string } | null;
 }
 
 // ═════════════ イベント（描画・効果音・通知用） ═════════════
@@ -385,4 +402,5 @@ export type GameEvent =
   | { type: 'refine'; playerId: number; uid: number; success: boolean; level: number }
   | { type: 'proc'; playerId: number; name: string; x: number; y: number }
   | { type: 'autoSell'; playerId: number; gold: number; rarity: Rarity }
-  | { type: 'areaChanged'; playerId: number; area: string };
+  | { type: 'areaChanged'; playerId: number; area: string }
+  | { type: 'worldNotice'; key: string; args: (string | number)[]; rare?: boolean };

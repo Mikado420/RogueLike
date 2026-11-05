@@ -1,0 +1,102 @@
+{
+ "legend": {
+  ".": {
+   "tile": "stone",
+   "solid": false
+  },
+  ",": {
+   "tile": "plaza",
+   "solid": false
+  },
+  "g": {
+   "tile": "grass",
+   "solid": false
+  },
+  "#": {
+   "tile": "stone",
+   "solid": true,
+   "sprite": "town_wall"
+  },
+  "H": {
+   "tile": "stone",
+   "solid": true,
+   "sprite": "house"
+  },
+  "R": {
+   "tile": "stone",
+   "solid": true,
+   "sprite": "house_red"
+  },
+  "T": {
+   "tile": "grass",
+   "solid": true,
+   "sprite": "tree"
+  },
+  "F": {
+   "tile": "plaza",
+   "solid": true,
+   "sprite": "fountain"
+  },
+  "C": {
+   "tile": "plaza",
+   "solid": true,
+   "sprite": "crystal_big"
+  },
+  "~": {
+   "tile": "water",
+   "solid": true
+  },
+  "=": {
+   "tile": "boardwalk",
+   "solid": false
+  },
+  "L": {
+   "tile": "stone",
+   "solid": true,
+   "sprite": "lamp"
+  },
+  "t": {
+   "tile": "tower",
+   "solid": false
+  },
+  "X": {
+   "tile": "tower",
+   "solid": true,
+   "sprite": "tower_wall"
+  }
+ },
+ "rows": [
+  "################################",
+  "#gggT.g.T...XXXXXXXX....T...gg.#",
+  "#gT..gggT..TXXXXXXXXgg..ggggg..#",
+  "#..RRRRR....XXXXXXXX....HHHHH..#",
+  "#.TRRRRR.....tttttt.....HHHHHT.#",
+  "#T.RRRRR.....tttttt.....HHHHH..#",
+  "#.gRRRRR................HHHHH..#",
+  "#..............................#",
+  "#............................gg#",
+  "#T.............................#",
+  "#...............,............T.#",
+  "#............,,,,,,,..........T#",
+  "#gT.........L,,,,,,,L........T.#",
+  "#..........,,,,,,,,,,,.........#",
+  "...........,,,,,,,,,,,..........",
+  "...........,,,,,,,,,,,..........",
+  "..........,,,,,,C,,,,,,.........",
+  "...........,,,,,,,,,,,..........",
+  "#g.........,,,,,,,,,,,.........#",
+  "#g.........,,,,,,,,,,,.......gg#",
+  "#.T.........L,,,,,,,L..........#",
+  "#.T..........,,,,,,,..........g#",
+  "#...............,............gg#",
+  "#.T...........................T#",
+  "#..HHHHH................RRRRRg.#",
+  "#..HHHHH................RRRRR..#",
+  "#gTHHHHH................RRRRRTg#",
+  "#.gHHHHH................RRRRR..#",
+  "#..............................#",
+  "#..T...g.gg..gg.gT.T..gggg.....#",
+  "#.gTg..gg....g....g....gg......#",
+  "##############....##############"
+ ]
+}

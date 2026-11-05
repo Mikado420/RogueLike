@@ -40,3 +40,8 @@ export function makeTraining(weapon: WeaponType, level = 30, dist = 1.0, seed = 
 export function dmgOf(w: World, events: { type: string; src?: number; amount?: number }[], src: number): number {
   return events.filter((e) => e.type === 'damage' && e.src === src).reduce((s, e) => s + (e.amount ?? 0), 0);
 }
+
+/** 訓練場などに好きなモンスターを出す */
+export function spawnAt(w: World, monster: string, x: number, y: number, level = 10) {
+  return spawnMonster(w, { key: 'test', monster, x, y, level: [level, level], monsterId: -1, respawnAt: 0 }, { level });
+}

@@ -7,6 +7,7 @@ import { cannotAct, regenPoise } from './status';
 import { monsterStats } from './stats';
 import { DT, findActor, isBoss, sec } from './util';
 import { bossHooks } from './boss';
+import { isNight } from './time';
 
 const diffRank = (d: Difficulty) => DIFFICULTIES.indexOf(d);
 
@@ -59,12 +60,14 @@ export function updateMonster(w: World, m: Monster) {
   const distHome = Math.hypot(m.x - m.homeX, m.y - m.homeY);
 
   if (m.ai === 'wander') {
+    const aggro = def.aggroRange * (isNight(w) && w.area.type === 'field' ? w.content.time.night.aggroMul : 1);
     for (const p of w.players) {
       if (p.dead) continue;
-      if (Math.hypot(p.x - m.x, p.y - m.y) <= def.aggroRange && lineOfSight(w.area.map, m.x, m.y, p.x, p.y)) {
-        m.ai = 'chase'; m.targetId = p.id; break;
+      if (Math.hypot(p.x - m.x, p.y - m.y) <= aggro && lineOfSight(w.area.map, m.x, m.y, p.x, p.y)) {
+        m.ai = 'chase'; m.targetId = p.id; m.hidden = false; break;
       }
     }
+    if (m.ai === 'wander' && m.hidden) return;
     if (m.ai === 'wander') {
       if (--m.timer <= 0) {
         const ang = w.rng.range(0, Math.PI * 2), rr = w.rng.range(0, mb.wanderRadius);

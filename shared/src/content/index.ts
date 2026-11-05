@@ -21,7 +21,12 @@ import refine from '../../../data/refine.json';
 import storage from '../../../data/storage.json';
 import looks from '../../../data/looks.json';
 import time from '../../../data/time.json';
-import garden from '../../../data/maps/garden.json';
+import lumina from '../../../data/maps/lumina.json';
+import ember from '../../../data/maps/ember.json';
+import palettes from '../../../data/palettes.json';
+import weather from '../../../data/weather.json';
+import ambience from '../../../data/ambience.json';
+import music from '../../../data/music.json';
 import arena from '../../../data/maps/arena.json';
 import type { Content } from './types';
 
@@ -31,7 +36,8 @@ export * from './types';
 export const CONTENT = {
   balance, weapons, skills: skills.skills, trees: skills.trees, statuses, monsters, equipment, rarities, options,
   drops, materials, areas, npcs, shops, tiles, text, uniques, mythics, sets, crystals, refine, storage, looks, time,
-  maps: { garden, arena },
+  maps: { lumina, ember, arena },
+  palettes, weather, ambience, music,
 } as unknown as Content;
 
 /** 袋に入るもの（素材・消耗品・結晶）の名前と色 */

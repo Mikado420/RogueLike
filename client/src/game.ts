@@ -5,7 +5,9 @@ import {
 import { InputManager } from './input';
 import { WorldView } from './view';
 import { Hud } from './hud';
-import type { Sfx } from './audio';
+import { Music, type Sfx } from './audio';
+import { Ambience } from './ambience';
+import { pickTrack } from './music';
 import { saveSettings, type Settings } from './settings';
 import { Modal } from './ui/modal';
 import { Menu } from './ui/menu';
@@ -28,6 +30,9 @@ export class Game {
   private lastSave = performance.now();
   private tickFn: (t: Ticker) => void;
   private saving = false;
+  ambience = new Ambience();
+  music = new Music(CONTENT.music.tracks);
+  private musicTimer = 0;
 
   constructor(private app: Application, public account: AccountData, charId: string, private store: SaveStore, public settings: Settings, public sfx: Sfx) {
     const seed = (Date.now() ^ (Math.random() * 0x7fffffff)) >>> 0;
@@ -38,6 +43,11 @@ export class Game {
     this.input = new InputManager(host);
     this.input.setBindings(settings.keys ?? {});
     this.view = new WorldView(app, this.world, myId, settings, sfx);
+    app.stage.addChild(this.ambience.layer);
+    this.ambience.quality = settings.quality;
+    this.music.setVolume(settings.volume.bgm * settings.volume.master);
+    this.music.enabled = settings.sound;
+    sfx.volume = settings.volume.sfx * settings.volume.master;
     this.hud = new Hud(this.world, myId, this.input, sfx);
     this.modal = new Modal(document.getElementById('ui')!);
     const self = this;
@@ -92,7 +102,15 @@ export class Game {
       this.acc -= TICK_MS;
     }
     this.view.render(this.acc / TICK_MS, t.deltaMS);
+    const ps = this.view.playerScreenPos();
+    this.ambience.update(this.world, ps.x, ps.y + 22 * this.view.camera.scale.x, this.view.camera.scale.x, this.app.screen.width, this.app.screen.height, t.deltaMS / 1000);
     this.hud.update();
+    this.musicTimer -= t.deltaMS;
+    if (this.musicTimer <= 0) {
+      this.musicTimer = 1000;
+      this.music.attach(this.sfx.ctx);
+      this.music.play(pickTrack(this.world, this.ctx.me()));
+    }
     if (performance.now() - this.lastSave > AUTOSAVE_MS) void this.save();
   }
 
@@ -125,6 +143,8 @@ export class Game {
 
   destroy() {
     this.app.ticker.remove(this.tickFn);
+    this.music.dispose();
+    this.ambience.layer.destroy({ children: true });
     window.removeEventListener('pagehide', this.onHide);
     document.removeEventListener('visibilitychange', this.onHide);
     this.view.camera.destroy({ children: true });

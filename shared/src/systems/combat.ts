@@ -8,6 +8,7 @@ import { DT, findActor, isBoss, newId, sec } from './util';
 import { onMonsterKilled, onPlayerKilled } from './rewards';
 import { procOnHit, tryCheatDeath } from './effects';
 import { weaponHitMods, weaponOnHit } from './weapons';
+import { envElementMul } from './weather';
 
 /** 攻撃定義と使い手から命中仕様を作る */
 export function buildSpec(
@@ -250,6 +251,7 @@ export function applyHit(w: World, src: Actor, tgt: Actor, spec: HitSpec, combo:
     bonus *= wm.mul; critBonus += wm.critBonus; sweet = wm.sweet; back = wm.back;
   }
   if (isBoss(w, tgt)) bonus *= 1 + (src.stats.m.bossDmgPct ?? 0) / 100;
+  bonus *= envElementMul(w, spec.element);
   bonus *= 1 + dmgTakenPct(w, tgt) / 100;
   if (tgt.kind === 'player' && spec.kind === 'monster') {
     const br = tgt.stats.m.blockRate ?? 0;
@@ -298,7 +300,7 @@ export function applyHit(w: World, src: Actor, tgt: Actor, spec: HitSpec, combo:
     const ls = (spec.lifesteal ?? 0) + (src.stats.m.lifestealPct ?? 0);
     if (ls > 0) heal(w, src, (r.amount * ls) / 100, true);
   }
-  if (tgt.kind === 'monster' && tgt.ai !== 'chase') { tgt.ai = 'chase'; tgt.targetId = src.id; }
+  if (tgt.kind === 'monster' && tgt.ai !== 'chase') { tgt.ai = 'chase'; tgt.targetId = src.id; tgt.hidden = false; }
   procOnHit(w, src, tgt, spec, r.amount, r.crit);
   if (tgt.hp <= 0 && !tgt.dead && !(tgt.kind === 'player' && tryCheatDeath(w, tgt))) kill(w, tgt, src);
   return true;

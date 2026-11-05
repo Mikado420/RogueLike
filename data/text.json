@@ -220,5 +220,19 @@
   "notice.autoSell": "自動売却 +{0} G",
   "slot.weaponLook": "武器",
   "slot.bodyLook": "体",
-  "slot.headLook": "頭"
+  "slot.headLook": "頭",
+  "notice.townVisited": "{0} を訪れた",
+  "notice.fieldBoss": "{1} に {0} が現れた",
+  "notice.rareWeather": "{0}：{1}",
+  "board.weather": "天気予報",
+  "board.boss": "フィールドボス",
+  "board.now": "出現中",
+  "board.next": "次",
+  "travel.cost": "費用",
+  "hud.area": "エリア",
+  "phase.dawn": "朝",
+  "phase.day": "昼",
+  "phase.dusk": "夕",
+  "phase.night": "夜",
+  "npc.travel": "移動"
 }

@@ -1,5 +1,5 @@
 import {
-  CONTENT, PRIMARY_STATS, bagInfo, canRebirth, crystalFits, refineCost, respecCost, sellPrice, storageExpandCost, txt,
+  CONTENT, PRIMARY_STATS, bagInfo, canRebirth, forecast, nextFieldBossAt, crystalFits, refineCost, respecCost, sellPrice, storageExpandCost, txt,
   type Item,
 } from '../../../shared/src';
 import { rarityColor } from '../colors';
@@ -18,6 +18,8 @@ export class NpcPanels {
     shop: renderShop,
     smith: renderSmith,
     storage: renderStorage,
+    board: renderBoard,
+    travel: renderTravel,
   };
   private state: NpcState;
   npc: string | null = null;
@@ -301,4 +303,70 @@ function renderStorage(ctx: Ctx, body: HTMLElement, _npc: string, st: NpcState) 
     cols.append(mk(`${txt('storage.box')} → ${txt('storage.withdraw')}`, acc.storage.bag, (id, n) => ctx.send({ type: 'withdrawBag', id, n })));
   }
   body.append(cols);
+}
+
+const hhmm = (ms: number) => { const d = new Date(ms); return `${d.getHours()}:${String(d.getMinutes()).padStart(2, '0')}`; };
+
+/** 掲示板に後から足すタブ（M5 のミッション・侵攻・タイムアタック） */
+export const extraBoardTabs: { id: string; label: string; render: (ctx: Ctx, body: HTMLElement, st: NpcState) => void }[] = [];
+
+function renderBoard(ctx: Ctx, body: HTMLElement, _npc: string, st: NpcState) {
+  const tabsDef = [{ id: 'weather', label: txt('board.weather') }, { id: 'boss', label: txt('board.boss') }, ...extraBoardTabs.map((x) => ({ id: x.id, label: x.label }))];
+  if (!st.tab) st.tab = 'weather';
+  const tabs = h('div', 'tabs');
+  for (const t of tabsDef) tabs.append(btn(t.label, () => { st.tab = t.id; st.refresh(); }, `tab${st.tab === t.id ? ' on' : ''}`));
+  body.append(tabs);
+  const extra = extraBoardTabs.find((x) => x.id === st.tab);
+  if (extra) { extra.render(ctx, body, st); return; }
+  const w = ctx.world;
+  const n = CONTENT.weather.forecastSlots;
+  if (st.tab === 'weather') {
+    const box = h('div', 'forecast');
+    const first = forecast(CONTENT, 'meadow', w.clock, n);
+    const head = h('div', 'fc-row fc-head');
+    head.append(h('span', 'name', ''));
+    for (const f of first) head.append(h('span', 'fc-cell', hhmm(f.start)));
+    box.append(head);
+    for (const [id, a] of Object.entries(CONTENT.areas)) {
+      if (!a.weather) continue;
+      const row = h('div', 'fc-row');
+      row.append(h('span', 'name', a.name));
+      for (const f of forecast(CONTENT, id, w.clock, n)) {
+        const d = CONTENT.weather.types[f.weather];
+        row.append(h('span', `fc-cell${d?.rare ? ' rare' : ''}`, d?.name ?? f.weather));
+      }
+      box.append(row);
+    }
+    body.append(box);
+    return;
+  }
+  const list = h('div', 'shop-list');
+  for (const [id, a] of Object.entries(CONTENT.areas)) {
+    if (!a.fieldBoss) continue;
+    const row = h('div', 'shop-row');
+    const next = nextFieldBossAt(w, id);
+    row.append(h('span', 'name', `${CONTENT.monsters[a.fieldBoss.id]?.name ?? ''}`), h('span', 'have', `${a.name}  Lv${a.fieldBoss.level}`));
+    row.append(h('span', 'price', next === null ? txt('board.now') : `${txt('board.next')} ${hhmm(next)}`));
+    list.append(row);
+  }
+  body.append(list);
+}
+
+function renderTravel(ctx: Ctx, body: HTMLElement) {
+  const ch = ctx.me().char;
+  body.append(kv(txt('stat.gold'), `${ch.gold.toLocaleString()} G`, 'stat gold-row'));
+  const list = h('div', 'shop-list');
+  for (const [id, a] of Object.entries(CONTENT.areas)) {
+    if (a.type !== 'town') continue;
+    const row = h('div', 'shop-row');
+    row.append(h('span', 'name', a.name));
+    const visited = ch.visitedTowns.includes(id);
+    const here = ctx.world.area.id === id;
+    row.append(h('span', 'price', visited ? `${a.travelCost ?? 0} G` : '—'));
+    const b = btn(txt('npc.travel'), () => ctx.send({ type: 'fastTravel', town: id }), 'mini');
+    b.disabled = !visited || here || ch.gold < (a.travelCost ?? 0);
+    row.append(b);
+    list.append(row);
+  }
+  body.append(list);
 }

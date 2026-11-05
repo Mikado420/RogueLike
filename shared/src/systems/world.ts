@@ -12,6 +12,9 @@ import { tickStatuses } from './status';
 import { updateDrops } from './items';
 import { newId, sec } from './util';
 import type { Difficulty } from '../core';
+import type { AreaDef } from '../content/types';
+import { generateField, type GeneratedField } from '../mapgen';
+import { spawnFieldMonster, updateField, updateFieldBoss, updateWeatherNotices } from './spawner';
 
 export interface WorldOptions {
   account: AccountData;
@@ -27,11 +30,14 @@ export function createWorld(opts: WorldOptions): World {
   if (!char) throw new Error('character not found');
   const w: World = {
     seed: opts.seed, tick: 0, clock: opts.now ?? 0, rng: new Rng(opts.seed), content, account: opts.account,
-    area: null as unknown as AreaInstance, players: [], nextId: 1, events: [],
+    area: null as unknown as AreaInstance, players: [], nextId: 1, events: [], lastWeatherSlot: -1, pendingTransition: null,
   };
   const p = makePlayer(w, char);
   w.players.push(p);
-  const areaId = content.areas[char.location.area] ? char.location.area : content.balance.world.startArea;
+  let areaId = content.areas[char.location.area] ? char.location.area : content.balance.world.startArea;
+  // ダンジョンなどの一時的な場所にいたら最後の街に戻す
+  const t = content.areas[areaId]?.type;
+  if (t === 'dungeon' || t === 'tower' || t === 'raid') areaId = char.visitedTowns.at(-1) ?? content.balance.world.startTown;
   enterArea(w, areaId, areaId === char.location.area ? { x: char.location.x, y: char.location.y } : null);
   w.events = [];
   return w;
@@ -50,11 +56,43 @@ export function makePlayer(w: World, char: CharacterData): Player {
   };
 }
 
+const genCache = new Map<string, GeneratedField>();
+
+/** 自動生成のフィールド（同じ id なら同じ地形） */
+export function fieldLayout(c: Content, areaId: string): GeneratedField | null {
+  const def = c.areas[areaId];
+  if (!def?.gen) return null;
+  let g = genCache.get(areaId);
+  if (!g) {
+    const spots: Record<string, [number, number, number]> = {};
+    if (def.fieldBoss) spots.boss = [def.fieldBoss.spot[0], def.fieldBoss.spot[1], 6];
+    if (def.gate) spots.gate = [def.gate.spot[0], def.gate.spot[1], 2];
+    for (const [k, v] of Object.entries(extraSpots(def))) spots[k] = v;
+    g = generateField(areaId, def.gen, c.palettes[def.gen.palette], def.genExits ?? [], spots);
+    genCache.set(areaId, g);
+  }
+  return g;
+}
+
+/** 採集ポイントなど、後から足す開けた場所 */
+type SpotProvider = (def: AreaDef) => Record<string, [number, number, number]>;
+const spotProviders: SpotProvider[] = [];
+export function registerSpots(fn: SpotProvider) { spotProviders.push(fn); genCache.clear(); }
+function extraSpots(def: AreaDef): Record<string, [number, number, number]> {
+  const out: Record<string, [number, number, number]> = {};
+  for (const f of spotProviders) Object.assign(out, f(def));
+  return out;
+}
+
 /** エリアを作る（マップ・NPC・モンスター） */
 export function buildArea(w: World, areaId: string): AreaInstance {
   const c = w.content;
   const def = c.areas[areaId];
-  const map = buildMap(areaId, c.maps[def.map]);
+  const gen = fieldLayout(c, areaId);
+  const map = gen ? { ...gen.map, tiles: [...gen.map.tiles], solid: [...gen.map.solid], sprites: [...gen.map.sprites] } : buildMap(areaId, c.maps[def.map!]);
+  const spawnPoints = { ...(gen?.spawnPoints ?? {}), ...(def.spawnPoints ?? {}) };
+  const firstExit = def.genExits?.[0]?.edge;
+  const playerSpawn = def.playerSpawn ?? (firstExit ? spawnPoints[firstExit] : null) ?? { x: map.width / 2, y: map.height / 2 };
   const area: AreaInstance = {
     id: areaId, type: def.type, name: def.name, map, level: def.level,
     monsters: [], strikes: [], projectiles: [], drops: [],
@@ -62,25 +100,48 @@ export function buildArea(w: World, areaId: string): AreaInstance {
     spawns: (def.spawns ?? []).map((s, i): SpawnState => ({
       key: `${areaId}:${i}`, monster: s.monster, x: s.x, y: s.y, level: s.level, monsterId: -1, respawnAt: 0,
     })),
-    playerSpawn: { ...def.playerSpawn },
+    playerSpawn: { ...playerSpawn },
     safeRadius: def.safeRadius ?? 0,
+    exits: [...(gen?.exits ?? []), ...(def.exits ?? [])],
+    spawnPoints,
+    spots: { ...(gen?.spots ?? {}) },
+    spawnTimer: 0,
+    fieldBossSlot: -1,
   };
   return area;
 }
 
-/** エリアに入る。pos が歩ける場所ならそこ、だめなら入口に置く */
-export function enterArea(w: World, areaId: string, pos: { x: number; y: number } | null, area?: AreaInstance) {
+/**
+ * エリアに入る。pos が歩ける場所ならそこ、spawn 名があればその出現位置、どちらもなければ入口。
+ */
+export function enterArea(w: World, areaId: string, pos: { x: number; y: number } | string | null, area?: AreaInstance) {
   w.area = area ?? buildArea(w, areaId);
   for (const sp of w.area.spawns) spawnMonster(w, sp);
+  const def = w.content.areas[areaId];
   for (const p of w.players) {
-    const ok = pos && !circleHitsMap(w.area.map, pos.x, pos.y, p.r);
-    p.x = ok ? pos!.x : w.area.playerSpawn.x;
-    p.y = ok ? pos!.y : w.area.playerSpawn.y;
+    let at = w.area.playerSpawn;
+    if (typeof pos === 'string' && w.area.spawnPoints[pos]) at = w.area.spawnPoints[pos];
+    else if (pos && typeof pos === 'object' && !circleHitsMap(w.area.map, pos.x, pos.y, p.r)) at = pos;
+    p.x = at.x; p.y = at.y;
     p.dodgeTicks = 0;
     p.lock = 0;
     p.char.location = { area: w.area.id, x: p.x, y: p.y };
+    if (def?.type === 'town' && !p.char.visitedTowns.includes(areaId)) {
+      p.char.visitedTowns.push(areaId);
+      w.events.push({ type: 'notice', playerId: p.id, key: 'notice.townVisited', args: [def.name] });
+    }
     w.events.push({ type: 'areaChanged', playerId: p.id, area: w.area.id });
   }
+  // フィールドは最初からある程度いる
+  if (w.area.type === 'field' && def?.monsters) {
+    for (let i = 0; i < (def.density ?? 0); i++) spawnFieldMonster(w);
+    updateFieldBoss(w);
+  }
+}
+
+/** 出口に入ったか */
+export function exitAt(w: World, x: number, y: number) {
+  return w.area.exits.find((e) => x >= e.rect[0] && x < e.rect[2] && y >= e.rect[1] && y < e.rect[3]) ?? null;
 }
 
 export interface SpawnOpts { level?: number; elite?: boolean; difficulty?: Difficulty; scale?: Partial<MonsterScale> }
@@ -109,7 +170,7 @@ export function spawnMonster(w: World, sp: SpawnState, opts: SpawnOpts = {}): Mo
     ai: 'wander', targetId: -1, homeX: sp.x, homeY: sp.y, wanderX: sp.x, wanderY: sp.y,
     timer: w.rng.int(0, 40), busy: 0, globalCd: 0, cds: {}, pending: null, spawnKey: sp.key,
     enraged: false, poise: poiseMax, poiseMax, breaks: 0, lastHitTick: 0, phase: 0, shielded: false,
-    brokenUntil: 0, scale, damageBy: {},
+    brokenUntil: 0, scale, damageBy: {}, hidden: false, fieldBoss: false,
   };
   sp.monsterId = m.id;
   w.area.monsters.push(m);
@@ -130,8 +191,14 @@ export function step(w: World, inputs: Map<number, PlayerInput>, now?: number): 
   w.tick++;
   w.clock = now ?? w.clock + 1000 / w.content.balance.tickRate;
   const area = w.area;
+  updateWeatherNotices(w);
   for (const p of w.players) updatePlayer(w, p, inputs.get(p.id) ?? emptyInput());
-  if (w.area !== area) return w.events;
+  if (w.pendingTransition) {
+    const t = w.pendingTransition;
+    w.pendingTransition = null;
+    enterArea(w, t.to, t.spawn || null);
+    return w.events;
+  }
   for (const m of area.monsters) updateMonster(w, m);
   separateActors(w);
   updateStrikes(w);
@@ -142,6 +209,7 @@ export function step(w: World, inputs: Map<number, PlayerInput>, now?: number): 
   for (const sp of area.spawns) {
     if (sp.monsterId === -1 && w.tick >= sp.respawnAt) spawnMonster(w, sp);
   }
+  updateField(w);
   for (const fn of areaUpdaters) fn(w);
   for (const p of w.players) p.char.playTime += 1 / w.content.balance.tickRate;
   return w.events;

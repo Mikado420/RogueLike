@@ -1,0 +1,82 @@
+{
+ "phases": {
+  "dawn": {
+   "color": "#ffb080",
+   "alpha": 0.1
+  },
+  "day": {
+   "color": "#ffffff",
+   "alpha": 0
+  },
+  "dusk": {
+   "color": "#ff7a3a",
+   "alpha": 0.14
+  },
+  "night": {
+   "color": "#0a1030",
+   "alpha": 0.38
+  }
+ },
+ "weather": {
+  "rain": {
+   "color": "#203040",
+   "alpha": 0.16,
+   "particles": "rain",
+   "count": 220
+  },
+  "storm": {
+   "color": "#101828",
+   "alpha": 0.26,
+   "particles": "rain",
+   "count": 420,
+   "flash": true
+  },
+  "fog": {
+   "color": "#c8d0d8",
+   "alpha": 0.24
+  },
+  "snow": {
+   "color": "#e8f0ff",
+   "alpha": 0.06,
+   "particles": "snow",
+   "count": 180
+  },
+  "heatwave": {
+   "color": "#ff8a3a",
+   "alpha": 0.1,
+   "particles": "ember",
+   "count": 60
+  },
+  "aurora": {
+   "color": "#7affc8",
+   "alpha": 0.1,
+   "particles": "aurora",
+   "count": 40
+  },
+  "bloodmoon": {
+   "color": "#8a0010",
+   "alpha": 0.22
+  }
+ },
+ "vision": {
+  "night": 7.5,
+  "fog": 5.5,
+  "nightFog": 4.5,
+  "dungeon": 0,
+  "darkness": 0.86
+ },
+ "areaTint": {
+  "volcano": {
+   "color": "#ff4a1a",
+   "alpha": 0.06
+  },
+  "forest": {
+   "color": "#1a3a2a",
+   "alpha": 0.08
+  },
+  "snow": {
+   "color": "#c0d8ff",
+   "alpha": 0.05
+  }
+ }
+}

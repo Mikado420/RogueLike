@@ -29,5 +29,17 @@
   "sprite": "npc_keeper",
   "role": "storage",
   "color": "#c8a46a"
+ },
+ "board": {
+  "name": "掲示板",
+  "sprite": "npc_board",
+  "role": "board",
+  "color": "#e0c070"
+ },
+ "portal": {
+  "name": "転送陣",
+  "sprite": "npc_portal",
+  "role": "travel",
+  "color": "#9fa8ff"
  }
 }

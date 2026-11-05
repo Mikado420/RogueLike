@@ -1,6 +1,6 @@
 import {
   CONTENT, beatTicks, chargeLevel, comboMax, expToNext, freeSkillPoints, freeStatPoints, interactTarget, magazineSize,
-  slotSkill, txt, weaponTypeOf, type GameEvent, type Item, type Player, type World,
+  slotSkill, txt, weaponTypeOf, currentWeather, dayPhase, type GameEvent, type Item, type Player, type World,
 } from '../../shared/src';
 import { rarityColor, statusColor } from './colors';
 import type { InputManager } from './input';
@@ -29,6 +29,8 @@ export class Hud {
   private skillKey = '';
   private res: HTMLDivElement;
   private resKey = '';
+  private areaInfo: HTMLDivElement;
+  private banner: HTMLDivElement;
   onMenu: (() => void) | null = null;
   onPotion: (() => void) | null = null;
 
@@ -133,6 +135,10 @@ export class Hud {
 
     this.toasts = h('div', 'toasts');
     this.root.append(this.toasts);
+    this.areaInfo = h('div', 'area-info');
+    this.root.append(this.areaInfo);
+    this.banner = h('div', 'banner');
+    this.root.append(this.banner);
   }
 
   setWorld(w: World) { this.world = w; }
@@ -204,6 +210,8 @@ export class Hud {
       }
       if (e.type === 'levelUp' && e.playerId === this.myId) this.toast(txt('notice.levelUp', e.level), '#ffe14a');
       if (e.type === 'refine' && e.playerId === this.myId) this.toast(txt(e.success ? 'smith.success' : 'smith.failed', e.level), e.success ? '#ffe14a' : '#ff8a7a');
+      if (e.type === 'worldNotice') this.showBanner(txt(e.key, ...e.args), !!e.rare);
+      if (e.type === 'areaChanged' && e.playerId === this.myId) this.showBanner(CONTENT.areas[e.area]?.name ?? '', false);
       if (e.type === 'autoSell' && e.playerId === this.myId) this.toast(txt('notice.autoSell', e.gold), '#ffd76a');
     }
   }
@@ -244,6 +252,14 @@ export class Hud {
     this.resKey = key;
     this.res.className = `weapon-res ${mech?.type ?? ''}`;
     this.res.replaceChildren(...(html ? html() : []));
+  }
+
+  private bannerTimer = 0;
+  showBanner(text: string, rare: boolean) {
+    this.banner.textContent = text;
+    this.banner.className = `banner show${rare ? ' rare' : ''}`;
+    clearTimeout(this.bannerTimer);
+    this.bannerTimer = window.setTimeout(() => this.banner.classList.remove('show'), 3500);
   }
 
   itemToast(item: Item) {
@@ -337,6 +353,11 @@ export class Hud {
     }
 
     this.updateWeaponRes(p);
+    const a = this.world.area;
+    const lv = a.type === 'field' ? `  Lv${a.level[0]}-${a.level[1]}` : '';
+    const wt = CONTENT.weather.types[currentWeather(this.world)]?.name ?? '';
+    const info = `${a.name}${lv}  ${txt(`phase.${dayPhase(this.world)}`)}  ${wt}`;
+    if (this.areaInfo.textContent !== info) this.areaInfo.textContent = info;
 
     this.death.root.classList.toggle('show', p.dead);
     if (p.dead) this.death.count.textContent = String(Math.ceil(p.respawnTicks / CONTENT.balance.tickRate));

@@ -50,8 +50,9 @@ const SOUNDS: Record<string, Tone[]> = {
 };
 
 export class Sfx {
-  private ctx: AudioContext | null = null;
+  ctx: AudioContext | null = null;
   private cache = new Map<string, AudioBuffer>();
+  volume = 0.8;
   private last = new Map<string, number>();
   enabled = true;
 
@@ -78,7 +79,7 @@ export class Sfx {
     const src = this.ctx.createBufferSource();
     src.buffer = buf;
     const g = this.ctx.createGain();
-    g.gain.value = volume;
+    g.gain.value = volume * this.volume;
     src.connect(g).connect(this.ctx.destination);
     src.start();
   }
@@ -128,3 +129,90 @@ function render(ctx: AudioContext, tones: Tone[]): AudioBuffer {
   for (let i = 0; i < out.length; i++) out[i] = Math.max(-1, Math.min(1, out[i]));
   return buf;
 }
+
+/**
+ * BGM。data/music.json の曲（テンポ・音階・波形）から自動で旋律を作って流す。
+ * 曲は後で差し替える前提で、「エリア×時間帯×天候 → 曲」の選び方だけ data にある。
+ */
+export class Music {
+  private ctx: AudioContext | null = null;
+  private gain: GainNode | null = null;
+  private track = '';
+  private nextTime = 0;
+  private step = 0;
+  private seed = 1;
+  private timer: number | null = null;
+  volume = 0.5;
+  enabled = true;
+
+  constructor(private tracks: Record<string, MusicTrack>) {}
+
+  attach(ctx: AudioContext | null) {
+    if (!ctx || this.ctx) return;
+    this.ctx = ctx;
+    this.gain = ctx.createGain();
+    this.gain.gain.value = this.volume * 0.25;
+    this.gain.connect(ctx.destination);
+    this.timer = window.setInterval(() => this.schedule(), 100);
+  }
+
+  setVolume(v: number) {
+    this.volume = v;
+    if (this.gain) this.gain.gain.value = (this.enabled ? v : 0) * 0.25;
+  }
+
+  play(track: string) {
+    if (track === this.track) return;
+    this.track = track;
+    this.step = 0;
+    if (this.ctx) this.nextTime = this.ctx.currentTime + 0.1;
+    this.seed = 1;
+  }
+
+  get current() { return this.track; }
+
+  private rand() {
+    this.seed = (this.seed * 1103515245 + 12345) & 0x7fffffff;
+    return this.seed / 0x7fffffff;
+  }
+
+  private schedule() {
+    const ctx = this.ctx;
+    if (!ctx || !this.gain || ctx.state !== 'running' || !this.enabled) return;
+    const t = this.tracks[this.track];
+    if (!t) return;
+    const beat = 60 / t.bpm / 2;
+    if (this.nextTime < ctx.currentTime) this.nextTime = ctx.currentTime + 0.05;
+    while (this.nextTime < ctx.currentTime + 0.4) {
+      if (this.step % 32 === 0) this.seed = t.seed * 7919 + Math.floor(this.step / 32) % 4;
+      const bar = Math.floor(this.step / 8) % 4;
+      const chordRoot = t.scale[[0, 3, 4, 2][bar] % t.scale.length];
+      if (this.step % 8 === 0) this.note(t.root - 24 + chordRoot, this.nextTime, beat * 7, t.bass as OscillatorType, 0.5);
+      if (this.step % 2 === 0 && this.rand() < t.density) {
+        const deg = Math.floor(this.rand() * t.scale.length);
+        const oct = this.rand() < 0.3 ? 12 : 0;
+        this.note(t.root + t.scale[deg] + oct, this.nextTime, beat * (this.rand() < 0.3 ? 3 : 1.6), t.wave as OscillatorType, 0.22);
+      }
+      this.nextTime += beat;
+      this.step++;
+    }
+  }
+
+  private note(midi: number, at: number, len: number, wave: OscillatorType, vol: number) {
+    const ctx = this.ctx!;
+    const o = ctx.createOscillator();
+    const g = ctx.createGain();
+    o.type = (['sine', 'square', 'sawtooth', 'triangle'] as OscillatorType[]).includes(wave) ? wave : wave === ('saw' as OscillatorType) ? 'sawtooth' : wave === ('tri' as OscillatorType) ? 'triangle' : 'sine';
+    o.frequency.value = 440 * Math.pow(2, (midi - 69) / 12);
+    g.gain.setValueAtTime(0, at);
+    g.gain.linearRampToValueAtTime(vol, at + 0.02);
+    g.gain.exponentialRampToValueAtTime(0.001, at + len);
+    o.connect(g).connect(this.gain!);
+    o.start(at);
+    o.stop(at + len + 0.05);
+  }
+
+  dispose() { if (this.timer !== null) clearInterval(this.timer); }
+}
+
+export interface MusicTrack { bpm: number; root: number; scale: number[]; wave: string; bass: string; density: number; seed: number }

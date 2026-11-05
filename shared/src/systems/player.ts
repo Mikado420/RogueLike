@@ -7,6 +7,7 @@ import { updateNormalAttack, updateWeaponTimers, weaponDef } from './weapons';
 import { applyCommand } from './commands';
 import { heal } from './combat';
 import { interact } from './interact';
+import { exitAt } from './world';
 import { conditionalMods, procOnDodge } from './effects';
 import { DT, nearestMonster, sec } from './util';
 
@@ -100,13 +101,17 @@ export function updatePlayer(w: World, p: Player, input: PlayerInput) {
     }
   }
 
+  // 出口に入ったらエリアを移る
+  const ex = exitAt(w, p.x, p.y);
+  if (ex && w.content.areas[ex.to] && !w.pendingTransition) w.pendingTransition = { to: ex.to, spawn: ex.spawn };
+
   if (input.interact && !stunned) interact(w, p);
 
   if (stunned || p.lock > 0) { p.prevAttack = input.attack; return; }
 
   const aimFor = (range: number): Aim => {
     if (input.aim && Math.hypot(input.aim.x, input.aim.y) > 0.01) return { dir: Math.atan2(input.aim.y, input.aim.x), target: null };
-    const t = nearestMonster(w, p.x, p.y, Math.max(range + 1, pb.autoTargetRange));
+    const t = nearestMonster(w, p.x, p.y, Math.max(range + 1, pb.autoTargetRange), (m) => !m.hidden);
     if (t) return { dir: Math.atan2(t.y - p.y, t.x - p.x), target: t };
     return { dir: p.facing, target: null };
   };

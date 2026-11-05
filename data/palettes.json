@@ -1,0 +1,14 @@
+{
+  "meadow":   { "ground": ["grass", "grass2"], "path": "dirt", "border": { "tile": "grass", "sprite": "tree" }, "liquid": { "tile": "water", "solid": true },
+                "obstacles": [{ "tile": "grass", "sprite": "tree", "w": 6 }, { "tile": "grass", "sprite": "rock", "w": 2 }, { "tile": "grass", "sprite": "bush", "w": 3 }], "density": 0.05, "ponds": [3, 3, 5] },
+  "marsh":    { "ground": ["marsh", "mud"], "path": "boardwalk", "border": { "tile": "marsh", "sprite": "mangrove" }, "liquid": { "tile": "swamp", "solid": true },
+                "obstacles": [{ "tile": "marsh", "sprite": "mangrove", "w": 5 }, { "tile": "marsh", "sprite": "reed", "w": 4 }, { "tile": "mud", "sprite": "rock", "w": 1 }], "density": 0.05, "ponds": [7, 3, 6] },
+  "volcano":  { "ground": ["ash", "basalt"], "path": "cinder", "border": { "tile": "basalt", "sprite": "crag" }, "liquid": { "tile": "lava", "solid": true },
+                "obstacles": [{ "tile": "basalt", "sprite": "crag", "w": 5 }, { "tile": "ash", "sprite": "dead_tree", "w": 3 }, { "tile": "ash", "sprite": "vent", "w": 1 }], "density": 0.045, "ponds": [5, 2, 5] },
+  "forest":   { "ground": ["forest", "moss"], "path": "leaves", "border": { "tile": "forest", "sprite": "old_tree" }, "liquid": { "tile": "water", "solid": true },
+                "obstacles": [{ "tile": "forest", "sprite": "old_tree", "w": 7 }, { "tile": "moss", "sprite": "big_shroom", "w": 2 }, { "tile": "forest", "sprite": "rock", "w": 1 }], "density": 0.08, "ponds": [2, 2, 4] },
+  "snow":     { "ground": ["snow", "snow2"], "path": "ice_path", "border": { "tile": "snow", "sprite": "pine" }, "liquid": { "tile": "ice_water", "solid": true },
+                "obstacles": [{ "tile": "snow", "sprite": "pine", "w": 6 }, { "tile": "snow", "sprite": "ice_rock", "w": 3 }, { "tile": "snow", "sprite": "crystal_rock", "w": 1 }], "density": 0.05, "ponds": [3, 3, 6] },
+  "dungeon":  { "ground": ["dungeon", "dungeon2"], "path": "dungeon", "border": { "tile": "wall", "sprite": "wall" }, "liquid": { "tile": "void", "solid": true },
+                "obstacles": [{ "tile": "dungeon", "sprite": "pillar", "w": 1 }], "density": 0.0, "ponds": [0, 2, 3] }
+}

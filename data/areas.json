@@ -1,154 +1,569 @@
 {
- "garden": {
-  "name": "はじまりの庭",
-  "type": "field",
-  "map": "garden",
+ "lumina": {
+  "name": "結晶の街ルミナ",
+  "type": "town",
+  "map": "lumina",
   "level": [
    1,
-   12
+   1
   ],
   "playerSpawn": {
-   "x": 5.5,
-   "y": 6.5
+   "x": 20.5,
+   "y": 24.5
   },
-  "safeRadius": 5,
-  "spawns": [
+  "spawnPoints": {
+   "east": {
+    "x": 37.5,
+    "y": 19.5
+   }
+  },
+  "exits": [
    {
-    "monster": "slime",
-    "x": 12.5,
-    "y": 12.5,
-    "level": [
-     1,
-     3
-    ]
-   },
-   {
-    "monster": "slime",
-    "x": 15.5,
-    "y": 6.5,
-    "level": [
-     1,
-     3
-    ]
-   },
-   {
-    "monster": "slime",
-    "x": 9.5,
-    "y": 17.5,
-    "level": [
-     1,
-     3
-    ]
-   },
-   {
-    "monster": "hornet",
-    "x": 26.5,
-    "y": 6.5,
-    "level": [
-     3,
-     6
-    ]
-   },
-   {
-    "monster": "hornet",
-    "x": 30.5,
-    "y": 12.5,
-    "level": [
-     3,
-     6
-    ]
-   },
-   {
-    "monster": "hornet",
-    "x": 16.5,
-    "y": 18.5,
-    "level": [
-     3,
-     6
-    ]
-   },
-   {
-    "monster": "golem",
-    "x": 36.5,
-    "y": 18.5,
-    "level": [
-     6,
-     9
-    ]
-   },
-   {
-    "monster": "golem",
-    "x": 24.5,
-    "y": 24.5,
-    "level": [
-     6,
-     9
-    ]
-   },
-   {
-    "monster": "wisp",
-    "x": 12.5,
-    "y": 34.5,
-    "level": [
-     5,
-     8
-    ]
-   },
-   {
-    "monster": "wisp",
-    "x": 18.5,
-    "y": 38.5,
-    "level": [
-     5,
-     8
-    ]
-   },
-   {
-    "monster": "wisp",
-    "x": 35.5,
-    "y": 8.5,
-    "level": [
-     5,
-     8
-    ]
-   },
-   {
-    "monster": "ignaros",
-    "x": 36.5,
-    "y": 36.5,
-    "level": [
-     12,
-     12
-    ]
+    "rect": [
+     39,
+     18,
+     40,
+     22
+    ],
+    "to": "meadow",
+    "spawn": "west"
    }
   ],
   "npcs": [
    {
-    "npc": "memory",
-    "x": 3.5,
-    "y": 4.5
-   },
-   {
-    "npc": "priest",
-    "x": 8.5,
-    "y": 3.5
-   },
-   {
     "npc": "merchant",
-    "x": 3.5,
-    "y": 10.5
+    "x": 14.5,
+    "y": 18.5
    },
    {
     "npc": "smith",
-    "x": 10.5,
-    "y": 5.5
+    "x": 26.5,
+    "y": 18.5
    },
    {
     "npc": "keeper",
-    "x": 6.5,
-    "y": 11.5
+    "x": 14.5,
+    "y": 24.5
+   },
+   {
+    "npc": "memory",
+    "x": 26.5,
+    "y": 24.5
+   },
+   {
+    "npc": "priest",
+    "x": 20.5,
+    "y": 15.5
+   },
+   {
+    "npc": "board",
+    "x": 17.5,
+    "y": 21.5
+   },
+   {
+    "npc": "portal",
+    "x": 23.5,
+    "y": 21.5
    }
-  ]
+  ],
+  "travelCost": 100,
+  "weather": {
+   "clear": 60,
+   "rain": 25,
+   "fog": 10,
+   "aurora": 1
+  },
+  "tint": "town"
+ },
+ "ember": {
+  "name": "前線の村エンバー",
+  "type": "town",
+  "map": "ember",
+  "level": [
+   30,
+   30
+  ],
+  "playerSpawn": {
+   "x": 16.5,
+   "y": 20.5
+  },
+  "spawnPoints": {
+   "west": {
+    "x": 2.5,
+    "y": 15.5
+   },
+   "east": {
+    "x": 29.5,
+    "y": 15.5
+   },
+   "south": {
+    "x": 15.5,
+    "y": 29.5
+   }
+  },
+  "exits": [
+   {
+    "rect": [
+     0,
+     14,
+     1,
+     18
+    ],
+    "to": "marsh",
+    "spawn": "east"
+   },
+   {
+    "rect": [
+     31,
+     14,
+     32,
+     18
+    ],
+    "to": "volcano",
+    "spawn": "west"
+   },
+   {
+    "rect": [
+     14,
+     31,
+     18,
+     32
+    ],
+    "to": "forest",
+    "spawn": "north"
+   }
+  ],
+  "npcs": [
+   {
+    "npc": "merchant",
+    "x": 11.5,
+    "y": 13.5
+   },
+   {
+    "npc": "smith",
+    "x": 21.5,
+    "y": 13.5
+   },
+   {
+    "npc": "keeper",
+    "x": 11.5,
+    "y": 19.5
+   },
+   {
+    "npc": "memory",
+    "x": 21.5,
+    "y": 19.5
+   },
+   {
+    "npc": "board",
+    "x": 13.5,
+    "y": 16.5
+   },
+   {
+    "npc": "portal",
+    "x": 19.5,
+    "y": 16.5
+   }
+  ],
+  "travelCost": 300,
+  "weather": {
+   "clear": 55,
+   "rain": 20,
+   "storm": 10,
+   "fog": 10,
+   "heatwave": 5,
+   "bloodmoon": 1
+  }
+ },
+ "meadow": {
+  "name": "翠風の草原",
+  "type": "field",
+  "level": [
+   1,
+   14
+  ],
+  "gen": {
+   "seed": 101,
+   "width": 52,
+   "height": 52,
+   "palette": "meadow"
+  },
+  "genExits": [
+   {
+    "edge": "west",
+    "to": "lumina",
+    "spawn": "east"
+   },
+   {
+    "edge": "east",
+    "to": "marsh",
+    "spawn": "west"
+   }
+  ],
+  "density": 16,
+  "monsters": [
+   {
+    "id": "slime",
+    "w": 3
+   },
+   {
+    "id": "hornet",
+    "w": 2
+   },
+   {
+    "id": "boar",
+    "w": 2
+   },
+   {
+    "id": "shroom",
+    "w": 2
+   }
+  ],
+  "night": [
+   {
+    "id": "wisp",
+    "w": 3
+   }
+  ],
+  "ambush": [
+   {
+    "id": "grass_snake",
+    "w": 1
+   }
+  ],
+  "fieldBoss": {
+   "id": "king_slime",
+   "spot": [
+    0.72,
+    0.28
+   ],
+   "level": 15
+  },
+  "gate": {
+   "spot": [
+    0.3,
+    0.8
+   ],
+   "dungeon": "dg_meadow"
+  },
+  "weather": {
+   "clear": 50,
+   "rain": 25,
+   "storm": 8,
+   "fog": 15,
+   "aurora": 1,
+   "bloodmoon": 1
+  }
+ },
+ "marsh": {
+  "name": "蒼雫の湖沼",
+  "type": "field",
+  "level": [
+   14,
+   32
+  ],
+  "gen": {
+   "seed": 202,
+   "width": 56,
+   "height": 56,
+   "palette": "marsh"
+  },
+  "genExits": [
+   {
+    "edge": "west",
+    "to": "meadow",
+    "spawn": "east"
+   },
+   {
+    "edge": "east",
+    "to": "ember",
+    "spawn": "west"
+   }
+  ],
+  "density": 18,
+  "monsters": [
+   {
+    "id": "toad",
+    "w": 3
+   },
+   {
+    "id": "crab",
+    "w": 2
+   },
+   {
+    "id": "lizardman",
+    "w": 2
+   },
+   {
+    "id": "wisp",
+    "w": 1
+   }
+  ],
+  "night": [
+   {
+    "id": "drowned",
+    "w": 3
+   }
+  ],
+  "ambush": [
+   {
+    "id": "mud_eel",
+    "w": 1
+   }
+  ],
+  "fieldBoss": {
+   "id": "hydra",
+   "spot": [
+    0.5,
+    0.22
+   ],
+   "level": 33
+  },
+  "gate": {
+   "spot": [
+    0.75,
+    0.78
+   ],
+   "dungeon": "dg_marsh"
+  },
+  "weather": {
+   "clear": 35,
+   "rain": 35,
+   "storm": 10,
+   "fog": 20,
+   "aurora": 1,
+   "bloodmoon": 1
+  }
+ },
+ "volcano": {
+  "name": "紅蓮の火山",
+  "type": "field",
+  "level": [
+   32,
+   55
+  ],
+  "gen": {
+   "seed": 303,
+   "width": 56,
+   "height": 56,
+   "palette": "volcano"
+  },
+  "genExits": [
+   {
+    "edge": "west",
+    "to": "ember",
+    "spawn": "east"
+   }
+  ],
+  "density": 18,
+  "monsters": [
+   {
+    "id": "fire_lizard",
+    "w": 3
+   },
+   {
+    "id": "magma_golem",
+    "w": 2
+   },
+   {
+    "id": "flame_bat",
+    "w": 2
+   },
+   {
+    "id": "salamander",
+    "w": 2
+   }
+  ],
+  "night": [
+   {
+    "id": "hellhound",
+    "w": 3
+   }
+  ],
+  "ambush": [
+   {
+    "id": "lava_worm",
+    "w": 1
+   }
+  ],
+  "fieldBoss": {
+   "id": "ignaros",
+   "spot": [
+    0.72,
+    0.5
+   ],
+   "level": 56
+  },
+  "gate": {
+   "spot": [
+    0.4,
+    0.82
+   ],
+   "dungeon": "dg_volcano"
+  },
+  "weather": {
+   "clear": 45,
+   "heatwave": 30,
+   "storm": 12,
+   "fog": 10,
+   "aurora": 1,
+   "bloodmoon": 2
+  }
+ },
+ "forest": {
+  "name": "黄昏の古森",
+  "type": "field",
+  "level": [
+   52,
+   76
+  ],
+  "gen": {
+   "seed": 404,
+   "width": 56,
+   "height": 56,
+   "palette": "forest"
+  },
+  "genExits": [
+   {
+    "edge": "north",
+    "to": "ember",
+    "spawn": "south"
+   },
+   {
+    "edge": "south",
+    "to": "snow",
+    "spawn": "north"
+   }
+  ],
+  "density": 18,
+  "monsters": [
+   {
+    "id": "treant",
+    "w": 2
+   },
+   {
+    "id": "fairy",
+    "w": 2
+   },
+   {
+    "id": "dark_elf",
+    "w": 2
+   },
+   {
+    "id": "werewolf",
+    "w": 2
+   }
+  ],
+  "night": [
+   {
+    "id": "phantom",
+    "w": 3
+   }
+  ],
+  "ambush": [
+   {
+    "id": "shadow_spider",
+    "w": 1
+   }
+  ],
+  "fieldBoss": {
+   "id": "elder_treant",
+   "spot": [
+    0.28,
+    0.5
+   ],
+   "level": 77
+  },
+  "gate": {
+   "spot": [
+    0.75,
+    0.38
+   ],
+   "dungeon": "dg_forest"
+  },
+  "weather": {
+   "clear": 40,
+   "rain": 25,
+   "fog": 30,
+   "storm": 5,
+   "aurora": 1,
+   "bloodmoon": 2
+  }
+ },
+ "snow": {
+  "name": "白銀の雪原",
+  "type": "field",
+  "level": [
+   74,
+   100
+  ],
+  "gen": {
+   "seed": 505,
+   "width": 60,
+   "height": 60,
+   "palette": "snow"
+  },
+  "genExits": [
+   {
+    "edge": "north",
+    "to": "forest",
+    "spawn": "south"
+   }
+  ],
+  "density": 20,
+  "monsters": [
+   {
+    "id": "ice_golem",
+    "w": 2
+   },
+   {
+    "id": "snow_wolf",
+    "w": 3
+   },
+   {
+    "id": "frost_wyvern",
+    "w": 2
+   },
+   {
+    "id": "yeti",
+    "w": 2
+   }
+  ],
+  "night": [
+   {
+    "id": "ice_wraith",
+    "w": 3
+   }
+  ],
+  "ambush": [
+   {
+    "id": "crystal_spider",
+    "w": 1
+   }
+  ],
+  "fieldBoss": {
+   "id": "frost_dragon",
+   "spot": [
+    0.5,
+    0.72
+   ],
+   "level": 100
+  },
+  "gate": {
+   "spot": [
+    0.25,
+    0.35
+   ],
+   "dungeon": "dg_snow"
+  },
+  "weather": {
+   "clear": 35,
+   "snow": 40,
+   "storm": 10,
+   "fog": 12,
+   "aurora": 3,
+   "bloodmoon": 1
+  }
  },
  "training": {
   "name": "訓練場",

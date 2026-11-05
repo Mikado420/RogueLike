@@ -176,6 +176,8 @@ export interface MonsterDef {
   fieldBoss?: boolean;
   raid?: boolean;
   scale?: number;
+  /** 見た目の色（形はスプライト名） */
+  colors?: [string, string];
   radius: number;
   speed: number;
   aggroRange: number;
@@ -315,15 +317,43 @@ export interface NpcDef {
   color: string;
 }
 
+export interface AreaExitDef { rect: [number, number, number, number]; to: string; spawn: string }
+
 export interface AreaDef {
   name: string;
   type: 'town' | 'field' | 'dungeon' | 'tower' | 'raid';
-  map: string;
+  /** 手作りのマップ（data/maps） */
+  map?: string;
+  /** 自動生成のマップ */
+  gen?: { seed: number; width: number; height: number; palette: string };
+  genExits?: { edge: 'north' | 'south' | 'east' | 'west'; to: string; spawn: string }[];
   level: [number, number];
-  playerSpawn: { x: number; y: number };
+  playerSpawn?: { x: number; y: number };
+  spawnPoints?: Record<string, { x: number; y: number }>;
+  exits?: AreaExitDef[];
   spawns?: SpawnDef[];
   npcs?: NpcPlacement[];
   safeRadius?: number;
+  /** 湧くモンスター（重み） */
+  density?: number;
+  monsters?: { id: string; w: number }[];
+  night?: { id: string; w: number }[];
+  ambush?: { id: string; w: number }[];
+  fieldBoss?: { id: string; spot: [number, number]; level: number };
+  gate?: { spot: [number, number]; dungeon: string };
+  weather?: Record<string, number>;
+  travelCost?: number;
+}
+
+export interface WeatherDef {
+  name: string;
+  rare?: boolean;
+  nightOnly?: boolean;
+  elements?: Partial<Record<Element, number>>;
+  rareRatePct?: number;
+  eliteMul?: number;
+  ambushMul?: number;
+  moveSpeedPct?: number;
 }
 
 // ───────── 全体 ─────────
@@ -384,7 +414,7 @@ export interface Balance {
   };
   drop: { lifetime: number; scatter: number };
   sell: { base: number; perLevel: number; perRefine: number; materialMul: number };
-  world: { startArea: string };
+  world: { startArea: string; startTown: string; fieldBossInterval: number; exitCooldown: number; spawnMinDist: number; spawnInterval: number; eliteChance: number; levelSpread: number };
   combat: { backAngle: number; preciseCrit: number; chargeMinMove: number; knockbackMaxRadius: number };
   start: { gold: number; bag: Record<string, number>; equipment: { base: string; slot: EquipSlot }[]; inventory: { base: string }[] };
 }
@@ -411,6 +441,18 @@ export interface Content {
   refine: RefineDef;
   storage: { base: number; step: number; max: number; costBase: number; costGrowth: number; sortKeys: string[] };
   looks: { bodyColors: string[]; hairColors: string[]; tierColors: string[]; names: Record<string, string> };
+  palettes: Record<string, import('../mapgen').Palette>;
+  weather: { slotMinutes: number; seed: number; forecastSlots: number; types: Record<string, WeatherDef> };
+  ambience: {
+    phases: Record<string, { color: string; alpha: number }>;
+    weather: Record<string, { color: string; alpha: number; particles?: string; count?: number; flash?: boolean }>;
+    vision: { night: number; fog: number; nightFog: number; dungeon: number; darkness: number };
+    areaTint: Record<string, { color: string; alpha: number }>;
+  };
+  music: {
+    tracks: Record<string, { bpm: number; root: number; scale: number[]; wave: string; bass: string; density: number; seed: number }>;
+    rules: { boss?: boolean; rareWeather?: boolean; areaType?: string; area?: string; phase?: string; weather?: string; track: string }[];
+  };
   time: {
     dayLength: number; hourOffset: number;
     phases: { id: string; from: number; to: number }[];

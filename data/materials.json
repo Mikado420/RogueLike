@@ -71,5 +71,152 @@
   "icon": "stone",
   "color": "#9fd8ff",
   "price": 50
+ },
+ "boar_hide": {
+  "name": "猪の毛皮",
+  "kind": "material",
+  "icon": "mat",
+  "color": "#8a5a3a",
+  "price": 10
+ },
+ "spore": {
+  "name": "胞子袋",
+  "kind": "material",
+  "icon": "mat",
+  "color": "#c84a4a",
+  "price": 9
+ },
+ "snake_skin": {
+  "name": "蛇の抜け殻",
+  "kind": "material",
+  "icon": "mat",
+  "color": "#5aa04a",
+  "price": 14
+ },
+ "toad_oil": {
+  "name": "蛙の油",
+  "kind": "material",
+  "icon": "mat",
+  "color": "#4a8a4a",
+  "price": 18
+ },
+ "crab_shell": {
+  "name": "蟹の甲羅",
+  "kind": "material",
+  "icon": "mat",
+  "color": "#d0603a",
+  "price": 22
+ },
+ "lizard_scale": {
+  "name": "蜥蜴の鱗",
+  "kind": "material",
+  "icon": "mat",
+  "color": "#3a8a7a",
+  "price": 22
+ },
+ "ectoplasm": {
+  "name": "霊の雫",
+  "kind": "material",
+  "icon": "mat",
+  "color": "#c0e0ff",
+  "price": 30
+ },
+ "eel_slime": {
+  "name": "鰻のぬめり",
+  "kind": "material",
+  "icon": "mat",
+  "color": "#5a4a3a",
+  "price": 24
+ },
+ "hydra_fang": {
+  "name": "ヒドラの牙",
+  "kind": "material",
+  "icon": "mat",
+  "color": "#a0f0d0",
+  "price": 150
+ },
+ "fire_scale": {
+  "name": "火蜥蜴の鱗",
+  "kind": "material",
+  "icon": "mat",
+  "color": "#d85a2a",
+  "price": 34
+ },
+ "magma_core": {
+  "name": "溶岩核",
+  "kind": "material",
+  "icon": "mat",
+  "color": "#ffb04a",
+  "price": 45
+ },
+ "bat_wing": {
+  "name": "炎蝙蝠の翼",
+  "kind": "material",
+  "icon": "mat",
+  "color": "#a03a2a",
+  "price": 30
+ },
+ "hell_fang": {
+  "name": "地獄の牙",
+  "kind": "material",
+  "icon": "mat",
+  "color": "#ff4a2a",
+  "price": 48
+ },
+ "ancient_bark": {
+  "name": "古樹の皮",
+  "kind": "material",
+  "icon": "mat",
+  "color": "#5a4a2a",
+  "price": 52
+ },
+ "fairy_dust": {
+  "name": "妖精の粉",
+  "kind": "material",
+  "icon": "mat",
+  "color": "#ffe0f4",
+  "price": 55
+ },
+ "dark_silk": {
+  "name": "闇の糸",
+  "kind": "material",
+  "icon": "mat",
+  "color": "#4a3a6a",
+  "price": 58
+ },
+ "wolf_fang": {
+  "name": "狼の牙",
+  "kind": "material",
+  "icon": "mat",
+  "color": "#e0e0f0",
+  "price": 56
+ },
+ "frost_core": {
+  "name": "氷結核",
+  "kind": "material",
+  "icon": "mat",
+  "color": "#a0c8e8",
+  "price": 70
+ },
+ "wyvern_scale": {
+  "name": "飛竜の鱗",
+  "kind": "material",
+  "icon": "mat",
+  "color": "#7ab0e0",
+  "price": 75
+ },
+ "yeti_fur": {
+  "name": "雪男の毛",
+  "kind": "material",
+  "icon": "mat",
+  "color": "#f0f4f8",
+  "price": 72
+ },
+ "dragon_scale": {
+  "name": "竜鱗",
+  "kind": "material",
+  "icon": "mat",
+  "color": "#c0e0ff",
+  "price": 300
  }
 }

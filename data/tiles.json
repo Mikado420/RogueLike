@@ -1,7 +1,175 @@
 {
-  "grass": { "colors": ["#3f7a3a", "#447f3e"] },
-  "dirt":  { "colors": ["#8a6e48", "#8f7350"] },
-  "arena": { "colors": ["#5a3a33", "#553730"] },
-  "water": { "colors": ["#2a64a8", "#2c68ad"], "shine": "#5aa0e0" },
-  "wall":  { "colors": ["#3a3d48", "#3a3d48"] }
+ "grass": {
+  "colors": [
+   "#3f7a3a",
+   "#447f3e"
+  ]
+ },
+ "dirt": {
+  "colors": [
+   "#8a6e48",
+   "#8f7350"
+  ]
+ },
+ "arena": {
+  "colors": [
+   "#5a3a33",
+   "#553730"
+  ]
+ },
+ "water": {
+  "colors": [
+   "#2a64a8",
+   "#2c68ad"
+  ],
+  "shine": "#5aa0e0"
+ },
+ "wall": {
+  "colors": [
+   "#3a3d48",
+   "#3a3d48"
+  ]
+ },
+ "grass2": {
+  "colors": [
+   "#467f3e",
+   "#4b8442"
+  ]
+ },
+ "stone": {
+  "colors": [
+   "#8a8578",
+   "#8f8a7d"
+  ]
+ },
+ "plaza": {
+  "colors": [
+   "#a49a86",
+   "#9c927e"
+  ]
+ },
+ "marsh": {
+  "colors": [
+   "#4a6a40",
+   "#4e6e44"
+  ]
+ },
+ "mud": {
+  "colors": [
+   "#5a5038",
+   "#5e543c"
+  ]
+ },
+ "boardwalk": {
+  "colors": [
+   "#8a6a44",
+   "#7e6040"
+  ]
+ },
+ "swamp": {
+  "colors": [
+   "#2f5a4a",
+   "#32604e"
+  ],
+  "shine": "#6ab09a"
+ },
+ "ash": {
+  "colors": [
+   "#4a4040",
+   "#4e4444"
+  ]
+ },
+ "basalt": {
+  "colors": [
+   "#3a3434",
+   "#3e3838"
+  ]
+ },
+ "cinder": {
+  "colors": [
+   "#6a4a3a",
+   "#6e4e3e"
+  ]
+ },
+ "lava": {
+  "colors": [
+   "#d8481a",
+   "#e0561e"
+  ],
+  "shine": "#ffb04a"
+ },
+ "forest": {
+  "colors": [
+   "#2f5a34",
+   "#325e37"
+  ]
+ },
+ "moss": {
+  "colors": [
+   "#3e6a3a",
+   "#41703d"
+  ]
+ },
+ "leaves": {
+  "colors": [
+   "#6a5a2e",
+   "#705f32"
+  ]
+ },
+ "snow": {
+  "colors": [
+   "#dfe8f0",
+   "#e6eef6"
+  ]
+ },
+ "snow2": {
+  "colors": [
+   "#d0dce8",
+   "#d6e2ee"
+  ]
+ },
+ "ice_path": {
+  "colors": [
+   "#b8d8ec",
+   "#bedcf0"
+  ]
+ },
+ "ice_water": {
+  "colors": [
+   "#4a8ac0",
+   "#4e8ec4"
+  ],
+  "shine": "#c0e8ff"
+ },
+ "dungeon": {
+  "colors": [
+   "#3a3a46",
+   "#3e3e4a"
+  ]
+ },
+ "dungeon2": {
+  "colors": [
+   "#34343f",
+   "#383843"
+  ]
+ },
+ "void": {
+  "colors": [
+   "#0c0e14",
+   "#0c0e14"
+  ]
+ },
+ "tower": {
+  "colors": [
+   "#4a4a5e",
+   "#4e4e62"
+  ]
+ },
+ "rune": {
+  "colors": [
+   "#3a3a6a",
+   "#3e3e70"
+  ],
+  "shine": "#9fa8ff"
+ }
 }

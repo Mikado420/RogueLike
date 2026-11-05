@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { Rng } from '../src/rng';
 import { CONTENT } from '../src/content';
 import { createItem, rollEquipDrops, tierFor } from '../src/systems/loot';
-import { makeWorld, tick } from './helpers';
+import { makeTraining, makeWorld, spawnAt, tick } from './helpers';
 
 describe('乱数', () => {
   it('シードが同じなら同じ並び', () => {
@@ -41,11 +41,11 @@ describe('アイテム生成とドロップ', () => {
     const { w } = makeWorld(31);
     const counts = { base: 0, boosted: 0 };
     for (let i = 0; i < 300; i++) {
-      for (const it of rollEquipDrops(w, 'boss', 30)) {
+      for (const it of rollEquipDrops(w, 'boss_volcano', 30)) {
         expect(it.rarity).not.toBe('common');
         if (it.rarity === 'legend' || it.rarity === 'mythic') counts.base++;
       }
-      for (const it of rollEquipDrops(w, 'boss', 30, { rareRatePct: 100 })) {
+      for (const it of rollEquipDrops(w, 'boss_volcano', 30, { rareRatePct: 100 })) {
         if (it.rarity === 'legend' || it.rarity === 'mythic') counts.boosted++;
       }
     }
@@ -64,8 +64,8 @@ describe('シミュレーション', () => {
   });
 
   it('通常攻撃を当てるとMPが溜まり、倒すと経験値とゴールドが入る', () => {
-    const { w, p } = makeWorld(5);
-    const m = w.area.monsters.find((x) => x.defId === 'slime')!;
+    const { w, p } = makeTraining('oneHandSword', 1, 8, 5);
+    const m = spawnAt(w, 'slime', 14, 18, 1);
     m.homeX = m.x; m.homeY = m.y;
     let gained = false;
     const gold0 = p.char.gold;
@@ -119,8 +119,8 @@ describe('シミュレーション', () => {
 
 describe('モンスターAI', () => {
   it('近づいたプレイヤーを見つけて追いかけ、予兆つきで攻撃する', () => {
-    const { w, p } = makeWorld(11);
-    const boss = w.area.monsters.find((m) => m.defId === 'ignaros')!;
+    const { w, p } = makeTraining('oneHandSword', 30, 8, 11);
+    const boss = spawnAt(w, 'ignaros', 14, 18, 30);
     p.x = boss.x - 3.5; p.y = boss.y - 1;
     let telegraphed = false, chased = false, hurt = false;
     for (let i = 0; i < 200; i++) {
@@ -136,8 +136,8 @@ describe('モンスターAI', () => {
   });
 
   it('ボスを倒すとドロップが出て、近づくと拾える', () => {
-    const { w, p } = makeWorld(12);
-    const boss = w.area.monsters.find((m) => m.defId === 'ignaros')!;
+    const { w, p } = makeTraining('oneHandSword', 30, 8, 12);
+    const boss = spawnAt(w, 'ignaros', 14, 18, 30);
     boss.hp = 1;
     p.x = boss.x - 1.2; p.y = boss.y;
     for (let i = 0; i < 40 && !boss.dead; i++) tick(w, p, { attack: true });
