@@ -70,7 +70,9 @@ export interface SnapshotMsg {
 
 export type ServerMsg =
   | { t: 'welcome'; you: number; key: string; area: string; tick: number; clock: number; tickRate: number; snapshotRate: number; inputRate: number;
-      interest: number; map?: unknown; spec?: InstanceSpec | null; sid: string }
+      interest: number; map?: unknown; spec?: InstanceSpec | null; sid: string;
+      /** 切れたときにつなぎ直すためのチケット */
+      resume: string }
   | SnapshotMsg
   | { t: 'char'; char: CharacterData; account: Record<string, unknown> }
   | { t: 'move'; key: string; ticket: string }

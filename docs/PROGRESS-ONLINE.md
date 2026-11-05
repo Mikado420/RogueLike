@@ -20,12 +20,13 @@
 - [x] サーバーの結合テスト：Node の中の疑似 Cloudflare（`server/test/runtime.ts`：DO・D1(node:sqlite)・WebSocket）
 
 ## O3：通信（ネットコード）
-- [ ] 入力とコマンドに連番、WebSocket
-- [ ] 差分スナップショット・関心範囲・送信頻度の設定
-- [ ] 自分の予測と補正、他人の補間
-- [ ] 自動再接続
-- [ ] エリア移動（AreaDO → AccountDO → つなぎ直し）
-- [ ] 遅延・パケットロスの再現
+- [x] 入力とコマンドに連番（`InputMsg`）、WebSocket。方向を丸めて変わったときだけ送る（`inputRate` が上限）
+- [x] 差分スナップショット（変わったものだけ・見えなくなったら `gone`）・関心範囲（`interestRadius`）・送信頻度（`snapshotRate`）は `server/config.json`
+- [x] 自分は先に動かす（移動と回避）→ サーバーの位置に少しずつ寄せる（大きくずれたら飛ばす）。ほかは少し前の時刻で補間
+- [x] 自動再接続（再接続用チケットで同じエリアへ。猶予 `reconnectGraceSec` のあいだはキャラが残る。だめならログインからやり直して保存した場所へ）
+- [x] エリア移動：AreaDO が行き先を保存（AccountDO）→ チケット → つなぎ直し。古いチケットで前のエリアに戻れない（`elsewhere`）
+- [x] 遅延・取りこぼしの再現：URL に `?lag=200&loss=0.05`
+- [x] テスト：連番と ack・変わらないものは送らない・関心範囲・移動でアイテムが増減しない・移動の途中で切れても大丈夫・再接続・猶予切れで保存・二重のエリア入りを断る・差分を入れ続けても写しがサーバーと同じ
 
 ## O4：セーブの移行とオフライン版の廃止
 - [ ] サーバーが正（AccountDO）。定期保存と重要な操作での保存
@@ -68,4 +69,5 @@
 - `shared/src/host/`：`AreaHost`（AreaDO の中身になる）・`LocalServer`・`Bot`・`audience`
 - `shared/src/net/`：通信の型（`protocol.ts`）と差分スナップショット（`snapshot.ts`：`buildFrame`・`Viewer.diff`・`applySnapshot`）
 - サーバー：`server/src/do/*`。DO どうしは `call(stub, op, body)`（POST /op に JSON）。テストは `server/test/client.ts` の `TestClient` と `tickAll`
+- client：`client/src/net/`（`api.ts`・`transport.ts`・`session.ts`）。`NetSession.world` が描くための写し（`createMirrorWorld`＋`applySnapshot`）
 - AccountDO が正。エリアは `checkout`（写しをもらう）→ `save`（世代つきで書き戻す）。チケットは HMAC 署名（`util/auth.ts`）

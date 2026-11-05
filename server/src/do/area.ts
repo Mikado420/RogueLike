@@ -25,6 +25,8 @@ interface Conn {
   commands: RateWindow;
   lastPos: { x: number; y: number; tick: number } | null;
   strikes: number;
+  /** 切れた時刻（猶予のあいだはエリアに残す） */
+  awaySince: number;
 }
 
 /**
@@ -81,10 +83,11 @@ export class AreaDO {
       sid: t.s, ws: server, ticket: t, account: null, viewer: new Viewer(this.cfg.interestRadius), events: [], lastSeq: 0,
       lastSave: platform.now(), charJson: '', joined: false, closed: false,
       inputs: new RateWindow(1000, this.cfg.rate.inputsPerSec), commands: new RateWindow(1000, this.cfg.rate.commandsPerSec),
-      lastPos: null, strikes: 0,
+      lastPos: null, strikes: 0, awaySince: 0,
     };
     // 同じセッションが残っていたら（再接続）古い方を閉じる
     const old = this.conns.get(t.s);
+    if (old && old.ticket.e !== t.e) return new Response('stale', { status: 409 });
     if (old) { old.closed = true; try { old.ws.close(4000, 'replaced'); } catch { /* noop */ } }
     this.conns.set(t.s, conn);
     server.addEventListener('message', (ev) => this.onMessage(conn, ev.data));
@@ -102,6 +105,7 @@ export class AreaDO {
       const host = this.host!;
       if (rejoin && host.sessions.has(conn.sid)) {
         conn.account = host.player(conn.sid)!.account;
+        conn.lastSeq = 0;
       } else {
         const r = await call<{ account: AccountData }>(this.accountStub(t.a), 'checkout', { sid: t.s, epoch: t.e, key: this.key });
         conn.account = r.account;
@@ -112,7 +116,9 @@ export class AreaDO {
       const p = host.player(conn.sid)!;
       conn.joined = true;
       conn.events.push(...eventsFor(host.world.events, p.id));
+      const resume = await signTicket({ ...t, at: null, exp: platform.now() + this.cfg.resumeTicketSec * 1000 } satisfies Ticket, this.env.SESSION_SECRET);
       this.send(conn, {
+        resume,
         t: 'welcome', you: p.id, key: this.key, area: host.world.area.id, tick: host.world.tick, clock: host.world.clock, sid: conn.sid,
         tickRate: CONTENT.balance.tickRate, snapshotRate: this.cfg.snapshotRate, inputRate: this.cfg.inputRate, interest: this.cfg.interestRadius,
         map: host.isInstance ? host.world.area.map : undefined, spec: t.inst ?? null,
@@ -135,7 +141,7 @@ export class AreaDO {
     let msg: ClientMsg;
     try { msg = JSON.parse(typeof data === 'string' ? data : new TextDecoder().decode(data as ArrayBuffer)); } catch { return; }
     if (msg.t === 'ping') { this.send(conn, { t: 'pong', at: msg.at, server: platform.now() }); return; }
-    if (msg.t === 'bye') { void this.drop(conn.sid, 'bye', false); return; }
+    if (msg.t === 'bye') { void this.drop(conn.sid, 'bye', true).then(() => call(this.accountStub(conn.ticket.a), 'logout', { sid: conn.ticket.s, epoch: conn.ticket.e }).catch(() => {})); return; }
     if (msg.t !== 'in') return;
     if (!conn.inputs.hit(platform.now())) { this.suspect(conn, { kind: 'inputRate' }); return; }
     if (typeof msg.n !== 'number' || msg.n <= conn.lastSeq) return;
@@ -219,6 +225,7 @@ export class AreaDO {
       }
     }
     for (const t of r.transfers) await this.transfer(t);
+    await this.expireAway();
     const every = Math.max(1, Math.round(CONTENT.balance.tickRate / this.cfg.snapshotRate));
     if (this.tickCount % every === 0) this.flush();
     const nowMs = platform.now();
@@ -247,7 +254,11 @@ export class AreaDO {
     const c = this.conns.get(t.sessionId);
     if (!c) return;
     const tr = t.transition;
-    // 一時的な場所の位置は保存しない（次の場所が決まる）
+    // 行き先を保存しておく（つながらなくても次は行き先から始まる。インスタンスは街に戻る）
+    if (!tr.instance) {
+      const ch = t.account.characters.find((x) => x.id === t.char.id);
+      if (ch) ch.location = { area: tr.to, x: tr.pos?.x ?? -1, y: tr.pos?.y ?? -1 };
+    }
     const ok = await this.saveAccount(c, t.account, true);
     if (!ok) { await this.drop(c.sid, 'stale', false); return; }
     let key: string;
@@ -269,7 +280,7 @@ export class AreaDO {
 
   private async saveAccount(c: Conn, account: AccountData, leaving: boolean): Promise<boolean> {
     try {
-      await call(this.accountStub(c.ticket.a), 'save', { sid: c.ticket.s, epoch: c.ticket.e, account, leaving });
+      await call(this.accountStub(c.ticket.a), 'save', { sid: c.ticket.s, epoch: c.ticket.e, account, leaving, key: this.key });
       return true;
     } catch (e) {
       console.warn('save failed', c.ticket.a, e);
@@ -308,17 +319,30 @@ export class AreaDO {
     if (conn.closed) return;
     conn.closed = true;
     if (this.conns.get(conn.sid) !== conn) return;
-    this.conns.delete(conn.sid);
-    const host = this.host;
-    const p = host?.player(conn.sid);
-    if (p) {
-      host!.world.players.forEach((x) => { if (x === p) { x.char.location = { area: host!.world.area.id, x: x.x, y: x.y }; x.char.hp = Math.round(x.hp); x.char.mp = Math.round(x.mp); } });
-      const ok = await this.saveAccount(conn, p.account, true);
-      host!.leave(conn.sid);
-      if (ok) await call(this.accountStub(conn.ticket.a), 'logout', { sid: conn.ticket.s, epoch: conn.ticket.e }).catch(() => {});
+    // しばらくはエリアに残して、つなぎ直しを待つ
+    conn.awaySince = platform.now();
+    if (!conn.joined) { this.conns.delete(conn.sid); return; }
+    console.log(JSON.stringify({ ev: 'away', key: this.key }));
+  }
+
+  /** 猶予を過ぎた人を保存して出す */
+  private async expireAway() {
+    const now = platform.now();
+    for (const conn of [...this.conns.values()]) {
+      if (!conn.awaySince || now - conn.awaySince < this.cfg.reconnectGraceSec * 1000) continue;
+      this.conns.delete(conn.sid);
+      const host = this.host;
+      const p = host?.player(conn.sid);
+      if (p) {
+        p.char.location = { area: host!.world.area.id, x: p.x, y: p.y };
+        p.char.hp = p.dead ? 0 : Math.round(p.hp); p.char.mp = Math.round(p.mp);
+        const ok = await this.saveAccount(conn, p.account, true);
+        host!.leave(conn.sid);
+        if (ok) await call(this.accountStub(conn.ticket.a), 'logout', { sid: conn.ticket.s, epoch: conn.ticket.e }).catch(() => {});
+      }
+      console.log(JSON.stringify({ ev: 'leave', key: this.key, players: this.conns.size }));
+      this.reportPopulation();
     }
-    console.log(JSON.stringify({ ev: 'leave', key: this.key, players: this.conns.size }));
-    this.reportPopulation();
   }
 
   private reportPopulation() {

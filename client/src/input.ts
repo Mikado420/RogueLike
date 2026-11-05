@@ -44,10 +44,23 @@ export class InputManager {
   /** 次に押したキーを受け取る（キー割り当ての変更用） */
   private capture: ((code: string | null) => void) | null = null;
 
+  private onDown = (e: KeyboardEvent) => this.onKey(e, true);
+  private onUp = (e: KeyboardEvent) => this.onKey(e, false);
+  private onBlur = () => { this.keys.clear(); this.mouseHeld = false; this.uiAttackHeld = false; };
+  private onPointerUp = (e: PointerEvent) => { if (e.pointerType === 'mouse' && e.button === 0) this.mouseHeld = false; };
+
+  dispose() {
+    window.removeEventListener('keydown', this.onDown);
+    window.removeEventListener('keyup', this.onUp);
+    window.removeEventListener('blur', this.onBlur);
+    window.removeEventListener('pointerup', this.onPointerUp);
+    this.enabled = false;
+  }
+
   constructor(canvasHost: HTMLElement) {
-    window.addEventListener('keydown', (e) => this.onKey(e, true));
-    window.addEventListener('keyup', (e) => this.onKey(e, false));
-    window.addEventListener('blur', () => { this.keys.clear(); this.mouseHeld = false; this.uiAttackHeld = false; });
+    window.addEventListener('keydown', this.onDown);
+    window.addEventListener('keyup', this.onUp);
+    window.addEventListener('blur', this.onBlur);
     canvasHost.addEventListener('pointermove', (e) => {
       if (e.pointerType !== 'mouse') return;
       this.mouse = { x: e.clientX, y: e.clientY, movedAt: performance.now() };
@@ -58,7 +71,7 @@ export class InputManager {
       if (e.button === 0) this.mouseHeld = true;
       if (e.button === 2) this.pendingSkill = 0;
     });
-    window.addEventListener('pointerup', (e) => { if (e.pointerType === 'mouse' && e.button === 0) this.mouseHeld = false; });
+    window.addEventListener('pointerup', this.onPointerUp);
     canvasHost.addEventListener('contextmenu', (e) => e.preventDefault());
   }
 

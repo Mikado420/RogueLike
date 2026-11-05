@@ -462,29 +462,9 @@ export class Menu {
     keys.append(grid);
     body.append(keys);
 
-    // セーブデータ
-    const data = h('div', 'set-sec');
-    data.append(h('div', 'sec-title', txt('settings.data')));
-    const acts = h('div', 'set-actions');
-    acts.append(btn(txt('settings.export'), () => void this.ctx.exportSave(), 'btn'));
-    const file = h('input');
-    file.type = 'file';
-    file.accept = 'application/json,.json';
-    file.style.display = 'none';
-    let pending: string | null = null;
-    const over = btn(txt('settings.overwrite'), async () => {
-      if (pending && !(await this.ctx.importSave(pending))) this.ctx.hud.toast(txt('err.importFailed'), '#ff8a7a');
-    }, 'btn danger');
-    over.style.display = 'none';
-    file.addEventListener('change', async () => {
-      const f = file.files?.[0];
-      if (!f) return;
-      pending = await f.text();
-      over.style.display = '';
-    });
-    acts.append(btn(txt('settings.import'), () => file.click(), 'btn'), over, file);
-    data.append(acts);
-    body.append(data);
+    const out = h('div', 'set-sec');
+    out.append(btn(txt('settings.logout'), () => this.ctx.logout(), 'btn'));
+    body.append(out);
     el.append(body);
   }
 }

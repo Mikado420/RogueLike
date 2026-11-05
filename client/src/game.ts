@@ -1,7 +1,6 @@
 import type { Application, Ticker } from 'pixi.js';
-import {
-  CONTENT, createWorld, deserializeAccount, serializeAccount, stepSolo, syncCharacters, txt, type AccountData, type Command, type GameEvent, type SaveStore, type World,
-} from '../../shared/src';
+import { CONTENT, type Command, type GameEvent, type World } from '../../shared/src';
+import type { NetSession } from './net/session';
 import { InputManager } from './input';
 import { WorldView } from './view';
 import { Hud } from './hud';
@@ -18,7 +17,6 @@ import { registerPetTab } from './ui/pets';
 import { registerOnlineTab } from './ui/online';
 import type { Ctx } from './ui/ctx';
 
-const AUTOSAVE_MS = 15000;
 
 /** 1人ぶんのゲーム（ワールド・描画・UI・保存）をまとめる */
 export class Game {
@@ -31,21 +29,16 @@ export class Game {
   npc: NpcPanels;
   ctx: Ctx;
   private acc = 0;
-  private lastSave = performance.now();
   private tickFn: (t: Ticker) => void;
-  private saving = false;
-  /** 読み込み後は保存しない（再読み込みまで） */
-  private frozen = false;
+  onExit: ((reason: string | null) => void) | null = null;
   ambience = new Ambience();
   music = new Music(CONTENT.music.tracks);
   private musicTimer = 0;
   myId = 0;
 
-  constructor(private app: Application, public account: AccountData, charId: string, private store: SaveStore, public settings: Settings, public sfx: Sfx) {
-    const seed = (Date.now() ^ (Math.random() * 0x7fffffff)) >>> 0;
-    this.world = createWorld({ account, characterId: charId, seed, now: Date.now() });
-    account.lastCharacterId = charId;
-    const myId = this.world.players[0].id;
+  constructor(private app: Application, public session: NetSession, public settings: Settings, public sfx: Sfx) {
+    this.world = session.world;
+    const myId = session.myId;
     this.myId = myId;
     const host = document.getElementById('game')!;
     this.input = new InputManager(host);
@@ -68,8 +61,8 @@ export class Game {
       hud: this.hud,
       input: this.input,
       applySettings: () => this.applySettings(),
-      exportSave: () => this.exportSave(),
-      importSave: (text: string) => this.importSave(text),
+      session,
+      logout: () => this.logout(),
     };
     this.menu = new Menu(this.ctx);
     this.npc = new NpcPanels(this.ctx);
@@ -90,8 +83,8 @@ export class Game {
     };
     this.tickFn = (t) => this.frame(t);
     app.ticker.add(this.tickFn);
-    window.addEventListener('pagehide', this.onHide);
-    document.addEventListener('visibilitychange', this.onHide);
+    session.onKick = (r) => this.onExit?.(r);
+    session.onState = (st) => this.hud.setConnection(st);
     (window as unknown as { eg: unknown }).eg = { game: this, get world() { return self.world; }, get me() { return self.ctx.me(); } };
   }
 
@@ -111,28 +104,11 @@ export class Game {
     }
   }
 
-  /** セーブをファイルに書き出す */
-  async exportSave() {
-    await this.save();
-    const blob = new Blob([serializeAccount(this.account)], { type: 'application/json' });
-    const d = new Date();
-    const stamp = `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}${String(d.getDate()).padStart(2, '0')}-${String(d.getHours()).padStart(2, '0')}${String(d.getMinutes()).padStart(2, '0')}`;
-    downloadBlob(blob, `endless-garden-${stamp}.json`);
-    this.hud.toast(txt('notice.exported'), '#9fe8ff');
+  /** タイトルに戻る（サーバーがすぐ保存する） */
+  logout() {
+    this.session.close();
+    this.onExit?.(null);
   }
-
-  /** ファイルから読み込んで置き換え、最初からやり直す */
-  async importSave(text: string): Promise<boolean> {
-    let acc: AccountData;
-    try { acc = deserializeAccount(text); } catch { return false; }
-    if (!Array.isArray(acc.characters)) return false;
-    this.frozen = true;
-    await this.store.save(acc);
-    location.reload();
-    return true;
-  }
-
-  private onHide = () => { if (document.visibilityState !== 'visible') void this.save(); };
 
   private usePotion() {
     const p = this.ctx.me();
@@ -152,17 +128,17 @@ export class Game {
     const TICK_MS = 1000 / CONTENT.balance.tickRate;
     this.acc += Math.min(t.deltaMS, 250);
     while (this.acc >= TICK_MS) {
-      this.input.playerScreen = this.view.playerScreenPos();
-      this.view.capturePrev();
-      const me = this.ctx.me();
-      const events = stepSolo(this.world, new Map([[me.id, this.input.sample()]]), Date.now());
+      if (this.ctx.me()) this.input.playerScreen = this.view.playerScreenPos();
+      this.session.clientTick(this.input.sample());
       // エリアを移るとプレイヤーの番号が変わる
-      const id = this.world.players[0].id;
+      const id = this.session.myId;
       if (id !== this.myId) { this.myId = id; this.view.myId = id; this.hud.myId = id; }
-      this.handleEvents(events);
+      this.handleEvents(this.session.takeEvents());
       this.acc -= TICK_MS;
     }
-    this.view.render(this.acc / TICK_MS, t.deltaMS);
+    if (!this.ctx.me()) return;
+    this.session.updateDisplay();
+    this.view.render(1, t.deltaMS);
     const ps = this.view.playerScreenPos();
     this.ambience.update(this.world, ps.x, ps.y + 22 * this.view.camera.scale.x, this.view.camera.scale.x, this.app.screen.width, this.app.screen.height, t.deltaMS / 1000);
     this.hud.update();
@@ -172,7 +148,6 @@ export class Game {
       this.music.attach(this.sfx.ctx);
       this.music.play(pickTrack(this.world, this.ctx.me()));
     }
-    if (performance.now() - this.lastSave > AUTOSAVE_MS) void this.save();
   }
 
   private handleEvents(events: GameEvent[]) {
@@ -184,30 +159,17 @@ export class Game {
       if (e.type === 'npc' && e.playerId === this.ctx.myId) this.npc.open(e.npc, e.npcId);
       if ((e.type === 'charChanged' || e.type === 'equip' || e.type === 'gold') && e.playerId === this.ctx.myId) refresh = true;
       if (e.type === 'pickup' && e.playerId === this.ctx.myId) refresh = true;
-      if (e.type === 'levelUp' && e.playerId === this.ctx.myId) { refresh = true; void this.save(); }
-      if (e.type === 'areaChanged' && e.playerId === this.ctx.myId) { this.modal.close(); void this.save(); }
+      if (e.type === 'levelUp' && e.playerId === this.ctx.myId) refresh = true;
+      if (e.type === 'areaChanged' && e.playerId === this.ctx.myId) this.modal.close();
     }
     if (refresh) { this.menu.refresh(); this.npc.refresh(); }
   }
 
-  async save() {
-    if (this.saving || this.frozen) return;
-    this.saving = true;
-    this.lastSave = performance.now();
-    try {
-      syncCharacters(this.world);
-      await this.store.save(this.account);
-    } finally {
-      this.saving = false;
-    }
-  }
-
   destroy() {
+    this.input.dispose();
     this.app.ticker.remove(this.tickFn);
     this.music.dispose();
     this.ambience.layer.destroy({ children: true });
-    window.removeEventListener('pagehide', this.onHide);
-    document.removeEventListener('visibilitychange', this.onHide);
     this.view.camera.destroy({ children: true });
     this.modal.close();
   }

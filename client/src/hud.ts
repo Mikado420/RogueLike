@@ -44,6 +44,7 @@ export class Hud {
   private tut: { root: HTMLDivElement; head: HTMLDivElement; name: HTMLDivElement; keys: HTMLDivElement; fill: HTMLDivElement };
   private tutKey = '';
   private touch = false;
+  private conn: HTMLDivElement;
 
   constructor(private world: World, public myId: number, private input: InputManager, private sfx: Sfx) {
     this.root = document.getElementById('ui')!;
@@ -160,6 +161,9 @@ export class Hud {
     this.leaveBtn.addEventListener('click', () => this.input.pushCommand({ type: 'leaveInstance' }));
     topBtns.prepend(this.leaveBtn);
 
+    this.conn = h('div', 'conn-state');
+    this.root.append(this.conn);
+
     const tut = h('div', 'tutorial');
     const tHead = h('div', 'tut-head');
     const tName = h('div', 'tut-name');
@@ -172,6 +176,12 @@ export class Hud {
     tut.append(tHead, tName, tKeys, tTrack, skip);
     this.root.append(tut);
     this.tut = { root: tut, head: tHead, name: tName, keys: tKeys, fill: tFill };
+  }
+
+  /** 接続の状態（つなぎ直し中だけ出す） */
+  setConnection(s: string) {
+    this.conn.textContent = txt(`net.state.${s}`);
+    this.conn.classList.toggle('show', s === 'reconnecting' || s === 'connecting');
   }
 
   private chip(a: Action): HTMLElement {

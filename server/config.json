@@ -11,5 +11,12 @@
   "transferCodeTtlHours": 24,
   "maxCharacters": 4,
   "d1FlushSec": 30,
-  "rate": { "inputsPerSec": 40, "commandsPerSec": 10, "httpPerMin": 120, "chatPerMin": 20 }
+  "rate": {
+    "inputsPerSec": 40,
+    "commandsPerSec": 10,
+    "httpPerMin": 120,
+    "chatPerMin": 20
+  },
+  "reconnectGraceSec": 20,
+  "resumeTicketSec": 600
 }

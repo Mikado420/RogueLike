@@ -414,3 +414,9 @@ body.touch .keys-sec { display: none; }
   .tut-name { font-size: 13px; }
   .tk { font-size: 10px; padding: 1px 5px; }
 }
+.title-box.busy { opacity: 0.6; pointer-events: none; }
+.title-code { font-size: 22px; font-weight: 900; letter-spacing: 0.15em; color: #ffe28a; text-align: center; min-height: 1.2em; user-select: all; }
+.title-who { text-align: center; color: var(--muted); font-size: 12px; font-weight: 700; margin-top: 8px; }
+.conn-state { position: absolute; left: 50%; transform: translateX(-50%); top: calc(20px + var(--safe-t)); padding: 4px 12px; border-radius: 999px;
+  background: rgba(80,30,30,0.9); color: #fff; font-size: 12px; font-weight: 800; display: none; pointer-events: none; }
+.conn-state.show { display: block; }

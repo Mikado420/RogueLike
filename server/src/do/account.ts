@@ -137,14 +137,17 @@ export class AccountDO {
       checkout: async (b: { sid: string; epoch: number; key: string }) => {
         const { meta, account } = this.need();
         if (b.epoch !== meta.epoch || meta.session?.sid !== b.sid) throw new HttpError(409, 'stale');
+        // 別のエリアに入っている（移る途中の古いチケットなど）なら断る
+        if (meta.session.key && meta.session.key !== b.key) throw new HttpError(409, 'elsewhere');
         meta.session.key = b.key;
         await this.state.storage.put('meta', meta);
         return { account };
       },
       /** エリアからの書き戻し */
-      save: async (b: { sid: string; epoch: number; account: AccountData; leaving?: boolean }) => {
+      save: async (b: { sid: string; epoch: number; account: AccountData; leaving?: boolean; key?: string }) => {
         const { meta } = this.need();
         if (b.epoch !== meta.epoch || meta.session?.sid !== b.sid) throw new HttpError(409, 'stale');
+        if (b.key && meta.session.key && meta.session.key !== b.key) throw new HttpError(409, 'elsewhere');
         this.account = migrateAccount(b.account as unknown as Record<string, unknown>);
         for (const c of this.account.characters) normalizeCharacter(c);
         if (b.leaving) meta.session.key = null;

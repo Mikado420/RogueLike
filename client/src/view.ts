@@ -58,7 +58,7 @@ export class WorldView {
   private nodes = new Map<number, Container>();
   private camPos = { x: 0, y: 0 };
   private time = 0;
-  private areaId = '';
+  private areaRef: unknown = null;
 
   constructor(private app: Application, private world: World, public myId: number, private settings: Settings, private sfx: Sfx) {
     app.stage.addChild(this.camera);
@@ -73,7 +73,7 @@ export class WorldView {
 
   /** エリアが変わったら地面と置物を作り直す */
   setArea() {
-    this.areaId = this.world.area.id;
+    this.areaRef = this.world.area.map;
     for (const c of [...this.entities.children]) c.destroy({ children: true });
     this.actors.clear(); this.projectiles.clear(); this.drops.clear(); this.npcs.clear(); this.nodes.clear();
     this.ground.clear();
@@ -117,18 +117,20 @@ export class WorldView {
     }
     // NPC
     for (const n of this.world.area.npcs) this.addNpc(n);
-    for (const n of this.world.area.nodes) {
-      const def = CONTENT.gathering.nodeTypes[n.type];
-      const root = makeSprite(def.sprite);
-      const s = toScreen(n.x, n.y);
-      root.x = s.x; root.y = s.y;
-      root.zIndex = depth(n.x, n.y);
-      this.entities.addChild(root);
-      this.nodes.set(n.id, root);
-    }
+    for (const n of this.world.area.nodes) this.addNode(n);
     const me = this.me();
-    const s = toScreen(me.x, me.y);
-    this.camPos = { x: s.x, y: s.y };
+    if (me) { const s = toScreen(me.x, me.y); this.camPos = { x: s.x, y: s.y }; }
+  }
+
+  private addNode(n: { id: number; type: string; x: number; y: number }) {
+    const def = CONTENT.gathering.nodeTypes[n.type];
+    if (!def) return;
+    const root = makeSprite(def.sprite);
+    const s = toScreen(n.x, n.y);
+    root.x = s.x; root.y = s.y;
+    root.zIndex = depth(n.x, n.y);
+    this.entities.addChild(root);
+    this.nodes.set(n.id, root);
   }
 
   private addNpc(n: { id: number; npc: string; x: number; y: number }) {
@@ -159,7 +161,7 @@ export class WorldView {
     for (const e of events) {
       switch (e.type) {
         case 'areaChanged':
-          if (e.playerId === this.myId && this.world.area.id !== this.areaId) this.setArea();
+          if (e.playerId === this.myId && this.world.area.map !== this.areaRef) this.setArea();
           break;
         case 'damage': {
           if (e.dot) {
@@ -295,6 +297,14 @@ export class WorldView {
       }
       root.addChild(body);
       v = { root, body, prev: { x: a.x, y: a.y }, cur: { x: a.x, y: a.y }, hurt: 0, float: Math.random() * 10, lookKey: a.kind === 'player' ? this.lookKey(a) : undefined };
+      // ほかのプレイヤーの名前
+      if (a.kind === 'player' && a.id !== this.myId) {
+        const name = new Text({ text: `${a.char.name}  Lv${a.char.level}`, style: { fontSize: 11, fontWeight: '800', fill: 0xdff3ff, stroke: { color: 0x000000, width: 3 }, fontFamily: 'system-ui, sans-serif' } });
+        name.anchor.set(0.5, 1);
+        name.y = -44;
+        name.zIndex = 6;
+        root.addChild(name);
+      }
       if (a.kind === 'monster') {
         if (!CONTENT.monsters[a.defId].boss) { v.bar = new Graphics(); v.bar.zIndex = 5; root.addChild(v.bar); }
         if (a.elite) {
@@ -325,7 +335,7 @@ export class WorldView {
     const dt = dtMs / 1000;
     this.time += dt;
     const w = this.world;
-    if (w.area.id !== this.areaId) this.setArea();
+    if (w.area.map !== this.areaRef) this.setArea();
     const seen = new Set<number>();
     const lerp = (v: { prev: { x: number; y: number } }, x: number, y: number) => ({
       x: v.prev.x + (x - v.prev.x) * alpha,
@@ -485,6 +495,7 @@ export class WorldView {
     }
     // 途中で増えた NPC（出口・階段）
     for (const n of w.area.npcs) if (!this.npcs.has(n.id)) this.addNpc(n);
+    for (const n of w.area.nodes) if (!this.nodes.has(n.id)) this.addNode(n);
 
     // レイドの安全地帯
     for (const z of w.area.safeZones) {
