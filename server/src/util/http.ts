@@ -14,7 +14,9 @@ export function errorResponse(e: unknown): Response {
 }
 
 export async function readJson<T>(req: Request): Promise<T> {
-  try { return (await req.json()) as T; } catch { throw new HttpError(400, 'badJson'); }
+  const text = await req.text().catch(() => '');
+  if (!text) return {} as T;
+  try { return JSON.parse(text) as T; } catch { throw new HttpError(400, 'badJson'); }
 }
 
 export function corsHeaders(origin: string | null, allowed: string | undefined): Record<string, string> {

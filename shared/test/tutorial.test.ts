@@ -73,9 +73,9 @@ describe('チュートリアル', () => {
 describe('オンライン用の窓口', () => {
   it('オフラインではどれも使えない', async () => {
     expect(OfflineServices.status().online).toBe(false);
-    const r = await OfflineServices.market.search('剣');
+    const r = await OfflineServices.market.search({ q: '剣' });
     expect(r.ok).toBe(false);
-    const c = await OfflineServices.chat.send('world', 'hi');
+    const c = await OfflineServices.chat.send('world', { text: 'hi' });
     expect(c).toEqual({ ok: false, reason: 'offline' });
   });
 });

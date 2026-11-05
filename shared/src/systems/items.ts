@@ -3,7 +3,7 @@ import type { AccountData, CharacterData, Item, Player, World } from '../state';
 import type { Content } from '../content/types';
 import { recordCodex } from './quest';
 import { applyStatus } from './status';
-import { baseBonus } from './base';
+import { baseBonus, baseOf, type BaseHolder } from './base';
 import { addCounter, setCounterMax } from './counters';
 import { heal } from './combat';
 import { sellPrice } from './loot';
@@ -74,7 +74,7 @@ export function useItem(w: World, p: Player, id: string): string | null {
   const u = d.use;
   if (u.capture) return 'err.invalid';
   if (u.food) {
-    const k = 1 + baseBonus(p.account, w.content, w.clock, 'foodDuration') / 100;
+    const k = 1 + baseBonus(baseOf(p), w.content, w.clock, 'foodDuration') / 100;
     applyStatus(w, p, p.id, 'food', u.food.duration * 60 * k, { mods: { ...u.food.mods } });
     p.statsDirty = true;
     takeFromBag(p.char, id, 1);
@@ -229,7 +229,7 @@ export function refineItem(w: World, p: Player, uid: number): string | null {
   const ch = p.char;
   const it = findOwnedItem(ch, uid);
   if (!it) return 'err.invalid';
-  const cost = refineCost(it, c, baseBonus(p.account, c, w.clock, 'refineRate'));
+  const cost = refineCost(it, c, baseBonus(baseOf(p), c, w.clock, 'refineRate'));
   if (!cost) return 'err.refineMax';
   if (ch.gold < cost.gold) return 'err.gold';
   if ((ch.bag[c.refine.stone] ?? 0) < cost.stones) return 'err.noStone';
@@ -292,8 +292,8 @@ export function removeCrystal(ch: CharacterData, uid: number, socket: number, re
 // ───────── 倉庫（アカウントで共有） ─────────
 
 /** 倉庫の容量（拠点の金庫で増える） */
-export function storageCap(w: World, acc: AccountData): number {
-  return acc.storage.capacity + baseBonus(acc, w.content, w.clock, 'storage');
+export function storageCap(w: World, acc: AccountData, holder: BaseHolder = acc): number {
+  return acc.storage.capacity + baseBonus(holder, w.content, w.clock, 'storage');
 }
 
 export function storageExpandCost(acc: AccountData, c: Content): number | null {
@@ -307,7 +307,8 @@ export function deposit(w: World, ch: CharacterData, uid: number): string | null
   const st = accountOf(w, ch).storage;
   const i = ch.inventory.findIndex((x) => x.uid === uid);
   if (i < 0) return 'err.invalid';
-  if (st.items.length >= storageCap(w, accountOf(w, ch))) return 'err.storageFull';
+  const pl = w.players.find((x) => x.char === ch)!;
+  if (st.items.length >= storageCap(w, pl.account, baseOf(pl))) return 'err.storageFull';
   st.items.push(ch.inventory.splice(i, 1)[0]);
   return null;
 }

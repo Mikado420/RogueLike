@@ -113,7 +113,7 @@ export class FakeD1 {
   db = new DatabaseSync(':memory:');
   constructor() {
     const dir = new URL('../migrations/', import.meta.url);
-    for (const f of ['0001_init.sql']) this.db.exec(readFileSync(new URL(f, dir), 'utf8'));
+    for (const f of ['0001_init.sql', '0002_social.sql']) this.db.exec(readFileSync(new URL(f, dir), 'utf8'));
   }
   prepare(sql: string) { return new FakeStmt(this.db, sql); }
   async batch(stmts: FakeStmt[]) {

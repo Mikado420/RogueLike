@@ -1,0 +1,29 @@
+{
+  "party": { "max": 4, "expBonusPerMember": 0.2, "shareRange": 24, "gatherRange": 10 },
+  "chat": {
+    "maxLen": 120, "minIntervalMs": 800, "perMin": 20, "history": 50,
+    "ngWords": ["死ね", "殺す", "ころす", "fuck", "shit"],
+    "stamps": [
+      { "id": "hello", "text": "こんにちは" },
+      { "id": "thanks", "text": "ありがとう" },
+      { "id": "gg", "text": "おつかれ" },
+      { "id": "help", "text": "たすけて" },
+      { "id": "ok", "text": "OK" },
+      { "id": "sorry", "text": "ごめん" },
+      { "id": "go", "text": "いこう" },
+      { "id": "wait", "text": "まって" }
+    ],
+    "emotes": [
+      { "id": "wave", "text": "👋" },
+      { "id": "joy", "text": "😄" },
+      { "id": "cry", "text": "😢" },
+      { "id": "angry", "text": "😠" },
+      { "id": "heart", "text": "❤" },
+      { "id": "bow", "text": "🙇" }
+    ]
+  },
+  "rescue": { "maxAgeMin": 15, "reward": { "gold": 300, "goldPerLevel": 30, "expPct": 20 }, "listMax": 50 },
+  "guild": { "max": 50, "nameMax": 16, "createCost": 10000 },
+  "recruit": { "maxAgeMin": 30, "listMax": 50 },
+  "match": { "size": 4, "waitSec": 20, "minSize": 2 }
+}

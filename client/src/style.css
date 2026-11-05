@@ -422,3 +422,35 @@ body.touch .keys-sec { display: none; }
 .conn-state.show { display: block; }
 .removed-list { display: flex; flex-direction: column; gap: 4px; max-height: 40vh; overflow-y: auto; margin: 8px 0; }
 .removed-row { display: grid; grid-template-columns: 1fr 1.4fr 1fr; gap: 8px; font-size: 12px; padding: 4px 8px; border-radius: 6px; background: rgba(255,255,255,0.05); }
+/* O5 チャット・オンライン */
+.chat { position: absolute; left: calc(12px + var(--safe-l)); bottom: calc(230px + var(--safe-b)); width: min(360px, 60vw); display: none; flex-direction: column; gap: 4px;
+  pointer-events: auto; background: rgba(10,14,22,0.55); border-radius: 10px; padding: 6px; }
+.chat.show { display: flex; }
+body:not(.touch) .chat { bottom: calc(14px + var(--safe-b)); }
+.chat-log { max-height: 150px; overflow-y: auto; display: flex; flex-direction: column; gap: 2px; font-size: 12px; scrollbar-width: thin; }
+.chat-line { display: flex; gap: 6px; align-items: baseline; line-height: 1.35; }
+.chat-tag { font-size: 10px; font-weight: 800; color: var(--muted); flex: none; }
+.chat-who { background: none; border: none; padding: 0; color: #9fe8ff; font-weight: 800; font-size: 12px; cursor: pointer; flex: none; }
+.chat-text { color: #eef3fa; word-break: break-word; }
+.chat-text.stamp { color: #ffe28a; font-weight: 800; }
+.ch-party .chat-who { color: #9be04a; } .ch-guild .chat-who { color: #ffb02e; } .ch-dm .chat-who { color: #ff9ad5; } .ch-world .chat-who { color: #c7d2ff; }
+.chat-chans { display: flex; gap: 3px; flex-wrap: wrap; }
+.chat-ch { font-size: 11px; font-weight: 800; padding: 3px 8px; border-radius: 6px; border: 1px solid var(--line); background: rgba(255,255,255,0.05); color: #dfe8f5; }
+.chat-ch.on { background: var(--accent); color: #2a1a00; }
+.chat-row { display: flex; gap: 4px; }
+.chat-input, .chat-to { flex: 1; min-width: 0; padding: 6px 8px; border-radius: 6px; border: 1px solid var(--line); background: rgba(0,0,0,0.5); color: #fff; font-size: 13px; }
+.chat-to { flex: 0 0 80px; }
+.chat-extra { display: none; flex-wrap: wrap; gap: 3px; }
+.chat-extra.show { display: flex; }
+.chat-menu { position: fixed; z-index: 50; display: flex; flex-direction: column; gap: 4px; padding: 6px; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; }
+.online-sub { display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 10px; }
+.online-box { display: flex; flex-direction: column; gap: 8px; }
+.online-line { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 10px; border-radius: 8px; background: var(--panel2); border: 1px solid var(--line); font-size: 13px; }
+.online-line .name { font-weight: 800; }
+.online-line .muted { color: var(--muted); font-size: 12px; }
+.online-form { display: flex; gap: 6px; flex-wrap: wrap; }
+.online-form input, .online-form select { flex: 1; min-width: 120px; padding: 6px 8px; border-radius: 6px; border: 1px solid var(--line); background: rgba(0,0,0,0.4); color: #fff; }
+.card-view { display: flex; flex-direction: column; gap: 6px; font-size: 13px; }
+.card-view .row { display: flex; flex-wrap: wrap; gap: 6px; }
+.card-view .chip { padding: 2px 8px; border-radius: 6px; background: rgba(255,255,255,0.07); }
+.online-ok { color: var(--good); font-weight: 800; font-size: 13px; text-align: center; }

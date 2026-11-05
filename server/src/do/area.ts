@@ -1,5 +1,5 @@
 import {
-  AreaHost, BTN_ATTACK, BTN_DODGE, BTN_INTERACT, CONTENT, Viewer, buildFrame, eventsFor, type AccountData, type ClientMsg,
+  type InstanceSpec, AreaHost, BTN_ATTACK, charKey, BTN_DODGE, BTN_INTERACT, CONTENT, Viewer, buildFrame, eventsFor, type AccountData, type ClientMsg,
   type GameEvent, type PlayerInput, type ServerMsg, type Ticket, type Transfer,
 } from '../../../shared/src';
 import type { Env } from '../env';
@@ -29,6 +29,7 @@ interface Conn {
   awaySince: number;
   /** 大事な操作（精錬・生産・レベルアップなど）のあと、すぐ保存する */
   dirty: boolean;
+  guild: string | null;
 }
 
 const IMPORTANT = new Set(['refine', 'crafted', 'levelUp', 'achievement', 'instance', 'petLevel', 'subLevel']);
@@ -47,6 +48,8 @@ export class AreaDO {
   private tickCount = 0;
   private emptySince = 0;
   readonly isInstance: boolean = false;
+  protected spec: InstanceSpec | null = null;
+  private rescue = false;
 
   constructor(protected state: DurableObjectState, protected env: Env) {
     this.cfg = loadConfig(env);
@@ -59,6 +62,15 @@ export class AreaDO {
       tick: async (b: { n?: number; dt?: number }) => { for (let i = 0; i < (b.n ?? 1); i++) await this.tick(b.dt); return { tick: this.host?.world.tick ?? 0 }; },
       stats: async () => ({ key: this.key, players: this.conns.size, tick: this.host?.world.tick ?? 0, running: !!this.timer }),
       notice: async (b: { key: string; args?: (string | number)[] }) => { this.broadcast({ t: 'notice', key: b.key, args: b.args }); return { ok: true }; },
+      setParty: async (b: { sid: string; party: string | null }) => { const p = this.host?.player(b.sid); if (p) p.partyId = b.party; return { ok: !!p }; },
+      setGuild: async (b: { sid: string; base: AccountData['base'] | null }) => { const p = this.host?.player(b.sid); if (p) { p.guildBase = b.base; p.statsDirty = true; } return { ok: !!p }; },
+      /** 自動マッチングがそろった・救援に入る：この人をインスタンスへ */
+      sendTo: async (b: { sid: string; spec: InstanceSpec; rescuer?: boolean }) => {
+        const p = this.host?.player(b.sid);
+        if (!p || p.transition || p.dead) return { ok: false };
+        p.transition = { to: 'instance', spawn: '', instance: b.spec, rescuer: !!b.rescuer };
+        return { ok: true };
+      },
       debug: async () => ({ world: this.host ? { players: this.host.world.players.map((p) => ({ id: p.id, char: p.char.id, x: p.x, y: p.y })), monsters: this.host.world.area.monsters.length } : null }),
     });
   }
@@ -67,6 +79,7 @@ export class AreaDO {
     if (this.host) return;
     this.key = t.k;
     if (t.inst) {
+      this.spec = t.inst;
       this.host = new AreaHost(t.k, 'instance', 0, { areaId: 'instance', seed: t.inst.seed, now: platform.now(), content: CONTENT, instance: t.inst });
     } else {
       const [areaId, ch] = t.k.split('#');
@@ -87,7 +100,7 @@ export class AreaDO {
       sid: t.s, ws: server, ticket: t, account: null, viewer: new Viewer(this.cfg.interestRadius), events: [], lastSeq: 0,
       lastSave: platform.now(), charJson: '', joined: false, closed: false,
       inputs: new RateWindow(1000, this.cfg.rate.inputsPerSec), commands: new RateWindow(1000, this.cfg.rate.commandsPerSec),
-      lastPos: null, strikes: 0, awaySince: 0, dirty: false,
+      lastPos: null, strikes: 0, awaySince: 0, dirty: false, guild: null,
     };
     // 同じセッションが残っていたら（再接続）古い方を閉じる
     const old = this.conns.get(t.s);
@@ -111,11 +124,17 @@ export class AreaDO {
         conn.account = host.player(conn.sid)!.account;
         conn.lastSeq = 0;
       } else {
-        const r = await call<{ account: AccountData }>(this.accountStub(t.a), 'checkout', { sid: t.s, epoch: t.e, key: this.key });
+        const r = await call<{ account: AccountData; party: string | null; guild: { id: string; base: AccountData['base'] } | null }>(this.accountStub(t.a), 'checkout', { sid: t.s, epoch: t.e, key: this.key });
         conn.account = r.account;
         if (!r.account.characters.some((c) => c.id === t.c)) throw new Error('noCharacter');
         if (conn.closed) return;
-        host.join(conn.sid, r.account, t.c, t.at ?? (t.inst ? null : (r.account.characters.find((c) => c.id === t.c)!.location.area === host.areaId ? r.account.characters.find((c) => c.id === t.c)!.location : null)));
+        const loc = r.account.characters.find((c) => c.id === t.c)!.location;
+        const jp = host.join(conn.sid, r.account, t.c, t.at ?? (t.inst ? null : (loc.area === host.areaId ? loc : null)));
+        jp.partyId = r.party ?? t.inst?.partyId ?? null;
+        jp.guildBase = r.guild?.base ?? null;
+        jp.rescuer = !!t.r;
+        conn.guild = r.guild?.id ?? null;
+        jp.statsDirty = true;
       }
       const p = host.player(conn.sid)!;
       conn.joined = true;
@@ -186,7 +205,7 @@ export class AreaDO {
   private sendChar(conn: Conn, force = false) {
     const p = this.host?.player(conn.sid);
     if (!p) return;
-    const json = JSON.stringify(p.char);
+    const json = charKey(p.char);
     if (!force && json === conn.charJson) return;
     conn.charJson = json;
     const acc = p.account;
@@ -230,6 +249,7 @@ export class AreaDO {
         if (b) { const s = checkMovement(host.world, p, b); if (s) this.suspect(c, s); }
       }
     }
+    await this.social(r.events);
     for (const t of r.transfers) await this.transfer(t);
     await this.expireAway();
     const every = Math.max(1, Math.round(CONTENT.balance.tickRate / this.cfg.snapshotRate));
@@ -238,6 +258,40 @@ export class AreaDO {
     for (const c of this.conns.values()) {
       if (!c.joined || c.awaySince) continue;
       if (nowMs - c.lastSave > this.cfg.saveIntervalSec * 1000 || (c.dirty && nowMs - c.lastSave > 3000)) { c.lastSave = nowMs; c.dirty = false; void this.save(c, false); }
+    }
+  }
+
+  /** 人と遊ぶための知らせ（救援・自動マッチング・ギルドの拠点） */
+  private async social(events: GameEvent[]) {
+    const host = this.host!;
+    const world = this.env.WORLD.get(this.env.WORLD.idFromName('world'));
+    for (const e of events) {
+      if (e.type !== 'request' && e.type !== 'facility' && e.type !== 'upkeep') continue;
+      const sid = [...host.sessions.entries()].find(([, id]) => id === e.playerId)?.[0];
+      const c = sid ? this.conns.get(sid) : undefined;
+      const p = sid ? host.player(sid) : undefined;
+      if (!c || !p) continue;
+      try {
+        if (e.type === 'request' && e.what === 'rescue') {
+          const inst = host.world.area.instance!;
+          await call(world, 'rescueAdd', { key: this.key, spec: this.spec, name: p.char.name, kind: inst.kind, id: inst.id, difficulty: inst.difficulty, level: inst.level, floor: inst.floor });
+          this.rescue = true;
+          c.events.push({ type: 'notice', playerId: p.id, key: 'notice.rescueSent' });
+        } else if (e.type === 'request' && (e.what === 'match' || e.what === 'matchCancel')) {
+          await call(world, e.what === 'match' ? 'matchJoin' : 'matchLeave', { a: c.ticket.a, sid: c.sid, key: this.key, name: p.char.name, level: p.char.level, dungeon: e.dungeon, difficulty: e.difficulty, returnTo: { area: host.world.area.id, spawn: null, x: p.x, y: p.y } });
+          c.events.push({ type: 'notice', playerId: p.id, key: e.what === 'match' ? 'notice.matching' : 'notice.matchCancel' });
+        } else if ((e.type === 'facility' || e.type === 'upkeep') && e.guild && c.guild) {
+          const g = this.env.GUILD.get(this.env.GUILD.idFromName(c.guild));
+          if (e.type === 'facility') await call(g, 'setFacility', { a: c.ticket.a, facility: e.facility, level: e.level });
+          else await call(g, 'upkeep', { a: c.ticket.a, day: e.day });
+        }
+      } catch (err) { console.warn('social failed', err); }
+    }
+    // 救援の募集はクリア・失敗で消す
+    const inst = host.world.area.instance;
+    if (this.rescue && inst && (inst.cleared || inst.failed)) {
+      this.rescue = false;
+      void call(world, 'rescueDone', { key: this.key }).catch(() => {});
     }
   }
 
@@ -275,7 +329,7 @@ export class AreaDO {
       key = (await call<{ key: string }>(w, 'assign', { area: tr.to })).key;
     }
     const ticket = await signTicket({
-      a: c.ticket.a, c: c.ticket.c, s: c.ticket.s, e: c.ticket.e, k: key, at: tr.pos ?? (tr.spawn || null), inst: tr.instance,
+      a: c.ticket.a, c: c.ticket.c, s: c.ticket.s, e: c.ticket.e, k: key, at: tr.pos ?? (tr.spawn || null), inst: tr.instance, r: tr.rescuer ? 1 : undefined,
       exp: platform.now() + this.cfg.ticketTtlSec * 1000,
     } satisfies Ticket, this.env.SESSION_SECRET);
     this.send(c, { t: 'move', key, ticket });

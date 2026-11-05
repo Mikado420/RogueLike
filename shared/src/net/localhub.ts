@@ -1,7 +1,7 @@
 import { CONTENT } from '../content';
 import type { AccountData, PlayerInput } from '../state';
 import { LocalServer } from '../host/local';
-import { Viewer, buildFrame } from './snapshot';
+import { Viewer, buildFrame, charKey } from './snapshot';
 import { BTN_ATTACK, BTN_DODGE, BTN_INTERACT, type ClientMsg, type ServerMsg } from './protocol';
 
 /**
@@ -50,7 +50,7 @@ export class LocalHub {
   private sendChar(force = false) {
     const p = this.server.player(this.sid);
     if (!p) return;
-    const j = JSON.stringify(p.char);
+    const j = charKey(p.char);
     if (!force && j === this.charJson) return;
     this.charJson = j;
     this.emit({ t: 'char', char: p.char, account: { storage: p.account.storage, base: p.account.base, records: p.account.records, id: p.account.id } });

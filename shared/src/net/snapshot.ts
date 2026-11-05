@@ -138,3 +138,8 @@ export function applySnapshot(w: World, msg: SnapshotMsg, myId: number, myChar: 
   }
   if (msg.area) Object.assign(w.area, msg.area);
 }
+
+/** 自分のキャラのデータが変わったかを見るための文字列（毎 tick 変わるプレイ時間などは除く） */
+export function charKey(ch: CharacterData): string {
+  return JSON.stringify(ch, (k, v) => (k === 'playTime' || k === 'hp' || k === 'mp' ? undefined : v));
+}

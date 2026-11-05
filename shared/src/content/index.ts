@@ -42,6 +42,7 @@ import subjobs from '../../../data/subjobs.json';
 import recipes from '../../../data/recipes.json';
 import pets from '../../../data/pets.json';
 import tutorial from '../../../data/tutorial.json';
+import social from '../../../data/social.json';
 import arena from '../../../data/maps/arena.json';
 import type { Content } from './types';
 
@@ -53,7 +54,7 @@ export const CONTENT = {
   drops, materials, areas, npcs, shops, tiles, text, uniques, mythics, sets, crystals, refine, storage, looks, time,
   maps: { lumina, ember, arena },
   palettes, weather, ambience, music,
-  difficulties, dungeons, tower, raids: raid.raids, invasion, missions, titles, achievements, codex, base, gathering, subjobs, recipes, pets, tutorial,
+  difficulties, dungeons, tower, raids: raid.raids, invasion, missions, titles, achievements, codex, base, gathering, subjobs, recipes, pets, tutorial, social,
 } as unknown as Content;
 
 /** 袋に入るもの（素材・消耗品・結晶）の名前と色 */

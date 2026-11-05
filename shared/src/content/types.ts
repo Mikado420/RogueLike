@@ -526,7 +526,17 @@ export interface Content {
   subjobs: SubJobsDef;
   recipes: RecipesDef;
   pets: PetsDef;
+  social: SocialDef;
   tutorial: { area: string; steps: { id: string; type: string; n: number; text: string; keys: string[]; tab?: string; dir?: string; gift?: { base: string; rarity: Rarity } }[]; reward: { gold: number; items: Record<string, number> } };
   tiles: Record<string, { colors: [string, string]; shine?: string }>;
   text: Record<string, string>;
+}
+
+export interface SocialDef {
+  party: { max: number; expBonusPerMember: number; shareRange: number; gatherRange: number };
+  chat: { maxLen: number; minIntervalMs: number; perMin: number; history: number; ngWords: string[]; stamps: { id: string; text: string }[]; emotes: { id: string; text: string }[] };
+  rescue: { maxAgeMin: number; reward: { gold: number; goldPerLevel: number; expPct: number }; listMax: number };
+  guild: { max: number; nameMax: number; createCost: number };
+  recruit: { maxAgeMin: number; listMax: number };
+  match: { size: number; waitSec: number; minSize: number };
 }

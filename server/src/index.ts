@@ -108,6 +108,196 @@ const routes: [string, RegExp, Route][] = [
   }],
 ];
 
+// ───────── 人と遊ぶための API ─────────
+
+async function whoami(env: Env, id: string, charId?: string) {
+  const me = await call<{ handle: string | null; name: string | null; characters: { id: string; name: string; level: number }[] }>(accountStub(env, id), 'me');
+  const s = await call<{ party: string | null; guild: { id: string; role: string } | null }>(accountStub(env, id), 'social');
+  const ch = me.characters.find((c) => c.id === charId) ?? me.characters[0];
+  return { a: id, name: ch?.name ?? me.name ?? 'ゲスト', level: ch?.level ?? 1, handle: me.handle, party: s.party, guild: s.guild };
+}
+const party = (env: Env, id: string) => env.PARTY.get(env.PARTY.idFromName(id));
+const guild = (env: Env, id: string) => env.GUILD.get(env.GUILD.idFromName(id));
+const worldStub = (env: Env) => env.WORLD.get(env.WORLD.idFromName('world'));
+async function byHandle(env: Env, handle: string): Promise<string> {
+  const row = await env.DB.prepare('SELECT account_id FROM profiles WHERE handle = ?').bind(String(handle ?? '')).first<{ account_id: string }>();
+  if (!row) throw new HttpError(404, 'noUser');
+  return row.account_id;
+}
+
+routes.push(
+  // チャットにつなぐチケット（受け口と全体）
+  ['POST', /^\/api\/social$/, async (req, env) => {
+    const id = await authed(req, env);
+    const b = await readJson<{ charId?: string }>(req);
+    const w = await whoami(env, id, b.charId);
+    const ticket = await signTicket({ a: id, name: w.name, handle: w.handle, kind: 'social', exp: platform.now() + 600_000 }, env.SESSION_SECRET);
+    return json({ ticket, party: w.party, guild: w.guild });
+  }],
+  // ── パーティ ──
+  ['GET', /^\/api\/party$/, async (req, env) => {
+    const w = await whoami(env, await authed(req, env));
+    return json(w.party ? await call(party(env, w.party), 'get') : { party: null });
+  }],
+  ['POST', /^\/api\/party\/create$/, async (req, env) => {
+    const id = await authed(req, env);
+    const b = await readJson<{ charId?: string }>(req);
+    const w = await whoami(env, id, b.charId);
+    if (w.party) await call(party(env, w.party), 'leave', { a: id });
+    const pid = `p_${randomId(9)}`;
+    return json(await call(party(env, pid), 'create', { id: pid, a: id, name: w.name, level: w.level }));
+  }],
+  ['POST', /^\/api\/party\/invite$/, async (req, env) => {
+    const id = await authed(req, env);
+    const b = await readJson<{ handle: string; charId?: string }>(req);
+    const w = await whoami(env, id, b.charId);
+    if (!w.party) throw new HttpError(400, 'noParty');
+    return json(await call(party(env, w.party), 'invite', { from: { a: id, name: w.name, handle: w.handle }, to: await byHandle(env, b.handle) }));
+  }],
+  ['POST', /^\/api\/party\/join$/, async (req, env) => {
+    const id = await authed(req, env);
+    const b = await readJson<{ id: string; charId?: string }>(req);
+    const w = await whoami(env, id, b.charId);
+    if (w.party === b.id) return json(await call(party(env, b.id), 'get'));
+    const r = await call<{ party: { members: unknown[]; open: boolean; leader: string; goal: string | null } }>(party(env, b.id), 'join', { a: id, name: w.name, level: w.level });
+    if (w.party) await call(party(env, w.party), 'leave', { a: id }).catch(() => {});
+    // 募集の人数を直す
+    if (r.party.open) {
+      if (r.party.members.length >= CONTENT.social.party.max) await call(worldStub(env), 'recruitRemove', { id: b.id });
+    }
+    return json(r);
+  }],
+  ['POST', /^\/api\/party\/leave$/, async (req, env) => {
+    const id = await authed(req, env);
+    const b = await readJson<{ a?: string }>(req);
+    const w = await whoami(env, id);
+    if (!w.party) return json({ party: null });
+    const r = await call<{ party: unknown }>(party(env, w.party), 'leave', { a: b.a ?? id, by: id });
+    if (!r.party) await call(worldStub(env), 'recruitRemove', { id: w.party });
+    return json(r);
+  }],
+  // 募集の掲示（誰でも入れる）
+  ['POST', /^\/api\/party\/open$/, async (req, env) => {
+    const id = await authed(req, env);
+    const b = await readJson<{ open: boolean; goal: string | null; charId?: string }>(req);
+    const w = await whoami(env, id, b.charId);
+    if (!w.party) throw new HttpError(400, 'noParty');
+    const goal = b.goal && (CONTENT.dungeons.dungeons[b.goal] || CONTENT.raids[b.goal] || b.goal === 'tower' || CONTENT.areas[b.goal]) ? b.goal : null;
+    const r = await call<{ party: { members: unknown[]; leader: string } }>(party(env, w.party), 'setOpen', { a: id, open: !!b.open, goal });
+    if (b.open) await call(worldStub(env), 'recruitPost', { id: w.party, leader: id, name: w.name, goal, level: w.level, members: r.party.members.length });
+    else await call(worldStub(env), 'recruitRemove', { id: w.party });
+    return json(r);
+  }],
+  ['GET', /^\/api\/recruit$/, async (req, env) => {
+    await authed(req, env);
+    return json(await call(worldStub(env), 'recruits'));
+  }],
+  // ── 救援 ──
+  ['GET', /^\/api\/rescue$/, async (req, env) => {
+    await authed(req, env);
+    return json(await call(worldStub(env), 'rescues'));
+  }],
+  ['POST', /^\/api\/rescue\/join$/, async (req, env) => {
+    const id = await authed(req, env);
+    const b = await readJson<{ id: string }>(req);
+    const r = await call<{ rescue: { key: string; spec: unknown } | null }>(worldStub(env), 'rescueGet', { id: b.id });
+    if (!r.rescue?.spec) throw new HttpError(404, 'noRescue');
+    const s = await call<{ session: { sid: string; key: string | null } | null }>(accountStub(env, id), 'session');
+    if (!s.session?.key) throw new HttpError(409, 'notPlaying');
+    const ns = s.session.key.startsWith('inst:') ? env.INSTANCE : env.AREA;
+    const ok = await call<{ ok: boolean }>(ns.get(ns.idFromName(s.session.key)), 'sendTo', { sid: s.session.sid, spec: r.rescue.spec, rescuer: true });
+    if (!ok.ok) throw new HttpError(409, 'cannotMove');
+    return json({ ok: true });
+  }],
+  // ── ビルド閲覧（プロフィールカード） ──
+  ['POST', /^\/api\/builds\/publish$/, async (req, env) => {
+    const id = await authed(req, env);
+    const b = await readJson<{ charId: string; visibility: 'public' | 'guild' | 'private' }>(req);
+    const vis = ['public', 'guild', 'private'].includes(b.visibility) ? b.visibility : 'private';
+    await call(accountStub(env, id), 'setPublished', { charId: b.charId, visibility: vis });
+    if (vis === 'private') {
+      await env.DB.prepare('DELETE FROM builds WHERE char_id = ? AND account_id = ?').bind(b.charId, id).run();
+      return json({ ok: true });
+    }
+    const r = await call<{ card: { name: string; level: number; weapon: string | null; handle: string | null }; guild: string | null }>(accountStub(env, id), 'card', { charId: b.charId });
+    await env.DB.prepare(`INSERT INTO builds (char_id, account_id, handle, name, level, weapon, visibility, data, updated_at, guild_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ON CONFLICT(char_id) DO UPDATE SET handle = excluded.handle, name = excluded.name, level = excluded.level, weapon = excluded.weapon, visibility = excluded.visibility, data = excluded.data, updated_at = excluded.updated_at, guild_id = excluded.guild_id`)
+      .bind(b.charId, id, r.card.handle, r.card.name, r.card.level, r.card.weapon, vis, JSON.stringify(r.card), platform.now(), r.guild).run();
+    return json({ ok: true });
+  }],
+  ['GET', /^\/api\/builds$/, async (req, env) => {
+    const id = await authed(req, env);
+    const w = await whoami(env, id);
+    const q = (new URL(req.url).searchParams.get('q') ?? '').trim().slice(0, 16);
+    const rows = await env.DB.prepare(`SELECT char_id, handle, name, level, weapon, visibility FROM builds
+      WHERE (visibility = 'public' OR (visibility = 'guild' AND guild_id = ?) OR account_id = ?) AND (? = '' OR name LIKE ? OR handle = ?)
+      ORDER BY updated_at DESC LIMIT 50`).bind(w.guild?.id ?? '', id, q, `%${q}%`, q).all();
+    return json({ list: rows.results });
+  }],
+  ['GET', /^\/api\/builds\/([^/]+)$/, async (req, env, m) => {
+    const id = await authed(req, env);
+    const w = await whoami(env, id);
+    const row = await env.DB.prepare('SELECT data, visibility, guild_id, account_id FROM builds WHERE char_id = ?').bind(decodeURIComponent(m[1])).first<{ data: string; visibility: string; guild_id: string | null; account_id: string }>();
+    if (!row || (row.visibility === 'guild' && row.guild_id !== w.guild?.id && row.account_id !== id)) throw new HttpError(404, 'noBuild');
+    return json({ card: JSON.parse(row.data), visibility: row.visibility });
+  }],
+  // ── ギルド ──
+  ['GET', /^\/api\/guild$/, async (req, env) => {
+    const w = await whoami(env, await authed(req, env));
+    return json(w.guild ? await call(guild(env, w.guild.id), 'get') : { guild: null });
+  }],
+  ['POST', /^\/api\/guild\/create$/, async (req, env) => {
+    const id = await authed(req, env);
+    const b = await readJson<{ name: string; charId?: string }>(req);
+    const w = await whoami(env, id, b.charId);
+    if (w.guild) throw new HttpError(409, 'inGuild');
+    const name = String(b.name ?? '').trim().slice(0, CONTENT.social.guild.nameMax);
+    if (!name) throw new HttpError(400, 'badName');
+    const gid = `g_${randomId(9)}`;
+    try {
+      await env.DB.prepare('INSERT INTO guilds (id, name, master, members, created_at) VALUES (?, ?, ?, 1, ?)').bind(gid, name, id, platform.now()).run();
+    } catch { throw new HttpError(409, 'guildTaken'); }
+    const dump = await call<{ account: { base: unknown } }>(accountStub(env, id), 'dump');
+    return json(await call(guild(env, gid), 'create', { id: gid, name, a: id, who: w.name, base: dump.account.base }));
+  }],
+  ['POST', /^\/api\/guild\/invite$/, async (req, env) => {
+    const id = await authed(req, env);
+    const b = await readJson<{ handle: string; charId?: string }>(req);
+    const w = await whoami(env, id, b.charId);
+    if (!w.guild) throw new HttpError(400, 'noGuild');
+    return json(await call(guild(env, w.guild.id), 'invite', { from: { a: id, name: w.name, handle: w.handle }, to: await byHandle(env, b.handle) }));
+  }],
+  ['POST', /^\/api\/guild\/join$/, async (req, env) => {
+    const id = await authed(req, env);
+    const b = await readJson<{ id: string; charId?: string }>(req);
+    const w = await whoami(env, id, b.charId);
+    if (w.guild) throw new HttpError(409, 'inGuild');
+    return json(await call(guild(env, b.id), 'join', { a: id, name: w.name }));
+  }],
+  ['POST', /^\/api\/guild\/leave$/, async (req, env) => {
+    const id = await authed(req, env);
+    const b = await readJson<{ a?: string }>(req);
+    const w = await whoami(env, id);
+    if (!w.guild) return json({ guild: null });
+    return json(await call(guild(env, w.guild.id), 'leave', { a: b.a ?? id, by: id }));
+  }],
+  ['POST', /^\/api\/guild\/role$/, async (req, env) => {
+    const id = await authed(req, env);
+    const b = await readJson<{ a: string; role: 'master' | 'officer' | 'member' }>(req);
+    const w = await whoami(env, id);
+    if (!w.guild) throw new HttpError(400, 'noGuild');
+    return json(await call(guild(env, w.guild.id), 'setRole', { by: id, a: b.a, role: b.role }));
+  }],
+  // ── 通報 ──
+  ['POST', /^\/api\/report$/, async (req, env) => {
+    const id = await authed(req, env);
+    const b = await readJson<{ target: string; reason: string; text?: string }>(req);
+    await env.DB.prepare('INSERT INTO reports (kind, account_id, target, detail, at) VALUES (?, ?, ?, ?, ?)')
+      .bind('report', id, String(b.target ?? '').slice(0, 64), JSON.stringify({ reason: String(b.reason ?? '').slice(0, 32), text: String(b.text ?? '').slice(0, 300) }), platform.now()).run();
+    return json({ ok: true });
+  }],
+);
+
 async function handle(req: Request, env: Env): Promise<Response> {
   const url = new URL(req.url);
   // WebSocket：チケットを確かめて AreaDO / InstanceDO へ
@@ -117,6 +307,14 @@ async function handle(req: Request, env: Env): Promise<Response> {
     if (!t) return new Response('bad ticket', { status: 401 });
     const ns = t.k.startsWith('inst:') ? env.INSTANCE : env.AREA;
     return ns.get(ns.idFromName(t.k)).fetch(req);
+  }
+  // チャット：個人の受け口と全体
+  if (url.pathname === '/social' || url.pathname === '/chat') {
+    if (req.headers.get('upgrade')?.toLowerCase() !== 'websocket') return new Response('expected websocket', { status: 426 });
+    const t = await verifyTicket<{ a: string; kind: string; exp: number }>(url.searchParams.get('ticket'), env.SESSION_SECRET, platform.now());
+    if (!t || t.kind !== 'social') return new Response('bad ticket', { status: 401 });
+    const name = url.pathname === '/social' ? `user:${t.a}` : 'world';
+    return env.CHAT.get(env.CHAT.idFromName(name)).fetch(req);
   }
   for (const [method, re, fn] of routes) {
     if (req.method !== method) continue;

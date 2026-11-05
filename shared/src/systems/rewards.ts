@@ -11,6 +11,7 @@ import { petGainExp, petOwner } from './pets';
 import { rarityRank } from '../core';
 import { findPlayer, isBoss, newId, sec } from './util';
 import { addCounter } from './counters';
+import { partyExpShare, partyNear } from './social';
 
 /** モンスターを倒したときの報酬（経験値・ゴールド・装備・素材） */
 export function onMonsterKilled(w: World, m: Monster, by: Actor | null) {
@@ -28,11 +29,14 @@ export function onMonsterKilled(w: World, m: Monster, by: Actor | null) {
   for (const id of ids) { const p = findPlayer(w, id) ?? petOwner(w, id); if (p && !p.dead) players.add(p); }
   if (killer) players.add(killer);
   if (players.size === 0) return;
+  // パーティの仲間で近くにいる人も入る
+  for (const p of [...players]) for (const x of partyNear(w, p)) players.add(x);
+  const partySize = (p: Player) => (p.partyId ? [...players].filter((x) => x.partyId === p.partyId).length : 1);
 
   const eliteMul = m.elite ? c.balance.monster.eliteMul : 1;
   const mb = c.balance.monster;
   for (const p of players) {
-    const exp = monsterExp(m.level, def, c, eliteMul * m.scale.exp) * levelDiffMul(p.char.level, m.level, c);
+    const exp = monsterExp(m.level, def, c, eliteMul * m.scale.exp) * levelDiffMul(p.char.level, m.level, c) * partyExpShare(partySize(p), c);
     gainExp(w, p, exp);
     petGainExp(w, p, exp);
     const goldBase = (mb.gold[0] + mb.gold[1] * Math.pow(m.level, mb.gold[2])) * (def.gold ?? 1) * eliteMul * m.scale.gold;
@@ -51,8 +55,11 @@ export function onMonsterKilled(w: World, m: Monster, by: Actor | null) {
     recordCodex(w, p, 'monsters', m.defId);
   }
 
-  // ドロップは最も削った人のもの
+  // ドロップは倒した人のもの。パーティなら近くの仲間に順番に配る
   const owner = killer ?? [...players][0];
+  const team = partyNear(w, owner);
+  let turn = w.rng.int(0, team.length - 1);
+  const nextOwner = () => team[(turn++) % team.length];
   if (killer) procOnKill(w, killer, m);
   const wd = weatherDef(w);
   const mods = { ...owner.stats.m, rareRatePct: (owner.stats.m.rareRatePct ?? 0) + (wd.rareRatePct ?? 0) };
@@ -66,16 +73,16 @@ export function onMonsterKilled(w: World, m: Monster, by: Actor | null) {
       w.events.push({ type: 'autoSell', playerId: owner.id, gold, rarity: item.rarity });
       continue;
     }
-    placeDrop(w, m, { item }, owner.id);
+    placeDrop(w, m, { item }, nextOwner().id);
   }
   if (def.crystal && w.rng.chance(def.crystal.chance * (1 + (mods.dropRatePct ?? 0) / 100))) {
-    placeDrop(w, m, { bag: { id: def.crystal.id, n: 1 } }, owner.id);
+    placeDrop(w, m, { bag: { id: def.crystal.id, n: 1 } }, nextOwner().id);
   }
   for (const mat of def.mats ?? []) {
     const chance = Math.min(1, mat.chance * (1 + (mods.dropRatePct ?? 0) / 100));
     if (!w.rng.chance(chance)) continue;
     const n = w.rng.int(mat.min ?? 1, mat.max ?? 1);
-    placeDrop(w, m, { bag: { id: mat.id, n } }, owner.id);
+    placeDrop(w, m, { bag: { id: mat.id, n } }, nextOwner().id);
   }
 }
 

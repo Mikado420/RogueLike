@@ -23,6 +23,10 @@ interface Meta {
   /** オフライン版のセーブを引き継いだか */
   migrated: boolean;
   banned: { reason: string; until: number } | null;
+  party?: string | null;
+  guild?: { id: string; role: string; base: AccountData['base'] } | null;
+  /** 公開しているビルド（キャラ id → 公開範囲） */
+  published?: Record<string, 'public' | 'guild'>;
 }
 
 /**
@@ -67,6 +71,14 @@ export class AccountDO {
       try { await call(ns.get(ns.idFromName(s.key)), 'kick', { sid: s.sid, reason }); } catch (e) { console.warn('kick failed', e); }
     }
     this.meta!.session = null;
+  }
+
+  /** 今いるエリアに知らせる */
+  private async toArea(op: string, body: object) {
+    const s = this.meta?.session;
+    if (!s?.key) return;
+    const ns = s.key.startsWith('inst:') ? this.env.INSTANCE : this.env.AREA;
+    await call(ns.get(ns.idFromName(s.key)), op, { sid: s.sid, ...body }).catch(() => {});
   }
 
   async fetch(req: Request): Promise<Response> {
@@ -148,7 +160,7 @@ export class AccountDO {
         if (meta.session.key && meta.session.key !== b.key) throw new HttpError(409, 'elsewhere');
         meta.session.key = b.key;
         await this.state.storage.put('meta', meta);
-        return { account };
+        return { account, party: meta.party ?? null, guild: meta.guild ?? null, handle: meta.handle };
       },
       /** エリアからの書き戻し */
       save: async (b: { sid: string; epoch: number; account: AccountData; leaving?: boolean; key?: string }) => {
@@ -201,6 +213,40 @@ export class AccountDO {
         console.log(JSON.stringify({ ev: 'migrate', account: meta.id, added, removed: removed.length }));
         return { ok: true, characters: added, removed };
       },
+      session: async () => ({ session: this.need().meta.session }),
+      /** チャットのため：パーティとギルド */
+      social: async () => {
+        const { meta } = this.need();
+        return { party: meta.party ?? null, guild: meta.guild ?? null, handle: meta.handle, name: meta.name };
+      },
+      setParty: async (b: { party: string | null }) => {
+        const { meta } = this.need();
+        meta.party = b.party;
+        await this.state.storage.put('meta', meta);
+        await this.toArea('setParty', { party: b.party });
+        return { ok: true };
+      },
+      setGuild: async (b: { guild: Meta['guild'] }) => {
+        const { meta } = this.need();
+        meta.guild = b.guild;
+        await this.state.storage.put('meta', meta);
+        await this.toArea('setGuild', { base: b.guild?.base ?? null });
+        return { ok: true };
+      },
+      /** プロフィールカード（ステ振り・スキル・装備・称号） */
+      card: async (b: { charId: string }) => {
+        const { account, meta } = this.need();
+        const ch = account.characters.find((c) => c.id === b.charId);
+        if (!ch) throw new HttpError(404, 'noCharacter');
+        return { card: buildCard(ch, meta.handle), guild: meta.guild?.id ?? null };
+      },
+      setPublished: async (b: { charId: string; visibility: 'public' | 'guild' | 'private' }) => {
+        const { meta } = this.need();
+        meta.published ??= {};
+        if (b.visibility === 'private') delete meta.published[b.charId]; else meta.published[b.charId] = b.visibility;
+        await this.state.storage.put('meta', meta);
+        return { ok: true };
+      },
       ban: async (b: { reason: string; until: number }) => {
         const { meta } = this.need();
         meta.banned = { reason: b.reason, until: b.until };
@@ -212,4 +258,14 @@ export class AccountDO {
       dump: async () => ({ meta: this.meta, account: this.account }),
     });
   }
+}
+
+/** 公開用のカード（持ち物や素材は出さない） */
+export function buildCard(ch: AccountData['characters'][number], handle: string | null) {
+  return {
+    id: ch.id, name: ch.name, handle, level: ch.level, rebirths: ch.rebirths, look: ch.look,
+    stats: ch.stats, personal: ch.personal, skills: ch.skills, skillSlots: ch.skillSlots,
+    equipment: ch.equipment, title: ch.titles.equipped, appearance: ch.appearance.selected,
+    weapon: ch.equipment.weapon?.kind ?? null, tower: ch.tower.best,
+  };
 }

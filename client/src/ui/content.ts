@@ -1,6 +1,6 @@
 import {
   CONTENT, DIFFICULTIES, canStartTower, codexPct, codexTotals, contribution, facilityCost, facilityLevel, invasionWindow,
-  missionProgress, nextInvasionAt, txt, upkeepCost, baseActive, dayIndex, ensureMissions, type ModKey,
+  missionProgress, nextInvasionAt, txt, upkeepCost, baseActive, baseOf, dayIndex, ensureMissions, type ModKey,
 } from '../../../shared/src';
 import { btn, h, kv } from './dom';
 import { modText, type Ctx } from './ctx';
@@ -35,7 +35,11 @@ export function registerContentPanels(npc: NpcPanels, menu: Menu, ctx: Ctx) {
     body.append(kv(txt('gate.level'), String(def.level + dd.levelBonus)));
     const rec = c.me().account.records.timeAttack[`${id}:${d}`];
     if (rec?.length) body.append(kv(txt('gate.best'), `${fmtTime(rec[0].time)}  ${rec[0].char}`));
-    body.append(btn(txt('gate.enter'), () => c.send({ type: 'enterDungeon', dungeon: id, difficulty: d }), 'btn primary'));
+    const acts = h('div', 'set-actions');
+    acts.append(btn(txt('gate.enter'), () => c.send({ type: 'enterDungeon', dungeon: id, difficulty: d }), 'btn primary'));
+    acts.append(btn(txt('gate.match'), () => c.send({ type: 'matchDungeon', dungeon: id, difficulty: d }), 'btn'));
+    acts.append(btn(txt('gate.matchCancel'), () => c.send({ type: 'matchDungeon', dungeon: id, difficulty: d, cancel: true }), 'btn'));
+    body.append(acts);
   });
 
   npc.register('tower', (c, body) => {
@@ -66,7 +70,7 @@ export function registerContentPanels(npc: NpcPanels, menu: Menu, ctx: Ctx) {
   });
 
   npc.register('base', (c, body) => {
-    const acc = c.me().account;
+    const acc = baseOf(c.me());
     const ch = c.me().char;
     const active = baseActive(acc, CONTENT, c.world.clock);
     const up = upkeepCost(acc, CONTENT);

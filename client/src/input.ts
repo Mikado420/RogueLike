@@ -1,8 +1,8 @@
 import type { Command, PlayerInput } from '../../shared/src';
 import { screenDirToWorld } from './iso';
 
-export const ACTIONS = ['up', 'down', 'left', 'right', 'attack', 'skill1', 'skill2', 'skill3', 'skill4', 'dodge', 'interact', 'potion', 'capture', 'menu'] as const;
-export type Action = 'up' | 'down' | 'left' | 'right' | 'attack' | 'skill1' | 'skill2' | 'skill3' | 'skill4' | 'dodge' | 'interact' | 'potion' | 'capture' | 'menu';
+export const ACTIONS = ['up', 'down', 'left', 'right', 'attack', 'skill1', 'skill2', 'skill3', 'skill4', 'dodge', 'interact', 'potion', 'capture', 'chat', 'menu'] as const;
+export type Action = typeof ACTIONS[number];
 
 /** 既定のキー割り当て（設定で変えられる） */
 export const DEFAULT_KEYS: Record<Action, string[]> = {
@@ -19,6 +19,7 @@ export const DEFAULT_KEYS: Record<Action, string[]> = {
   interact: ['KeyE', 'KeyF'],
   potion: ['KeyQ'],
   capture: ['KeyC'],
+  chat: ['KeyT'],
   menu: ['KeyM', 'Tab', 'Escape'],
 };
 
@@ -110,6 +111,7 @@ export class InputManager {
           if (this.is('interact', k)) this.pendingInteract = true;
           if (this.is('potion', k)) this.onAction?.('potion');
           if (this.is('capture', k)) this.onAction?.('capture');
+          if (this.is('chat', k)) { e.preventDefault(); this.onAction?.('chat'); }
         }
       }
       this.keys.add(k);

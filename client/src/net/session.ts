@@ -46,13 +46,15 @@ export class NetSession {
   private hub: LocalHub | null = null;
   private lastMove = { x: 0, y: 0 };
   private areaEvent: string | null = null;
+  readonly isLocal: boolean;
   private readyResolve: (() => void) | null = null;
   /** 最初に自分が見えたら */
   readonly ready: Promise<void>;
 
-  constructor(private charId: string, local?: { account: AccountData; onSave: (a: AccountData) => void }) {
+  constructor(readonly charId: string, local?: { account: AccountData; onSave: (a: AccountData) => void }) {
     this.world = createMirrorWorld(CONTENT.balance.world.startArea);
     this.ready = new Promise((r) => { this.readyResolve = r; });
+    this.isLocal = !!local;
     if (local) {
       this.hub = new LocalHub(local.account, charId);
       this.hub.onSave = local.onSave;

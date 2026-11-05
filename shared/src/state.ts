@@ -169,7 +169,11 @@ export type Command =
   | { type: 'setPetRole'; uid: number; role: 'battle' | 'gather' }
   | { type: 'inheritPet'; base: number; material: number; skill: string; slot: number }
   | { type: 'releasePet'; uid: number }
-  | { type: 'skipTutorial' };
+  | { type: 'skipTutorial' }
+  | { type: 'say'; text: string }
+  | { type: 'emote'; emote: string }
+  | { type: 'rescue' }
+  | { type: 'matchDungeon'; dungeon: string; difficulty: Difficulty; cancel?: boolean };
 
 export const emptyInput = (): PlayerInput => ({
   move: { x: 0, y: 0 }, aim: null, attack: false, skill: -1, dodge: false, interact: false, commands: [],
@@ -222,6 +226,12 @@ export interface Player extends ActorBase {
   account: AccountData;
   /** 別のエリアへ移りたい（ホストが step の後に処理する） */
   transition: Transition | null;
+  /** パーティ（同じ id の人と経験値・ドロップを分ける） */
+  partyId: string | null;
+  /** ギルドの拠点（入っていれば自分の拠点の代わりに使う） */
+  guildBase: AccountData['base'] | null;
+  /** 救援で来た */
+  rescuer: boolean;
   mp: number;
   st: number;
   stDelay: number;
@@ -434,6 +444,8 @@ export interface InstanceSpec {
   returnTo: { area: string; spawn: string | null; x: number; y: number };
   /** 入る人数（レイドの係数に使う） */
   players: number;
+  /** パーティの id（自動マッチングでは仮の id） */
+  partyId?: string | null;
   /** 同じインスタンスに入る仲間（キャラ id） */
   party?: string[];
 }
@@ -444,6 +456,8 @@ export interface Transition {
   spawn: string;
   pos?: { x: number; y: number };
   instance?: InstanceSpec;
+  /** 救援で入る */
+  rescuer?: boolean;
 }
 
 /** ワールド全体で共有するもの（フィールドボスを倒した区切り・侵攻の貢献度）。サーバーでは WorldDO が持つ */
@@ -514,4 +528,10 @@ export type GameEvent =
   | { type: 'subLevel'; playerId: number; job: string; level: number }
   | { type: 'capture'; playerId: number; success: boolean; species: string; x: number; y: number }
   | { type: 'petLevel'; playerId: number; uid: number; level: number }
-  | { type: 'tutorial'; playerId: number; step: number; done: boolean };
+  | { type: 'tutorial'; playerId: number; step: number; done: boolean }
+  | { type: 'say'; id: number; name: string; text: string }
+  | { type: 'emote'; id: number; emote: string }
+  | { type: 'facility'; playerId: number; facility: string; level: number; guild: boolean }
+  | { type: 'upkeep'; playerId: number; day: number; guild: boolean }
+  | { type: 'request'; playerId: number; what: 'rescue' | 'match' | 'matchCancel'; dungeon?: string; difficulty?: Difficulty }
+  | { type: 'rescued'; playerId: number; gold: number; exp: number };

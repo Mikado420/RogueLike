@@ -58,6 +58,23 @@ export class TestClient {
     await flush(10);
   }
 
+  social: { user: FakeSocket; world: FakeSocket; msgs: any[] } | null = null;
+
+  /** チャット（個人の受け口と全体）につなぐ */
+  async connectSocial(charId?: string) {
+    const r = await this.api<{ ticket: string }>('POST', '/api/social', { charId });
+    const msgs: any[] = [];
+    const open = async (path: string) => {
+      const res = (await worker.fetch(new Request(`https://test${path}?ticket=${encodeURIComponent(r.data.ticket)}`, { headers: { upgrade: 'websocket' } }), this.env)) as unknown as { status: number; webSocket: FakeSocket };
+      if (res.status !== 101) throw new Error(`social failed ${res.status}`);
+      res.webSocket.addEventListener('message', (ev) => msgs.push(JSON.parse(String(ev.data))));
+      return res.webSocket;
+    };
+    this.social = { user: await open('/social'), world: await open('/chat'), msgs };
+    await flush(5);
+    return this.social;
+  }
+
   send(o: unknown) { this.ws?.send(JSON.stringify(o)); }
 
   input(o: { m?: [number, number]; a?: [number, number] | null; b?: number; k?: number; c?: Command[] } = {}) {

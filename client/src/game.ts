@@ -15,6 +15,10 @@ import { registerContentPanels } from './ui/content';
 import { registerCraftPanels } from './ui/crafting';
 import { registerPetTab } from './ui/pets';
 import { registerOnlineTab } from './ui/online';
+import { ChatPanel } from './ui/chat';
+import { SocialClient } from './net/social';
+import { createOnline } from './net/online';
+import { OfflineServices, type OnlineServices } from '../../shared/src';
 import type { Ctx } from './ui/ctx';
 
 
@@ -31,6 +35,9 @@ export class Game {
   private acc = 0;
   private tickFn: (t: Ticker) => void;
   onExit: ((reason: string | null) => void) | null = null;
+  social: SocialClient | null;
+  online: OnlineServices;
+  chat: ChatPanel;
   ambience = new Ambience();
   music = new Music(CONTENT.music.tracks);
   private musicTimer = 0;
@@ -69,7 +76,12 @@ export class Game {
     registerContentPanels(this.npc, this.menu, this.ctx);
     registerCraftPanels(this.npc);
     registerPetTab(this.menu, this.ctx);
-    registerOnlineTab(this.menu);
+    // チャットとオンラインの窓口（手元の疑似サーバーでは使えない）
+    this.social = session.isLocal ? null : new SocialClient(session.charId);
+    this.online = this.social ? createOnline(this.social, session.charId) : OfflineServices;
+    void this.social?.start();
+    registerOnlineTab(this.menu, this.ctx, this.online, this.social);
+    this.chat = new ChatPanel(this.ctx, this.social, this.online);
     this.modal.onChange = () => { this.input.enabled = !this.modal.isOpen; };
     this.hud.onMenu = () => this.menu.toggle();
     this.hud.onPotion = () => this.usePotion();
@@ -80,6 +92,7 @@ export class Game {
       }
       if (a === 'potion') this.usePotion();
       if (a === 'capture') this.useCapture();
+      if (a === 'chat') this.chat.focus();
     };
     this.tickFn = (t) => this.frame(t);
     app.ticker.add(this.tickFn);
@@ -161,11 +174,14 @@ export class Game {
       if (e.type === 'pickup' && e.playerId === this.ctx.myId) refresh = true;
       if (e.type === 'levelUp' && e.playerId === this.ctx.myId) refresh = true;
       if (e.type === 'areaChanged' && e.playerId === this.ctx.myId) this.modal.close();
+      if (e.type === 'say') this.chat.addArea(e.name, e.text);
     }
     if (refresh) { this.menu.refresh(); this.npc.refresh(); }
   }
 
   destroy() {
+    this.social?.close();
+    this.chat.destroy();
     this.input.dispose();
     this.app.ticker.remove(this.tickFn);
     this.music.dispose();

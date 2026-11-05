@@ -237,6 +237,14 @@ export class WorldView {
         case 'dodge':
           if (e.id === this.myId) this.sfx.play('dodge');
           break;
+        case 'say':
+        case 'emote': {
+          const a = this.world.players.find((p) => p.id === e.id);
+          if (!a) break;
+          const t = e.type === 'say' ? (e.text.length > 16 ? `${e.text.slice(0, 16)}…` : e.text) : CONTENT.social.chat.emotes.find((x) => x.id === e.emote)?.text ?? '';
+          this.fx.text(a.x, a.y - 0.6, t, 0xffffff);
+          break;
+        }
         case 'respawn':
           if (e.id === this.myId) this.sfx.play('respawn');
           break;

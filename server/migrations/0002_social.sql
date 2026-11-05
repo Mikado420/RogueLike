@@ -1,0 +1,9 @@
+-- ギルド（名前は重複不可）
+CREATE TABLE IF NOT EXISTS guilds (
+  id TEXT PRIMARY KEY,
+  name TEXT NOT NULL UNIQUE COLLATE NOCASE,
+  master TEXT NOT NULL,
+  members INTEGER NOT NULL DEFAULT 1,
+  created_at INTEGER NOT NULL
+);
+ALTER TABLE builds ADD COLUMN guild_id TEXT;

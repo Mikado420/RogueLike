@@ -186,7 +186,7 @@ export function stepSolo(w: World, inputs: Map<number, PlayerInput>, now?: numbe
 export function makePlayer(w: World, char: CharacterData, account: AccountData): Player {
   const stats = derivePlayerStats(char, [], w.content);
   return {
-    id: newId(w), kind: 'player', char, account, transition: null, x: 0, y: 0, r: 0.32, facing: Math.PI / 4,
+    id: newId(w), kind: 'player', char, account, transition: null, partyId: null, guildBase: null, rescuer: false, x: 0, y: 0, r: 0.32, facing: Math.PI / 4,
     hp: char.hp > 0 ? Math.min(char.hp, stats.maxHp) : stats.maxHp, stats, team: 0, dead: false, statuses: [],
     stagger: 0, moving: false, statsDirty: false,
     mp: Math.min(char.mp ?? 0, stats.maxMp), st: stats.maxSt, stDelay: 0, attackCd: 0, chainIndex: 0, chainUntil: 0,

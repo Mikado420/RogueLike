@@ -1,3 +1,4 @@
+import { emote, requestMatch, requestRescue, say } from './social';
 import type { Command, Player, World } from '../state';
 import {
   allocateStat, choosePersonal, learnSkill, loadBuild, rebirth, respec, saveBuild, setSkillSlot,
@@ -90,6 +91,10 @@ export function applyCommand(w: World, p: Player, cmd: Command) {
     case 'cook': err = nearRole(w, p, 'kitchen') ? cook(w, p, cmd.recipe) : 'err.notNear'; break;
     case 'alchemy': err = nearRole(w, p, 'smith') ? alchemy(w, p, cmd.uid, cmd.mode, cmd.index) : 'err.notNear'; break;
     case 'capture': err = capture(w, p, cmd.item); break;
+    case 'say': err = say(w, p, cmd.text); break;
+    case 'emote': err = emote(w, p, cmd.emote); break;
+    case 'rescue': err = requestRescue(w, p); break;
+    case 'matchDungeon': err = requestMatch(w, p, cmd.dungeon, cmd.difficulty, !!cmd.cancel); break;
     case 'skipTutorial': p.char.tutorial.done = true; w.events.push({ type: 'tutorial', playerId: p.id, step: p.char.tutorial.step, done: true }); break;
     case 'setActivePet': err = setActivePet(p, cmd.uid); break;
     case 'setPetRole': err = setPetRole(p, cmd.uid, cmd.role); break;

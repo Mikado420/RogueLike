@@ -16,6 +16,8 @@ export interface Ticket {
   at?: { x: number; y: number } | string | null;
   /** インスタンスを作る指定 */
   inst?: InstanceSpec;
+  /** 救援で入る */
+  r?: 1;
   exp: number;
 }
 

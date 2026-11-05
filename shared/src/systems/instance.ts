@@ -1,6 +1,7 @@
 import type { Difficulty } from '../core';
 import type { InstanceSpec, Monster, Player, World } from '../state';
 import { Rng } from '../rng';
+import { partyNear, rescueReward } from './social';
 import { generateArena, generateDungeon } from '../mapgen';
 import { makeArea, spawnMonster } from './world';
 import { createSetPiece, rollEquipDrops } from './loot';
@@ -25,14 +26,22 @@ function spawnIn(w: World, monster: string, x: number, y: number, level: number,
 }
 
 function spec(w: World, p: Player, kind: InstanceSpec['kind'], id: string, difficulty: Difficulty, floor: number, returnTo = returnPoint(w, p)): InstanceSpec {
-  return { kind, id, difficulty, floor, seed: w.rng.int(1, 2 ** 30), returnTo, players: 1 };
+  return { kind, id, difficulty, floor, seed: w.rng.int(1, 2 ** 30), returnTo, players: 1, partyId: p.partyId };
+}
+
+/** パーティなら近くの仲間も一緒に入る */
+function goTogether(w: World, p: Player, sp: InstanceSpec) {
+  const team = partyNear(w, p, w.content.social.party.gatherRange);
+  sp.players = team.length;
+  sp.party = team.map((x) => x.char.id);
+  for (const x of team) x.transition = { to: 'instance', spawn: '', instance: sp };
 }
 
 /** ダンジョンに入りたい（行き先はホストが作る） */
 export function enterDungeon(w: World, p: Player, dungeonId: string, difficulty: Difficulty): string | null {
   const c = w.content;
   if (!c.dungeons.dungeons[dungeonId] || !c.difficulties[difficulty]) return 'err.invalid';
-  p.transition = { to: 'instance', spawn: '', instance: spec(w, p, 'dungeon', dungeonId, difficulty, 0) };
+  goTogether(w, p, spec(w, p, 'dungeon', dungeonId, difficulty, 0));
   return null;
 }
 
@@ -44,7 +53,7 @@ export function canStartTower(w: World, p: Player, floor: number): boolean {
 
 export function enterTower(w: World, p: Player, floor: number): string | null {
   if (!canStartTower(w, p, floor)) return 'err.invalid';
-  p.transition = { to: 'instance', spawn: '', instance: spec(w, p, 'tower', 'tower', 'normal', floor) };
+  goTogether(w, p, spec(w, p, 'tower', 'tower', 'normal', floor));
   return null;
 }
 
@@ -64,7 +73,7 @@ export function enterRaid(w: World, p: Player, raidId: string, difficulty: Diffi
   const def = c.raids[raidId];
   if (!def || !c.difficulties[difficulty]) return 'err.invalid';
   if (p.char.level < def.minLevel) return 'err.levelLow';
-  p.transition = { to: 'instance', spawn: '', instance: spec(w, p, 'raid', raidId, difficulty, 0) };
+  goTogether(w, p, spec(w, p, 'raid', raidId, difficulty, 0));
   return null;
 }
 
@@ -164,6 +173,7 @@ export function updateInstance(w: World) {
   const time = (inst.endTick - inst.startTick) / c.balance.tickRate;
   const dd = c.difficulties[inst.difficulty];
   const names = w.players.map((x) => x.char.name).join('・');
+  for (const p of w.players) rescueReward(w, p);
   for (const p of w.players) {
     const mods = { ...p.stats.m, rareRatePct: (p.stats.m.rareRatePct ?? 0) + dd.rareRatePct };
     if (inst.kind === 'dungeon') {

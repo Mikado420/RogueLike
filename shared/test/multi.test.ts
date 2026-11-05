@@ -175,3 +175,35 @@ describe('エリア移動（取り出して入れる）', () => {
     expect(srv.hosts.has(inst.key)).toBe(false);
   });
 });
+
+describe('パーティの分配', () => {
+  it('同じパーティなら、殴っていなくても近くにいれば経験値が入る。ドロップは仲間に順番に配る', () => {
+    const srv = new LocalServer({ seed: 11 });
+    const a = makeAccount(1), b = makeAccount(2), c = makeAccount(3);
+    const sa = srv.connect(a.acc, a.charId), sb = srv.connect(b.acc, b.charId), sc = srv.connect(c.acc, c.charId);
+    const h = srv.host(sa)!;
+    const pa = h.player(sa)!, pb = h.player(sb)!, pc = h.player(sc)!;
+    pa.partyId = pb.partyId = 'p1';
+    pb.x = pa.x + 1; pb.y = pa.y; pc.x = pa.x + 1; pc.y = pa.y + 0.5;
+    const target = h.world.area.monsters.find((m) => !m.dead && !m.fieldBoss)!;
+    const eb = b.acc.characters[0].exp, ec = c.acc.characters[0].exp;
+    const owners = new Set<number>();
+    for (let k = 0; k < 6; k++) {
+      const m = k === 0 ? target : h.world.area.monsters.find((x) => !x.dead && !x.fieldBoss);
+      if (!m) break;
+      m.x = pa.x + 1; m.y = pa.y; m.ai = 'wander'; m.busy = 999;
+      m.elite = true;
+      for (let t = 0; t < 400 && !m.dead; t++) {
+        srv.input(sa, { move: { x: 0, y: 0 }, aim: { x: 1, y: 0 }, attack: true, skill: -1, dodge: false, interact: false, commands: [] });
+        srv.tick();
+        for (const d of h.world.area.drops) owners.add(d.ownerId);
+      }
+    }
+    expect(target.dead).toBe(true);
+    expect(b.acc.characters[0].exp).toBeGreaterThan(eb);
+    // パーティでない人は、殴っていなければもらえない
+    expect(c.acc.characters[0].exp).toBe(ec);
+    expect(owners.has(pc.id)).toBe(false);
+    if (owners.size > 0) expect([...owners].every((o) => o === pa.id || o === pb.id)).toBe(true);
+  });
+});
