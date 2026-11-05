@@ -1,6 +1,6 @@
 import type { Application, Ticker } from 'pixi.js';
 import {
-  CONTENT, createWorld, deserializeAccount, serializeAccount, step, syncCharacters, txt, type AccountData, type Command, type GameEvent, type SaveStore, type World,
+  CONTENT, createWorld, deserializeAccount, serializeAccount, stepSolo, syncCharacters, txt, type AccountData, type Command, type GameEvent, type SaveStore, type World,
 } from '../../shared/src';
 import { InputManager } from './input';
 import { WorldView } from './view';
@@ -39,12 +39,14 @@ export class Game {
   ambience = new Ambience();
   music = new Music(CONTENT.music.tracks);
   private musicTimer = 0;
+  myId = 0;
 
   constructor(private app: Application, public account: AccountData, charId: string, private store: SaveStore, public settings: Settings, public sfx: Sfx) {
     const seed = (Date.now() ^ (Math.random() * 0x7fffffff)) >>> 0;
     this.world = createWorld({ account, characterId: charId, seed, now: Date.now() });
     account.lastCharacterId = charId;
     const myId = this.world.players[0].id;
+    this.myId = myId;
     const host = document.getElementById('game')!;
     this.input = new InputManager(host);
     this.input.setBindings(settings.keys ?? {});
@@ -56,8 +58,8 @@ export class Game {
     const self = this;
     this.ctx = {
       get world() { return self.world; },
-      myId,
-      me: () => this.world.players.find((p) => p.id === myId)!,
+      get myId() { return self.myId; },
+      me: () => this.world.players.find((p) => p.id === self.myId)!,
       send: (cmd: Command) => this.input.pushCommand(cmd),
       settings,
       saveSettings: () => saveSettings(settings),
@@ -153,7 +155,10 @@ export class Game {
       this.input.playerScreen = this.view.playerScreenPos();
       this.view.capturePrev();
       const me = this.ctx.me();
-      const events = step(this.world, new Map([[me.id, this.input.sample()]]), Date.now());
+      const events = stepSolo(this.world, new Map([[me.id, this.input.sample()]]), Date.now());
+      // エリアを移るとプレイヤーの番号が変わる
+      const id = this.world.players[0].id;
+      if (id !== this.myId) { this.myId = id; this.view.myId = id; this.hud.myId = id; }
       this.handleEvents(events);
       this.acc -= TICK_MS;
     }

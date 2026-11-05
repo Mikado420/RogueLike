@@ -56,7 +56,7 @@ export function onMonsterKilled(w: World, m: Monster, by: Actor | null) {
   if (killer) procOnKill(w, killer, m);
   const wd = weatherDef(w);
   const mods = { ...owner.stats.m, rareRatePct: (owner.stats.m.rareRatePct ?? 0) + (wd.rareRatePct ?? 0) };
-  if (m.fieldBoss) w.account.world.fieldBoss[w.area.id] = w.area.fieldBossSlot;
+  if (m.fieldBoss) w.shared.fieldBoss[w.area.id] = w.area.fieldBossSlot;
   const table = def.boss ? def.drops : m.elite ? 'elite' : def.drops;
   for (const item of rollEquipDrops(w, table, m.level, mods)) {
     const f = owner.char.lootFilter;

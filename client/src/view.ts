@@ -60,7 +60,7 @@ export class WorldView {
   private time = 0;
   private areaId = '';
 
-  constructor(private app: Application, private world: World, private myId: number, private settings: Settings, private sfx: Sfx) {
+  constructor(private app: Application, private world: World, public myId: number, private settings: Settings, private sfx: Sfx) {
     app.stage.addChild(this.camera);
     this.entities.sortableChildren = true;
     this.camera.addChild(this.ground, this.fx.groundLayer, this.telegraphs, this.entities, this.fx.layer);

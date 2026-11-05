@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { CONTENT } from '../src/content';
-import { enterArea } from '../src/systems/world';
+import { enterArea, flushSolo } from '../src/systems/world';
 import { enterDungeon, enterRaid, enterTower, canStartTower, nextTowerFloor } from '../src/systems/instance';
 import { generateDungeon, reachable } from '../src/mapgen';
 import { invasionWindow } from '../src/systems/events';
@@ -38,7 +38,7 @@ describe('ランダムダンジョン', () => {
     killAll(w, p);
     tick(w, p);
     expect(w.area.instance!.cleared).toBe(true);
-    expect(w.events.some((e) => e.type === 'instance') || w.account.records.timeAttack[`${gate.data}:normal`]?.length).toBeTruthy();
+    expect(w.events.some((e) => e.type === 'instance') || p.account.records.timeAttack[`${gate.data}:normal`]?.length).toBeTruthy();
     expect(p.char.counters.dungeonClears).toBe(1);
     const exit = w.area.npcs.find((n) => n.npc === 'exit_portal')!;
     p.x = exit.x; p.y = exit.y + 0.5;
@@ -52,7 +52,7 @@ describe('ランダムダンジョン', () => {
     const hp: Record<string, number> = {};
     for (const d of ['normal', 'hard', 'nightmare'] as const) {
       const { w, p } = makeWorld(2);
-      enterDungeon(w, p, 'dg_meadow', d);
+      enterDungeon(w, p, 'dg_meadow', d); flushSolo(w);
       const boss = w.area.monsters.find((m) => m.id === w.area.instance!.bossId)!;
       hp[d] = boss.stats.maxHp;
     }
@@ -65,7 +65,7 @@ describe('ランダムダンジョン', () => {
 describe('無限の塔', () => {
   it('全部倒すと階段が出て次の階へ。最高到達が記録される', () => {
     const { w, p } = makeWorld(3);
-    expect(enterTower(w, p, 1)).toBeNull();
+    expect(enterTower(w, p, 1)).toBeNull(); flushSolo(w);
     expect(w.area.instance!.floor).toBe(1);
     killAll(w, p);
     expect(w.area.instance!.cleared).toBe(true);
@@ -82,10 +82,10 @@ describe('無限の塔', () => {
     p.char.tower.best = 10;
     expect(canStartTower(w, p, 11)).toBe(true);
     expect(canStartTower(w, p, 21)).toBe(false);
-    enterTower(w, p, 1);
+    enterTower(w, p, 1); flushSolo(w);
     w.area.instance!.floor = 9;
     w.area.instance!.cleared = true;
-    expect(nextTowerFloor(w, p)).toBeNull();
+    expect(nextTowerFloor(w, p)).toBeNull(); flushSolo(w);
     expect(w.area.instance!.floor).toBe(10);
     expect(w.area.instance!.bossId).toBeGreaterThan(0);
   });
@@ -95,7 +95,7 @@ describe('レイド', () => {
   it('HPでフェーズが進み、手下を倒すまでシールドで無敵。安全地帯の外は大ダメージ', () => {
     const { w, p } = makeWorld(5);
     p.char.level = 90;
-    expect(enterRaid(w, p, 'colossus', 'normal')).toBeNull();
+    expect(enterRaid(w, p, 'colossus', 'normal')).toBeNull(); flushSolo(w);
     const boss = w.area.monsters.find((m) => m.id === w.area.instance!.bossId)!;
     boss.hp = boss.stats.maxHp * 0.7;
     tick(w, p);
@@ -118,7 +118,7 @@ describe('レイド', () => {
   it('制限時間を過ぎると失敗', () => {
     const { w, p } = makeWorld(6);
     p.char.level = 90;
-    enterRaid(w, p, 'colossus', 'normal');
+    enterRaid(w, p, 'colossus', 'normal'); flushSolo(w);
     w.tick = w.area.instance!.timeLimitTick;
     tick(w, p);
     expect(w.area.instance!.failed).toBe(true);
@@ -135,7 +135,7 @@ describe('侵攻イベント', () => {
     expect(w.area.invasion).not.toBeNull();
     const invaders = w.area.monsters.filter((m) => m.invader);
     expect(invaders.length).toBeGreaterThan(0);
-    w.account.world.invasion.contribution[p.char.id] = 1e6;
+    w.shared.invasion.contribution[p.char.id] = 1e6;
     const gold = p.char.gold;
     w.clock = every * 100 + C.invasion.duration * 60000 + 1;
     tick(w, p);
@@ -199,7 +199,7 @@ describe('拠点', () => {
     w.clock = 86400000 * 10;
     const pct = () => p.stats.m.atkPct ?? 0;
     tick(w, p, { commands: [{ type: 'buildFacility', facility: 'training' }] }, 2);
-    expect(w.account.base.levels.training).toBe(1);
+    expect(p.account.base.levels.training).toBe(1);
     expect(pct()).toBeGreaterThan(0);
     w.clock += 86400000;
     tick(w, p, {}, 2);

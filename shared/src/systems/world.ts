@@ -2,7 +2,7 @@ import type { Content } from '../content/types';
 import { CONTENT } from '../content';
 import { Rng } from '../rng';
 import { buildMap, circleHitsMap, type GameMap } from '../map';
-import type { AccountData, AreaInstance, CharacterData, GameEvent, Monster, Player, PlayerInput, SpawnState, World } from '../state';
+import type { AccountData, AreaInstance, CharacterData, GameEvent, InstanceSpec, Monster, Player, PlayerInput, SharedWorldState, SpawnState, Transition, World } from '../state';
 import { emptyInput } from '../state';
 import { derivePlayerStats, difficultyScale, monsterStats, type MonsterScale } from './stats';
 import { updatePlayer } from './player';
@@ -15,7 +15,7 @@ import type { Difficulty } from '../core';
 import type { AreaDef } from '../content/types';
 import { generateField, type GeneratedField } from '../mapgen';
 import { spawnFieldMonster, updateField, updateFieldBoss, updateWeatherNotices } from './spawner';
-import { updateInstance } from './instance';
+import { buildInstance, updateInstance } from './instance';
 import { updateInvasion } from './events';
 import { ensureMissions } from './quest';
 import { placeNodes, updateNodes } from './crafting';
@@ -30,29 +30,163 @@ export interface WorldOptions {
   content?: Content;
 }
 
-export function createWorld(opts: WorldOptions): World {
+export interface AreaWorldOptions {
+  areaId: string;
+  seed: number;
+  now?: number;
+  content?: Content;
+  /** ダンジョン・塔・レイドのとき */
+  instance?: InstanceSpec;
+  /** ワールド全体で共有するもの（なければ新しく作る） */
+  shared?: SharedWorldState;
+}
+
+export const newSharedState = (): SharedWorldState => ({ fieldBoss: {}, invasion: { slot: -1, contribution: {}, rewarded: [] } });
+
+/** 1つのエリアのワールドを作る（まだ誰もいない） */
+export function createAreaWorld(opts: AreaWorldOptions): World {
   const content = opts.content ?? CONTENT;
-  const char = opts.account.characters.find((c) => c.id === opts.characterId);
-  if (!char) throw new Error('character not found');
   const w: World = {
-    seed: opts.seed, tick: 0, clock: opts.now ?? 0, rng: new Rng(opts.seed), content, account: opts.account,
-    area: null as unknown as AreaInstance, players: [], pets: [], nextId: 1, events: [], lastWeatherSlot: -1, pendingTransition: null,
+    seed: opts.seed, tick: 0, clock: opts.now ?? 0, rng: new Rng(opts.seed), uidRng: new Rng((opts.seed ^ 0x5bd1e995) >>> 0), content,
+    area: null as unknown as AreaInstance, players: [], pets: [], nextId: 1, events: [], lastWeatherSlot: -1,
+    shared: opts.shared ?? newSharedState(),
   };
-  const p = makePlayer(w, char);
-  w.players.push(p);
-  let areaId = content.areas[char.location.area] ? char.location.area : content.balance.world.startArea;
-  // ダンジョンなどの一時的な場所にいたら最後の街に戻す
-  const t = content.areas[areaId]?.type;
-  if (t === 'dungeon' || t === 'tower' || t === 'raid') areaId = char.visitedTowns.at(-1) ?? content.balance.world.startTown;
-  enterArea(w, areaId, areaId === char.location.area ? { x: char.location.x, y: char.location.y } : null);
+  if (opts.instance) {
+    buildInstance(w, opts.instance);
+  } else {
+    w.area = buildArea(w, opts.areaId);
+    for (const sp of w.area.spawns) spawnMonster(w, sp);
+    const def = content.areas[opts.areaId];
+    // フィールドは最初からある程度いる
+    if (w.area.type === 'field' && def?.monsters) {
+      for (let i = 0; i < (def.density ?? 0); i++) spawnFieldMonster(w);
+      updateFieldBoss(w);
+    }
+  }
   w.events = [];
   return w;
 }
 
-export function makePlayer(w: World, char: CharacterData): Player {
+/** キャラクターが最後にいた場所（一時的な場所なら最後の街） */
+export function resolveLocation(char: CharacterData, content: Content): { area: string; pos: { x: number; y: number } | null } {
+  let areaId = content.areas[char.location.area] ? char.location.area : content.balance.world.startArea;
+  const t = content.areas[areaId]?.type;
+  if (t === 'dungeon' || t === 'tower' || t === 'raid') areaId = char.visitedTowns.at(-1) ?? content.balance.world.startTown;
+  return { area: areaId, pos: areaId === char.location.area ? { x: char.location.x, y: char.location.y } : null };
+}
+
+/**
+ * プレイヤーをこのエリアに入れる。pos が歩ける場所ならそこ、spawn 名があればその出現位置、どちらもなければ入口。
+ */
+export function addPlayer(w: World, account: AccountData, characterId: string, at: { x: number; y: number } | string | null): Player {
+  const char = account.characters.find((c) => c.id === characterId);
+  if (!char) throw new Error('character not found');
+  const p = makePlayer(w, char, account);
+  placePlayer(w, p, at);
+  return p;
+}
+
+/** できているプレイヤー（別のエリアから来た）をこのエリアに置く */
+export function placePlayer(w: World, p: Player, at: { x: number; y: number } | string | null) {
+  p.id = newId(w);
+  p.transition = null;
+  p.dodgeTicks = 0;
+  p.lock = 0;
+  w.players.push(p);
+  let pos = w.area.playerSpawn;
+  if (typeof at === 'string' && w.area.spawnPoints[at]) pos = w.area.spawnPoints[at];
+  else if (at && typeof at === 'object' && !circleHitsMap(w.area.map, at.x, at.y, p.r)) pos = at;
+  p.x = pos.x; p.y = pos.y;
+  p.char.location = { area: w.area.id, x: p.x, y: p.y };
+  const def = w.content.areas[w.area.id];
+  if (def?.type === 'town' && !p.char.visitedTowns.includes(w.area.id)) {
+    p.char.visitedTowns.push(w.area.id);
+    w.events.push({ type: 'notice', playerId: p.id, key: 'notice.townVisited', args: [def.name] });
+  }
+  // 塔の階は入った人を狙ってくる
+  if (w.area.instance?.kind === 'tower') {
+    for (const m of w.area.monsters) if (m.targetId === -1 && m.ai === 'chase') m.targetId = p.id;
+    if (w.area.instance.floor > 1) w.events.push({ type: 'instance', playerId: p.id, what: 'floor', floor: w.area.instance.floor });
+  }
+  w.events.push({ type: 'areaChanged', playerId: p.id, area: w.area.id });
+}
+
+/** 保存の前に、実行中の状態を1人ぶんキャラクターデータへ書き戻す */
+export function syncPlayer(w: World, p: Player) {
+  p.char.location = { area: w.area.id, x: p.x, y: p.y };
+  p.char.hp = p.dead ? 0 : Math.round(p.hp);
+  p.char.mp = Math.round(p.mp);
+}
+
+/**
+ * プレイヤーをこのエリアから取り出す（キャラデータを書き戻して返す）。
+ * ペットも消え、魔物の狙いも外れる。
+ */
+export function removePlayer(w: World, playerId: number): { account: AccountData; char: CharacterData; transition: Transition | null; player: Player } | null {
+  const p = w.players.find((x) => x.id === playerId);
+  if (!p) return null;
+  syncPlayer(w, p);
+  w.players = w.players.filter((x) => x !== p);
+  w.pets = w.pets.filter((x) => x.summonedBy !== p.id);
+  for (const m of w.area.monsters) if (m.targetId === p.id) { m.targetId = -1; if (m.ai === 'chase') m.ai = 'return'; }
+  return { account: p.account, char: p.char, transition: p.transition, player: p };
+}
+
+/** ひとりで遊ぶとき用：ワールドを作ってキャラを入れる */
+export function createWorld(opts: WorldOptions): World {
+  const content = opts.content ?? CONTENT;
+  const char = opts.account.characters.find((c) => c.id === opts.characterId);
+  if (!char) throw new Error('character not found');
+  const loc = resolveLocation(char, content);
+  const w = createAreaWorld({ areaId: loc.area, seed: opts.seed, now: opts.now, content });
+  addPlayer(w, opts.account, char.id, loc.pos);
+  w.events = [];
+  return w;
+}
+
+/**
+ * ひとり用：このワールドを丸ごと別のエリアに作り替えて、いたプレイヤーを入れ直す
+ * （サーバーでは LocalServer / AreaDO がワールドをまたいで移す）
+ */
+export function moveSolo(w: World, t: Transition) {
+  const out = [...w.players].map((p) => removePlayer(w, p.id)!);
+  const keep = w.events;
+  const next = createAreaWorld({ areaId: t.instance ? 'instance' : t.to, seed: w.rng.int(1, 2 ** 30), now: w.clock, content: w.content, instance: t.instance, shared: w.shared });
+  next.tick = w.tick;
+  if (next.area.instance) {
+    const dt = w.tick - next.area.instance.startTick;
+    next.area.instance.startTick += dt;
+    if (next.area.instance.timeLimitTick) next.area.instance.timeLimitTick += dt;
+  }
+  Object.assign(w, next);
+  w.events = keep;
+  for (const o of out) placePlayer(w, o.player, t.pos ?? (t.spawn || null));
+}
+
+/** ひとり用：移動待ちがあれば移す */
+export function flushSolo(w: World): boolean {
+  const t = w.players.find((p) => p.transition)?.transition;
+  if (!t) return false;
+  moveSolo(w, t);
+  return true;
+}
+
+/** 互換用：ひとりで遊ぶワールドを別のエリアへ（テストと開発用） */
+export function enterArea(w: World, areaId: string, pos: { x: number; y: number } | string | null) {
+  moveSolo(w, { to: areaId, spawn: typeof pos === 'string' ? pos : '', pos: pos && typeof pos === 'object' ? pos : undefined });
+}
+
+/** ひとり用の1tick：step のあと移動を処理する */
+export function stepSolo(w: World, inputs: Map<number, PlayerInput>, now?: number): GameEvent[] {
+  step(w, inputs, now);
+  flushSolo(w);
+  return w.events;
+}
+
+export function makePlayer(w: World, char: CharacterData, account: AccountData): Player {
   const stats = derivePlayerStats(char, [], w.content);
   return {
-    id: newId(w), kind: 'player', char, x: 0, y: 0, r: 0.32, facing: Math.PI / 4,
+    id: newId(w), kind: 'player', char, account, transition: null, x: 0, y: 0, r: 0.32, facing: Math.PI / 4,
     hp: char.hp > 0 ? Math.min(char.hp, stats.maxHp) : stats.maxHp, stats, team: 0, dead: false, statuses: [],
     stagger: 0, moving: false, statsDirty: false,
     mp: Math.min(char.mp ?? 0, stats.maxMp), st: stats.maxSt, stDelay: 0, attackCd: 0, chainIndex: 0, chainUntil: 0,
@@ -127,34 +261,6 @@ export function buildArea(w: World, areaId: string): AreaInstance {
   return area;
 }
 
-/**
- * エリアに入る。pos が歩ける場所ならそこ、spawn 名があればその出現位置、どちらもなければ入口。
- */
-export function enterArea(w: World, areaId: string, pos: { x: number; y: number } | string | null, area?: AreaInstance) {
-  w.area = area ?? buildArea(w, areaId);
-  for (const sp of w.area.spawns) spawnMonster(w, sp);
-  const def = w.content.areas[areaId];
-  for (const p of w.players) {
-    let at = w.area.playerSpawn;
-    if (typeof pos === 'string' && w.area.spawnPoints[pos]) at = w.area.spawnPoints[pos];
-    else if (pos && typeof pos === 'object' && !circleHitsMap(w.area.map, pos.x, pos.y, p.r)) at = pos;
-    p.x = at.x; p.y = at.y;
-    p.dodgeTicks = 0;
-    p.lock = 0;
-    p.char.location = { area: w.area.id, x: p.x, y: p.y };
-    if (def?.type === 'town' && !p.char.visitedTowns.includes(areaId)) {
-      p.char.visitedTowns.push(areaId);
-      w.events.push({ type: 'notice', playerId: p.id, key: 'notice.townVisited', args: [def.name] });
-    }
-    w.events.push({ type: 'areaChanged', playerId: p.id, area: w.area.id });
-  }
-  // フィールドは最初からある程度いる
-  if (w.area.type === 'field' && def?.monsters) {
-    for (let i = 0; i < (def.density ?? 0); i++) spawnFieldMonster(w);
-    updateFieldBoss(w);
-  }
-}
-
 /** ダンジョン・塔・レイド用の空のエリアを作る */
 export function makeArea(w: World, type: AreaInstance['type'], name: string, map: GameMap, spawn: { x: number; y: number }, level: [number, number]): AreaInstance {
   return {
@@ -217,13 +323,8 @@ export function step(w: World, inputs: Map<number, PlayerInput>, now?: number): 
   w.clock = now ?? w.clock + 1000 / w.content.balance.tickRate;
   const area = w.area;
   updateWeatherNotices(w);
-  for (const p of w.players) updatePlayer(w, p, inputs.get(p.id) ?? emptyInput());
-  if (w.pendingTransition) {
-    const t = w.pendingTransition;
-    w.pendingTransition = null;
-    enterArea(w, t.to, t.pos ?? (t.spawn || null));
-    return w.events;
-  }
+  // 移動待ちのプレイヤーは動かさない（ホストが取り出す）
+  for (const p of w.players) if (!p.transition) updatePlayer(w, p, inputs.get(p.id) ?? emptyInput());
   for (const m of area.monsters) updateMonster(w, m);
   separateActors(w);
   updatePets(w);
@@ -247,11 +348,7 @@ export function step(w: World, inputs: Map<number, PlayerInput>, now?: number): 
 
 /** 保存の前に、実行中の状態をキャラクターデータへ書き戻す */
 export function syncCharacters(w: World) {
-  for (const p of w.players) {
-    p.char.location = { area: w.area.id, x: p.x, y: p.y };
-    p.char.hp = p.dead ? 0 : Math.round(p.hp);
-    p.char.mp = Math.round(p.mp);
-  }
+  for (const p of w.players) syncPlayer(w, p);
 }
 
 export const secTicks = sec;

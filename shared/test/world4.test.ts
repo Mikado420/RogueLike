@@ -121,7 +121,7 @@ describe('フィールドボス', () => {
     p.char.level = 30;
     for (let i = 0; i < 60 && !boss.dead; i++) tick(w, p, { attack: true });
     expect(boss.dead).toBe(true);
-    expect(w.account.world.fieldBoss.meadow).toBe(fieldBossSlot(w));
+    expect(w.shared.fieldBoss.meadow).toBe(fieldBossSlot(w));
     enterArea(w, 'lumina', null);
     enterArea(w, 'meadow', null);
     expect(w.area.monsters.some((m) => m.fieldBoss)).toBe(false);

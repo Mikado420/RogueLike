@@ -45,7 +45,7 @@ export class Hud {
   private tutKey = '';
   private touch = false;
 
-  constructor(private world: World, private myId: number, private input: InputManager, private sfx: Sfx) {
+  constructor(private world: World, public myId: number, private input: InputManager, private sfx: Sfx) {
     this.root = document.getElementById('ui')!;
     this.root.replaceChildren();
     const touch = 'ontouchstart' in window || matchMedia('(pointer: coarse)').matches;

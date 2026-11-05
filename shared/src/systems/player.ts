@@ -20,7 +20,7 @@ export function refreshPlayerStats(w: World, p: Player) {
   const cond = conditionalMods(w, p);
   p.condKey = cond.key;
   const extra = { ...cond.mods };
-  addMods(extra, baseMods(w.account, w.content, w.clock));
+  addMods(extra, baseMods(p.account, w.content, w.clock));
   addMods(extra, petMods(w, p));
   p.stats = derivePlayerStats(p.char, p.statuses, w.content, extra);
   if (p.stats.maxHp !== oldMax && oldMax > 0) p.hp = Math.min(p.stats.maxHp, Math.max(1, Math.round(p.stats.maxHp * ratioHp)));
@@ -109,7 +109,7 @@ export function updatePlayer(w: World, p: Player, input: PlayerInput) {
 
   // 出口に入ったらエリアを移る
   const ex = exitAt(w, p.x, p.y);
-  if (ex && w.content.areas[ex.to] && !w.pendingTransition) w.pendingTransition = { to: ex.to, spawn: ex.spawn };
+  if (ex && w.content.areas[ex.to] && !p.transition) p.transition = { to: ex.to, spawn: ex.spawn };
 
   if (input.interact && !stunned) interact(w, p);
 

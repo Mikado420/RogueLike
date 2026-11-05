@@ -17,7 +17,7 @@ export function fieldBossSlot(w: World): number {
 export function nextFieldBossAt(w: World, areaId: string): number | null {
   const slot = fieldBossSlot(w);
   const ms = w.content.balance.world.fieldBossInterval * 60000;
-  if (w.account.world.fieldBoss[areaId] !== slot) return null;
+  if (w.shared.fieldBoss[areaId] !== slot) return null;
   return (slot + 1) * ms;
 }
 
@@ -89,7 +89,7 @@ export function updateFieldBoss(w: World) {
   const fb = def?.fieldBoss;
   if (!fb || !area.spots.boss) return;
   const slot = fieldBossSlot(w);
-  if (w.account.world.fieldBoss[area.id] === slot) return;
+  if (w.shared.fieldBoss[area.id] === slot) return;
   if (area.monsters.some((m) => m.fieldBoss && !m.dead)) return;
   const sp = area.spots.boss;
   const m = spawnMonster(w, { key: 'fieldBoss', monster: fb.id, x: sp.x, y: sp.y, level: [fb.level, fb.level], monsterId: -1, respawnAt: 0 }, { level: fb.level });

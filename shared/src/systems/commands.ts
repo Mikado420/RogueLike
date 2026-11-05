@@ -71,7 +71,7 @@ export function applyCommand(w: World, p: Player, cmd: Command) {
       if (ch.gold < cost) { err = 'err.gold'; break; }
       ch.gold -= cost;
       w.events.push({ type: 'gold', playerId: p.id, amount: -cost });
-      w.pendingTransition = { to: cmd.town, spawn: '' };
+      p.transition = { to: cmd.town, spawn: '' };
       break;
     }
     case 'enterDungeon': {

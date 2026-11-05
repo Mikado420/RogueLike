@@ -1,7 +1,7 @@
 import { newAccount, newCharacter } from '../src/save';
 import { createWorld } from '../src/systems/world';
 import { emptyInput, type Player, type PlayerInput, type World } from '../src/state';
-import { step } from '../src/systems/world';
+import { stepSolo } from '../src/systems/world';
 import type { CharacterData } from '../src/state';
 
 /** チュートリアル済みにして街から始める */
@@ -21,7 +21,7 @@ export function makeWorld(seed = 1) {
 }
 
 export function tick(w: World, p: Player, input: Partial<PlayerInput> = {}, n = 1) {
-  for (let i = 0; i < n; i++) step(w, new Map([[p.id, { ...emptyInput(), ...input }]]));
+  for (let i = 0; i < n; i++) stepSolo(w, new Map([[w.players[0].id, { ...emptyInput(), ...input }]]));
 }
 
 import { CONTENT } from '../src/content';

@@ -253,7 +253,7 @@ export const extraSmithTabs: { id: string; label: string; render: (ctx: Ctx, bod
 
 function renderStorage(ctx: Ctx, body: HTMLElement, _npc: string, st: NpcState) {
   const ch = ctx.me().char;
-  const acc = ctx.world.account;
+  const acc = ctx.me().account;
   if (!st.tab) st.tab = 'items';
   const tabs = h('div', 'tabs');
   for (const t of ['items', 'bag']) tabs.append(btn(txt(`storage.${t}`), () => { st.tab = t; st.refresh(); }, `tab${st.tab === t ? ' on' : ''}`));

@@ -29,12 +29,12 @@ export function nextInvasionAt(w: World): number {
 }
 
 export function contribution(w: World, p: Player): number {
-  const st = w.account.world.invasion;
+  const st = w.shared.invasion;
   return st.slot === invasionSlot(w) ? st.contribution[p.char.id] ?? 0 : 0;
 }
 
 export function addContribution(w: World, p: Player, n: number) {
-  const st = w.account.world.invasion;
+  const st = w.shared.invasion;
   if (!w.area.invasion || w.area.invasion.finished || st.slot !== w.area.invasion.slot) return;
   st.contribution[p.char.id] = (st.contribution[p.char.id] ?? 0) + n;
 }
@@ -42,8 +42,8 @@ export function addContribution(w: World, p: Player, n: number) {
 function spawnWave(w: World) {
   const inv = w.content.invasion;
   const area = w.area;
-  const p = w.players[0];
-  const lv = p ? p.char.level : 1;
+  const alive = w.players.filter((x) => !x.dead);
+  const lv = w.players.length ? Math.round(w.players.reduce((s, x) => s + x.char.level, 0) / w.players.length) : 1;
   const n = w.rng.int(inv.perWave[0], inv.perWave[1]);
   for (let i = 0; i < n; i++) {
     for (let t = 0; t < 20; t++) {
@@ -56,7 +56,7 @@ function spawnWave(w: World) {
       const m = spawnMonster(w, { key: 'invasion', monster: w.rng.pick(inv.pool), x, y, level: [level, level], monsterId: -1, respawnAt: 0 }, { level });
       m.invader = true;
       m.ai = 'chase';
-      m.targetId = p?.id ?? -1;
+      m.targetId = alive.length ? w.rng.pick(alive).id : -1;
       m.homeX = area.playerSpawn.x; m.homeY = area.playerSpawn.y;
       break;
     }
@@ -66,7 +66,7 @@ function spawnWave(w: World) {
 function finish(w: World) {
   const inv = w.content.invasion;
   const area = w.area;
-  const st = w.account.world.invasion;
+  const st = w.shared.invasion;
   area.invasion!.finished = true;
   for (const m of area.monsters) if (m.invader) { m.dead = true; m.hp = 0; }
   for (const p of w.players) {
@@ -96,7 +96,7 @@ export function updateInvasion(w: World) {
   const area = w.area;
   if (area.id !== inv.town) return;
   const win = invasionWindow(w);
-  const st = w.account.world.invasion;
+  const st = w.shared.invasion;
   if (win.active && (!area.invasion || area.invasion.slot !== win.slot)) {
     if (st.slot !== win.slot) { st.slot = win.slot; st.contribution = {}; st.rewarded = []; }
     area.invasion = { slot: win.slot, wave: 0, nextWaveTick: w.tick + sec(w, 3), endClock: win.end, finished: false };

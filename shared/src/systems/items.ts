@@ -8,7 +8,7 @@ import { addCounter, setCounterMax } from './counters';
 import { heal } from './combat';
 import { sellPrice } from './loot';
 import { nearRole } from './interact';
-import { notice } from './util';
+import { accountOf, notice } from './util';
 
 /** 装備できるか。できないなら理由のキー */
 export function canEquip(ch: CharacterData, it: Item, w: World): string | null {
@@ -74,7 +74,7 @@ export function useItem(w: World, p: Player, id: string): string | null {
   const u = d.use;
   if (u.capture) return 'err.invalid';
   if (u.food) {
-    const k = 1 + baseBonus(w.account, w.content, w.clock, 'foodDuration') / 100;
+    const k = 1 + baseBonus(p.account, w.content, w.clock, 'foodDuration') / 100;
     applyStatus(w, p, p.id, 'food', u.food.duration * 60 * k, { mods: { ...u.food.mods } });
     p.statsDirty = true;
     takeFromBag(p.char, id, 1);
@@ -229,7 +229,7 @@ export function refineItem(w: World, p: Player, uid: number): string | null {
   const ch = p.char;
   const it = findOwnedItem(ch, uid);
   if (!it) return 'err.invalid';
-  const cost = refineCost(it, c, baseBonus(w.account, c, w.clock, 'refineRate'));
+  const cost = refineCost(it, c, baseBonus(p.account, c, w.clock, 'refineRate'));
   if (!cost) return 'err.refineMax';
   if (ch.gold < cost.gold) return 'err.gold';
   if ((ch.bag[c.refine.stone] ?? 0) < cost.stones) return 'err.noStone';
@@ -292,8 +292,8 @@ export function removeCrystal(ch: CharacterData, uid: number, socket: number, re
 // ───────── 倉庫（アカウントで共有） ─────────
 
 /** 倉庫の容量（拠点の金庫で増える） */
-export function storageCap(w: World): number {
-  return w.account.storage.capacity + baseBonus(w.account, w.content, w.clock, 'storage');
+export function storageCap(w: World, acc: AccountData): number {
+  return acc.storage.capacity + baseBonus(acc, w.content, w.clock, 'storage');
 }
 
 export function storageExpandCost(acc: AccountData, c: Content): number | null {
@@ -304,16 +304,16 @@ export function storageExpandCost(acc: AccountData, c: Content): number | null {
 }
 
 export function deposit(w: World, ch: CharacterData, uid: number): string | null {
-  const st = w.account.storage;
+  const st = accountOf(w, ch).storage;
   const i = ch.inventory.findIndex((x) => x.uid === uid);
   if (i < 0) return 'err.invalid';
-  if (st.items.length >= storageCap(w)) return 'err.storageFull';
+  if (st.items.length >= storageCap(w, accountOf(w, ch))) return 'err.storageFull';
   st.items.push(ch.inventory.splice(i, 1)[0]);
   return null;
 }
 
 export function withdraw(w: World, ch: CharacterData, uid: number): string | null {
-  const st = w.account.storage;
+  const st = accountOf(w, ch).storage;
   const i = st.items.findIndex((x) => x.uid === uid);
   if (i < 0) return 'err.invalid';
   if (ch.inventory.length >= w.content.balance.player.inventorySize) return 'err.full';
@@ -327,12 +327,13 @@ export function depositBag(w: World, ch: CharacterData, id: string, n: number): 
   const k = Math.min(Math.floor(n), ch.bag[id] ?? 0);
   if (k <= 0) return 'err.none';
   takeFromBag(ch, id, k);
-  w.account.storage.bag[id] = (w.account.storage.bag[id] ?? 0) + k;
+  const sb = accountOf(w, ch).storage.bag;
+  sb[id] = (sb[id] ?? 0) + k;
   return null;
 }
 
 export function withdrawBag(w: World, ch: CharacterData, id: string, n: number): string | null {
-  const st = w.account.storage.bag;
+  const st = accountOf(w, ch).storage.bag;
   const k = Math.min(Math.floor(n), st[id] ?? 0);
   if (k <= 0) return 'err.none';
   st[id] -= k;
@@ -342,10 +343,11 @@ export function withdrawBag(w: World, ch: CharacterData, id: string, n: number):
 }
 
 export function expandStorage(w: World, ch: CharacterData): string | null {
-  const cost = storageExpandCost(w.account, w.content);
+  const acc = accountOf(w, ch);
+  const cost = storageExpandCost(acc, w.content);
   if (cost === null) return 'err.storageMax';
   if (ch.gold < cost) return 'err.gold';
   ch.gold -= cost;
-  w.account.storage.capacity = Math.min(w.content.storage.max, w.account.storage.capacity + w.content.storage.step);
+  acc.storage.capacity = Math.min(w.content.storage.max, acc.storage.capacity + w.content.storage.step);
   return null;
 }

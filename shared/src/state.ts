@@ -218,6 +218,10 @@ interface ActorBase {
 export interface Player extends ActorBase {
   kind: 'player';
   char: CharacterData;
+  /** このプレイヤーのアカウント（倉庫・拠点・記録など） */
+  account: AccountData;
+  /** 別のエリアへ移りたい（ホストが step の後に処理する） */
+  transition: Transition | null;
   mp: number;
   st: number;
   stDelay: number;
@@ -420,22 +424,52 @@ export interface InstanceState {
 
 export interface InvasionState { slot: number; wave: number; nextWaveTick: number; endClock: number; finished: boolean }
 
+/** ダンジョン・塔・レイドを作るための指定（行き先のワールドが自分で作る） */
+export interface InstanceSpec {
+  kind: 'dungeon' | 'tower' | 'raid';
+  id: string;
+  difficulty: Difficulty;
+  floor: number;
+  seed: number;
+  returnTo: { area: string; spawn: string | null; x: number; y: number };
+  /** 入る人数（レイドの係数に使う） */
+  players: number;
+  /** 同じインスタンスに入る仲間（キャラ id） */
+  party?: string[];
+}
+
+/** エリア移動の行き先 */
+export interface Transition {
+  to: string;
+  spawn: string;
+  pos?: { x: number; y: number };
+  instance?: InstanceSpec;
+}
+
+/** ワールド全体で共有するもの（フィールドボスを倒した区切り・侵攻の貢献度）。サーバーでは WorldDO が持つ */
+export interface SharedWorldState {
+  fieldBoss: Record<string, number>;
+  invasion: { slot: number; contribution: Record<string, number>; rewarded: string[] };
+}
+
+/** 1つのエリア（街・フィールド・インスタンス）のワールド。中に何人でも入れる */
 export interface World {
   seed: number;
   tick: number;
   clock: number;
   rng: Rng;
+  /** アイテムの uid 用（ゲームの乱数とは別） */
+  uidRng: Rng;
   content: Content;
-  account: AccountData;
   area: AreaInstance;
   players: Player[];
   nextId: number;
   events: GameEvent[];
-  /** 連れているペット（エリアをまたいでついてくる） */
+  /** プレイヤーが連れているペット（summonedBy が持ち主） */
   pets: Monster[];
   /** 区切り（天候の切り替わり）を見張る */
   lastWeatherSlot: number;
-  pendingTransition: { to: string; spawn: string; pos?: { x: number; y: number } } | null;
+  shared: SharedWorldState;
 }
 
 // ═════════════ イベント（描画・効果音・通知用） ═════════════

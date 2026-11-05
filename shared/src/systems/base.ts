@@ -49,7 +49,7 @@ export function baseBonus(acc: AccountData, c: Content, clock: number, key: 'sto
 }
 
 export function buildFacility(w: World, p: Player, id: string): string | null {
-  const acc = w.account;
+  const acc = p.account;
   const next = facilityLevel(acc, id) + 1;
   const cost = facilityCost(w.content, id, next);
   if (!cost) return 'err.facilityMax';
@@ -64,11 +64,12 @@ export function buildFacility(w: World, p: Player, id: string): string | null {
 }
 
 export function payUpkeep(w: World, p: Player): string | null {
-  const cost = upkeepCost(w.account, w.content);
+  const acc = p.account;
+  const cost = upkeepCost(acc, w.content);
   const today = dayIndex(w.clock);
-  if (w.account.base.paidDay >= today) return 'err.paid';
+  if (acc.base.paidDay >= today) return 'err.paid';
   if (p.char.gold < cost) return 'err.gold';
   p.char.gold -= cost;
-  w.account.base.paidDay = today;
+  acc.base.paidDay = today;
   return null;
 }

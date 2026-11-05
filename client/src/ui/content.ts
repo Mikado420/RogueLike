@@ -33,7 +33,7 @@ export function registerContentPanels(npc: NpcPanels, menu: Menu, ctx: Ctx) {
     const d = st.tab as keyof typeof CONTENT.difficulties;
     const dd = CONTENT.difficulties[d];
     body.append(kv(txt('gate.level'), String(def.level + dd.levelBonus)));
-    const rec = c.world.account.records.timeAttack[`${id}:${d}`];
+    const rec = c.me().account.records.timeAttack[`${id}:${d}`];
     if (rec?.length) body.append(kv(txt('gate.best'), `${fmtTime(rec[0].time)}  ${rec[0].char}`));
     body.append(btn(txt('gate.enter'), () => c.send({ type: 'enterDungeon', dungeon: id, difficulty: d }), 'btn primary'));
   });
@@ -66,7 +66,7 @@ export function registerContentPanels(npc: NpcPanels, menu: Menu, ctx: Ctx) {
   });
 
   npc.register('base', (c, body) => {
-    const acc = c.world.account;
+    const acc = c.me().account;
     const ch = c.me().char;
     const active = baseActive(acc, CONTENT, c.world.clock);
     const up = upkeepCost(acc, CONTENT);
@@ -120,7 +120,7 @@ export function registerContentPanels(npc: NpcPanels, menu: Menu, ctx: Ctx) {
   extraBoardTabs.push({ id: 'ranking', label: txt('board.ranking'), render: (c, body) => {
     for (const [id, d] of Object.entries(CONTENT.dungeons.dungeons)) {
       for (const diff of DIFFICULTIES) {
-        const rec = c.world.account.records.timeAttack[`${id}:${diff}`];
+        const rec = c.me().account.records.timeAttack[`${id}:${diff}`];
         if (!rec?.length) continue;
         const sec = h('div', 'npc-sec');
         sec.append(h('div', 'sub-title', `${d.name}  ${CONTENT.difficulties[diff].name}`));

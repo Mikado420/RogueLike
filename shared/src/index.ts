@@ -36,3 +36,7 @@ export * from './systems/crafting';
 export * from './systems/pets';
 export * from './systems/tutorial';
 export * from './online';
+export * from './host/audience';
+export * from './host/area';
+export * from './host/local';
+export * from './host/bot';

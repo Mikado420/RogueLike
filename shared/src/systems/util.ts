@@ -1,11 +1,21 @@
-import type { Actor, Monster, Player, World } from '../state';
+import type { AccountData, Actor, CharacterData, Monster, Player, World } from '../state';
 
 /** 秒 → tick */
 export const sec = (w: World, s: number) => Math.round(s * w.content.balance.tickRate);
 export const DT = (w: World) => 1 / w.content.balance.tickRate;
 export const newId = (w: World) => w.nextId++;
-/** アカウント全体で一意なアイテム番号 */
-export const newUid = (w: World) => w.account.nextUid++;
+/**
+ * アイテム番号。どのワールドで作っても重ならないよう、ワールドごとの乱数で 52bit の数を作る
+ * （サーバーではワールドごとにシードが違うので、取引でアカウントをまたいでも重ならない）
+ */
+export const newUid = (w: World) => w.uidRng.int(1, 0x3ffffff) * 0x4000000 + w.uidRng.int(0, 0x3ffffff);
+
+/** そのキャラクターのアカウント（ワールドにいるプレイヤーから探す） */
+export function accountOf(w: World, ch: CharacterData): AccountData {
+  const p = w.players.find((x) => x.char === ch);
+  if (!p) throw new Error('player not in world');
+  return p.account;
+}
 
 export function findActor(w: World, id: number): Actor | undefined {
   return w.players.find((p) => p.id === id) ?? w.area.monsters.find((m) => m.id === id) ?? w.pets.find((m) => m.id === id);

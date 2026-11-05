@@ -2,7 +2,7 @@ import { EQUIP_SLOTS, PRIMARY_STATS } from './core';
 import type { Content } from './content/types';
 import { CONTENT } from './content';
 import type { AccountData, CharacterData } from './state';
-import { Rng } from './rng';
+import { Rng, hash32 } from './rng';
 import { createItem } from './systems/loot';
 
 /**
@@ -93,15 +93,17 @@ export function newAccount(now: number, seed: number): AccountData {
 }
 
 export function newCharacter(acc: AccountData, name: string, look: { body: number; hair: number }, now: number, c: Content = CONTENT): CharacterData {
-  const rng = new Rng((now ^ acc.nextUid * 2654435761) >>> 0);
+  const rng = new Rng((now ^ acc.nextUid * 2654435761 ^ hash32(acc.id)) >>> 0);
+  const uidRng = new Rng((now * 31 ^ hash32(acc.id) ^ acc.nextUid) >>> 0);
+  const uid = () => { acc.nextUid++; return uidRng.int(1, 0x3ffffff) * 0x4000000 + uidRng.int(0, 0x3ffffff); };
   const st = c.balance.start;
   const equipment = Object.fromEntries(EQUIP_SLOTS.map((s) => [s, null])) as CharacterData['equipment'];
-  for (const e of st.equipment) equipment[e.slot] = createItem(acc.nextUid++, e.base, 0, 1, 'common', rng, c);
-  const inventory = st.inventory.map((e) => createItem(acc.nextUid++, e.base, 0, 1, 'common', rng, c));
+  for (const e of st.equipment) equipment[e.slot] = createItem(uid(), e.base, 0, 1, 'common', rng, c);
+  const inventory = st.inventory.map((e) => createItem(uid(), e.base, 0, 1, 'common', rng, c));
   const area = c.tutorial.area || c.balance.world.startArea;
   const sp = c.areas[area]?.playerSpawn ?? { x: 0, y: 0 };
   const ch: CharacterData = {
-    id: `c${acc.nextUid++}`,
+    id: `${acc.id}.c${acc.nextUid++}`,
     name: name.trim().slice(0, 12) || '冒険者',
     createdAt: now,
     playTime: 0,

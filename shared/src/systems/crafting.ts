@@ -125,7 +125,7 @@ export function craftItem(w: World, p: Player, tier: number, baseId: string): st
   for (const [m, n] of need) if ((ch.bag[m] ?? 0) < n) return 'err.noMaterial';
   ch.gold -= r.gold;
   for (const [m, n] of need) takeFromBag(ch, m, n);
-  const rare = c.subjobs.effects.smithRarePct * ch.sub.smith.level + baseBonus(w.account, c, w.clock, 'craftBonus') * 5 + (p.stats.m.rareRatePct ?? 0);
+  const rare = c.subjobs.effects.smithRarePct * ch.sub.smith.level + baseBonus(p.account, c, w.clock, 'craftBonus') * 5 + (p.stats.m.rareRatePct ?? 0);
   const rarity = rollRarity(w.rng, c.recipes.smithing.rarity, rare);
   const ilvl = c.equipment.tiers[tier]?.level ?? 1;
   const it = createItem(newUid(w), baseId, tier, ilvl, rarity, w.rng, c);
