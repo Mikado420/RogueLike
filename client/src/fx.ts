@@ -1,5 +1,5 @@
 import { Container, Graphics, Text, type TextStyleOptions } from 'pixi.js';
-import type { Element } from '../../shared/src/types';
+import type { Element, Shape } from '../../shared/src/core';
 import { ELEMENT_COLOR } from './colors';
 import { isoRadii, toScreen } from './iso';
 
@@ -82,6 +82,24 @@ export class Effects {
     });
   }
 
+  /** 持続ダメージ（小さめの数字） */
+  dot(wx: number, wy: number, amount: number, toPlayer: boolean, color: number) {
+    const s = toScreen(wx, wy);
+    const t = this.makeText(String(amount), { fontSize: 15, fill: toPlayer ? 0xff7a7a : color });
+    t.x = s.x + (Math.random() - 0.5) * 20; t.y = s.y - 40;
+    this.layer.addChild(t);
+    this.floaters.push({ obj: t, vx: 0, vy: -50, floor: Infinity, age: 0, life: 0.6, bounce: false, pop: 1 });
+  }
+
+  /** 大きな文字（BREAK・LEVEL UP など） */
+  bigText(wx: number, wy: number, text: string, color: number) {
+    const s = toScreen(wx, wy);
+    const t = this.makeText(text, { fontSize: 26, fill: color, letterSpacing: 2, stroke: { color: 0x3a2000, width: 6, join: 'round' } });
+    t.x = s.x; t.y = s.y - 80;
+    this.layer.addChild(t);
+    this.floaters.push({ obj: t, vx: 0, vy: -30, floor: Infinity, age: 0, life: 1.1, bounce: false, pop: 1.8 });
+  }
+
   text(wx: number, wy: number, text: string, color: number) {
     const s = toScreen(wx, wy);
     const t = this.makeText(text, { fontSize: 16, fill: color });
@@ -144,7 +162,7 @@ export class Effects {
   }
 
   /** 攻撃範囲の一瞬の光（扇形・円形） */
-  flashShape(wx: number, wy: number, shape: { type: 'circle'; radius: number } | { type: 'arc'; range: number; arc: number }, dir: number, color: number, alpha = 0.35) {
+  flashShape(wx: number, wy: number, shape: Shape, dir: number, color: number, alpha = 0.35) {
     const g = new Graphics();
     drawIsoShape(g, wx, wy, shape, dir);
     g.fill({ color, alpha }).stroke({ width: 2, color, alpha: Math.min(1, alpha * 2.2) });
@@ -181,23 +199,37 @@ export class Effects {
   }
 }
 
-/** ワールド座標の円・扇形を、アイソメに投影した図形として描く（fill は呼び出し側） */
-export function drawIsoShape(g: Graphics, wx: number, wy: number, shape: { type: 'circle'; radius: number } | { type: 'arc'; range: number; arc: number }, dir: number) {
-  const pts: number[] = [];
+/** ワールド座標の範囲（円・扇形・直線・輪）を、アイソメに投影した図形として描く（fill は呼び出し側） */
+export function drawIsoShape(g: Graphics, wx: number, wy: number, shape: Shape, dir: number) {
   if (shape.type === 'circle') {
     const s = toScreen(wx, wy);
     const { rx, ry } = isoRadii(shape.radius);
     g.ellipse(s.x, s.y, rx, ry);
     return;
   }
+  const pts: number[] = [];
+  const push = (x: number, y: number) => { const p = toScreen(x, y); pts.push(p.x, p.y); };
+  if (shape.type === 'line') {
+    const c = Math.cos(dir), s = Math.sin(dir), hw = shape.width / 2;
+    push(wx - s * hw, wy + c * hw);
+    push(wx + c * shape.range - s * hw, wy + s * shape.range + c * hw);
+    push(wx + c * shape.range + s * hw, wy + s * shape.range - c * hw);
+    push(wx + s * hw, wy - c * hw);
+    g.poly(pts);
+    return;
+  }
+  const n = 24;
+  if (shape.type === 'ring') {
+    for (let i = 0; i <= n; i++) { const a = (Math.PI * 2 * i) / n; push(wx + Math.cos(a) * shape.outer, wy + Math.sin(a) * shape.outer); }
+    for (let i = n; i >= 0; i--) { const a = (Math.PI * 2 * i) / n; push(wx + Math.cos(a) * shape.inner, wy + Math.sin(a) * shape.inner); }
+    g.poly(pts);
+    return;
+  }
   const half = (shape.arc * Math.PI) / 360;
-  const n = 16;
-  const o = toScreen(wx, wy);
-  pts.push(o.x, o.y);
+  push(wx, wy);
   for (let i = 0; i <= n; i++) {
     const a = dir - half + (2 * half * i) / n;
-    const p = toScreen(wx + Math.cos(a) * shape.range, wy + Math.sin(a) * shape.range);
-    pts.push(p.x, p.y);
+    push(wx + Math.cos(a) * shape.range, wy + Math.sin(a) * shape.range);
   }
   g.poly(pts);
 }

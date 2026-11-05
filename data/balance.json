@@ -4,32 +4,155 @@
     "advantage": 1.25,
     "disadvantage": 0.75,
     "neutral": 1.0,
-    "cycle": ["fire", "wind", "earth", "water"],
-    "mutual": [["light", "dark"]]
+    "cycle": [
+      "fire",
+      "wind",
+      "earth",
+      "water"
+    ],
+    "mutual": [
+      [
+        "light",
+        "dark"
+      ]
+    ]
   },
   "damage": {
-    "defenseConstant": 100,
+    "defenseKBase": 40,
+    "defenseKPerLevel": 2.4,
     "variance": 0.1,
-    "minDamage": 1
+    "minDamage": 1,
+    "breakDmgTakenPct": 25
   },
   "stats": {
-    "hpBase": 200,
-    "hpPerVit": 15,
-    "defPerVit": 1.0,
-    "mdefPerInt": 0.6,
-    "critBase": 0.05,
-    "critPerDex": 0.002,
-    "critPerCrt": 0.01,
-    "critDamage": 1.5,
+    "statBase": 1,
+    "statMax": 255,
+    "personalMax": 255,
+    "hpBase": 120,
+    "hpPerLevel": 10,
+    "hpPerVit": 12,
+    "mpBase": 100,
+    "mpPerInt": 0.2,
+    "stBase": 100,
+    "atkPerLevel": 1,
+    "matkPerLevel": 1,
+    "defPerLevel": 0.5,
+    "defPerVit": 0.6,
+    "mdefPerLevel": 0.5,
+    "mdefPerInt": 0.4,
+    "critBase": 5,
+    "critPerDex": 0.04,
+    "critDamage": 150,
+    "critDamagePerStr": 0.06,
     "moveSpeedBase": 4.2,
-    "moveSpeedPerAgi": 0.012,
-    "attackSpeedPerAgi": 0.006,
-    "refineStatPerLevel": 0.04
+    "moveSpeedPerAgi": 0.0015,
+    "moveSpeedMax": 7,
+    "aspdPerAgi": 0.004,
+    "aspdMax": 2.5,
+    "cspdPerDex": 0.003,
+    "cspdMax": 2.0,
+    "evasionPerAgi": 0.03,
+    "refineStatPerLevel": 0.05
+  },
+  "personal": {
+    "crt": {
+      "name": "CRT",
+      "mods": {
+        "critRate": 0.15,
+        "critDamage": 0.1
+      }
+    },
+    "tec": {
+      "name": "TEC",
+      "mods": {
+        "breakPct": 0.4,
+        "statusChancePct": 0.3,
+        "skillDmgPct": 0.05
+      }
+    },
+    "luk": {
+      "name": "LUK",
+      "mods": {
+        "dropRatePct": 0.4,
+        "rareRatePct": 0.2,
+        "goldPct": 0.3
+      }
+    },
+    "mtl": {
+      "name": "MTL",
+      "mods": {
+        "maxMp": 0.4,
+        "statusResistPct": 0.3,
+        "healPct": 0.2,
+        "mpRegen": 0.01
+      }
+    }
+  },
+  "progression": {
+    "maxLevel": 100,
+    "startStatPoints": 5,
+    "statPointsPerLevel": 3,
+    "startSkillPoints": 1,
+    "skillPointsPerLevel": 1,
+    "expKills": [
+      8,
+      0.15
+    ],
+    "expMonster": [
+      10,
+      2,
+      1.3
+    ],
+    "levelDiffPenalty": 0.1,
+    "levelDiffBonus": 0.05,
+    "levelDiffMinMul": 0.1,
+    "levelDiffMaxMul": 1.5,
+    "tierLevels": [
+      1,
+      8,
+      18,
+      30,
+      45,
+      60
+    ]
+  },
+  "respec": {
+    "costBase": 100,
+    "costPerLevel": 25
+  },
+  "rebirth": {
+    "statPoints": 15,
+    "skillPoints": 3,
+    "expPct": 10,
+    "max": 10,
+    "titles": [
+      {
+        "count": 1,
+        "title": "rebirth1"
+      },
+      {
+        "count": 2,
+        "title": "rebirth2"
+      },
+      {
+        "count": 3,
+        "title": "rebirth3"
+      },
+      {
+        "count": 5,
+        "title": "rebirth5"
+      },
+      {
+        "count": 10,
+        "title": "rebirth10"
+      }
+    ]
+  },
+  "builds": {
+    "slots": 3
   },
   "player": {
-    "baseStats": { "str": 30, "int": 30, "vit": 20, "agi": 20, "dex": 30, "personal": { "type": "crt", "value": 10 } },
-    "maxMp": 100,
-    "maxStamina": 100,
+    "maxStaminaBase": 100,
     "staminaRegen": 30,
     "staminaRegenDelay": 0.6,
     "dodgeCost": 30,
@@ -40,18 +163,85 @@
     "autoTargetRange": 8,
     "pickupRange": 0.9,
     "inventorySize": 60,
-    "skillSlots": 4
+    "skillSlots": 4,
+    "interactRange": 1.8,
+    "mpRegenOutOfCombat": 0,
+    "hpRegenOutOfCombat": 2,
+    "combatTimeout": 5,
+    "blockReduce": 50
   },
   "monster": {
+    "hp": [
+      80,
+      18,
+      1.25
+    ],
+    "atk": [
+      10,
+      3.1
+    ],
+    "def": 0.4,
+    "mdef": 0.4,
+    "gold": [
+      2,
+      0.6,
+      1.1
+    ],
     "hpRegenOnReturn": 0.05,
     "wanderRadius": 3,
     "wanderSpeedRatio": 0.45,
     "enrageThreshold": 0.5,
     "enrageCooldownRatio": 0.7,
-    "recovery": 0.3
+    "recovery": 0.3,
+    "poiseBase": 4,
+    "poisePerLevel": 0.02,
+    "breakDuration": 1.5,
+    "bossBreakDuration": 4,
+    "poiseRegenDelay": 3,
+    "poiseGrowth": 1.25,
+    "flinchDuration": 0.35,
+    "respawn": 14,
+    "bossRespawn": 60,
+    "eliteMul": 3,
+    "eliteAtkMul": 1.3,
+    "elitePoiseMul": 2,
+    "eliteRadiusMul": 1.15
   },
   "drop": {
     "lifetime": 120,
     "scatter": 0.8
+  },
+  "sell": {
+    "base": 10,
+    "perLevel": 3,
+    "perRefine": 0.1,
+    "materialMul": 0.5
+  },
+  "world": {
+    "startArea": "garden"
+  },
+  "start": {
+    "gold": 100,
+    "bag": {
+      "potion_s": 5
+    },
+    "equipment": [
+      {
+        "base": "w_oneHandSword",
+        "slot": "weapon"
+      },
+      {
+        "base": "a_light",
+        "slot": "body"
+      }
+    ],
+    "inventory": [
+      {
+        "base": "w_bow"
+      },
+      {
+        "base": "w_staff"
+      }
+    ]
   }
 }

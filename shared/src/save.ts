@@ -1,0 +1,132 @@
+import { EQUIP_SLOTS, PRIMARY_STATS } from './core';
+import type { Content } from './content/types';
+import { CONTENT } from './content';
+import type { AccountData, CharacterData } from './state';
+import { Rng } from './rng';
+import { createItem } from './systems/loot';
+
+/**
+ * セーブデータの形。構造を変えたら SAVE_VERSION を上げ、MIGRATIONS に変換を足す。
+ * 保存先（IndexedDB・サーバーのDB）は client 側の SaveStore が決める。
+ */
+export const SAVE_VERSION = 1;
+
+/** version n のデータを n+1 に変換する関数 */
+export const MIGRATIONS: Record<number, (d: Record<string, unknown>) => Record<string, unknown>> = {};
+
+/** 保存先のインターフェース。後でサーバーの DB に置き換える */
+export interface SaveStore {
+  load(): Promise<AccountData | null>;
+  save(account: AccountData): Promise<void>;
+  clear(): Promise<void>;
+}
+
+export function newAccount(now: number, seed: number): AccountData {
+  return {
+    version: SAVE_VERSION,
+    id: `acc_${now.toString(36)}_${(seed >>> 0).toString(36)}`,
+    createdAt: now,
+    nextUid: 1,
+    characters: [],
+    lastCharacterId: null,
+  };
+}
+
+export function newCharacter(acc: AccountData, name: string, look: { body: number; hair: number }, now: number, c: Content = CONTENT): CharacterData {
+  const rng = new Rng((now ^ acc.nextUid * 2654435761) >>> 0);
+  const st = c.balance.start;
+  const equipment = Object.fromEntries(EQUIP_SLOTS.map((s) => [s, null])) as CharacterData['equipment'];
+  for (const e of st.equipment) equipment[e.slot] = createItem(acc.nextUid++, e.base, 0, 1, 'common', rng, c);
+  const inventory = st.inventory.map((e) => createItem(acc.nextUid++, e.base, 0, 1, 'common', rng, c));
+  const area = c.balance.world.startArea;
+  const sp = c.areas[area].playerSpawn;
+  const ch: CharacterData = {
+    id: `c${acc.nextUid++}`,
+    name: name.trim().slice(0, 12) || '冒険者',
+    createdAt: now,
+    playTime: 0,
+    look,
+    level: 1,
+    exp: 0,
+    rebirths: 0,
+    stats: Object.fromEntries(PRIMARY_STATS.map((s) => [s, 0])) as CharacterData['stats'],
+    personal: { type: null, value: 0 },
+    skills: {},
+    skillSlots: {},
+    equipment,
+    inventory,
+    bag: { ...st.bag },
+    gold: st.gold,
+    builds: Array(c.balance.builds.slots).fill(null),
+    titles: { unlocked: [], equipped: null },
+    counters: {},
+    location: { area, x: sp.x, y: sp.y },
+    hp: 0,
+    mp: 0,
+  };
+  acc.characters.push(ch);
+  acc.lastCharacterId = ch.id;
+  return ch;
+}
+
+/** 足りない項目を既定値で埋める（古いデータや壊れたデータに強くする） */
+export function normalizeCharacter(ch: CharacterData, c: Content = CONTENT): CharacterData {
+  ch.stats ??= Object.fromEntries(PRIMARY_STATS.map((s) => [s, 0])) as CharacterData['stats'];
+  for (const s of PRIMARY_STATS) ch.stats[s] ??= 0;
+  ch.personal ??= { type: null, value: 0 };
+  ch.skills ??= {};
+  ch.skillSlots ??= {};
+  ch.equipment ??= {} as CharacterData['equipment'];
+  for (const s of EQUIP_SLOTS) ch.equipment[s] ??= null;
+  ch.inventory ??= [];
+  ch.bag ??= {};
+  ch.gold ??= 0;
+  ch.builds ??= [];
+  while (ch.builds.length < c.balance.builds.slots) ch.builds.push(null);
+  ch.titles ??= { unlocked: [], equipped: null };
+  ch.counters ??= {};
+  ch.rebirths ??= 0;
+  ch.playTime ??= 0;
+  ch.look ??= { body: 0, hair: 0 };
+  ch.location ??= { area: c.balance.world.startArea, x: 0, y: 0 };
+  ch.hp ??= 0;
+  ch.mp ??= 0;
+  return ch;
+}
+
+/**
+ * 読み込んだデータを今の版に合わせる。版が新しすぎる・形が違うときは例外。
+ */
+export function migrateAccount(raw: unknown, c: Content = CONTENT): AccountData {
+  if (!raw || typeof raw !== 'object') throw new Error('save: not an object');
+  let d = raw as Record<string, unknown>;
+  let v = typeof d.version === 'number' ? d.version : 0;
+  if (v > SAVE_VERSION) throw new Error(`save: version ${v} is newer than ${SAVE_VERSION}`);
+  while (v < SAVE_VERSION) {
+    const fn = MIGRATIONS[v];
+    if (!fn) throw new Error(`save: no migration from ${v}`);
+    d = fn(d);
+    v++;
+    d.version = v;
+  }
+  const acc = d as unknown as AccountData;
+  if (!Array.isArray(acc.characters)) throw new Error('save: characters missing');
+  acc.nextUid ??= 1;
+  acc.lastCharacterId ??= null;
+  // uid が重ならないように
+  let maxUid = acc.nextUid;
+  for (const ch of acc.characters) {
+    normalizeCharacter(ch, c);
+    for (const it of [...ch.inventory, ...Object.values(ch.equipment)]) if (it && it.uid >= maxUid) maxUid = it.uid + 1;
+  }
+  acc.nextUid = maxUid;
+  return acc;
+}
+
+export function serializeAccount(acc: AccountData): string {
+  return JSON.stringify(acc);
+}
+
+export function deserializeAccount(text: string, c: Content = CONTENT): AccountData {
+  return migrateAccount(JSON.parse(text), c);
+}

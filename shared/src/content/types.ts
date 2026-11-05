@@ -1,0 +1,395 @@
+import type {
+  ArmorType, DamageType, Difficulty, Element, EquipSlot, ModKey, Mods, PersonalStat, PrimaryStat, Rarity,
+  Scaled, Shape, SubType, WeaponType,
+} from '../core';
+
+// ───────── 戦闘の定義 ─────────
+
+export interface ProjectileDef {
+  count: number; spread: number; speed: number; range: number; radius: number;
+  pierce: number; explodeRadius?: number; sprite: string;
+  /** 近くの敵へ曲がる強さ（0〜1） */
+  homing?: number;
+}
+
+export interface StatusApply {
+  id: string;
+  chance: Scaled;
+  duration?: number;
+  /** DoT の強さ（攻撃者の ATK/MATK に対する割合） */
+  power?: number;
+}
+
+/** 攻撃1回ぶんの定義（通常攻撃・スキル・モンスターの技で共通） */
+export interface AttackDef {
+  delivery: 'strike' | 'projectile';
+  power: Scaled;
+  element?: Element | 'weapon';
+  damageType?: DamageType;
+  /** strike の発生位置。front は自分の前方 offset タイル */
+  anchor?: 'self' | 'aim' | 'target' | 'front';
+  aimDistance?: number;
+  offset?: number;
+  follow?: boolean;
+  shape?: Shape;
+  delay?: number;
+  hits?: number;
+  interval?: number;
+  count?: number;
+  scatter?: number;
+  telegraph?: boolean;
+  projectile?: ProjectileDef;
+  /** 硬直（秒） */
+  lock?: number;
+  /** 届く距離の目安（タイル） */
+  range?: number;
+  breakPower?: number;
+  status?: StatusApply[];
+  knockback?: number;
+  lifesteal?: number;
+  tags?: string[];
+}
+
+export type WeaponMechanic =
+  | { type: 'none' }
+  | { type: 'charge'; levels: number[]; powerMul: number[]; breakMul: number[]; moveMul: number }
+  | { type: 'ammo'; magazine: number; reload: number; backstabMul: number; backstabCrit: number }
+  | { type: 'combo'; window: number; perStack: number; max: number }
+  | { type: 'rhythm'; bpm: number; window: number; maxStacks: number; perStack: number; missLoss: number }
+  | { type: 'spacing'; sweetFrom: number; bonus: number }
+  | { type: 'drain'; pct: number; darkBonus: number }
+  | { type: 'flurry'; dodgeCdMul: number; statusBonus: number }
+  | { type: 'guard'; blockRate: number; blockReduce: number };
+
+export interface WeaponDef {
+  name: string;
+  hands: 1 | 2;
+  damageType: DamageType;
+  /** ATK/MATK に効くステータスの係数 */
+  scaling: { atk: Partial<Record<PrimaryStat, number>>; matk: Partial<Record<PrimaryStat, number>> };
+  subs: SubType[];
+  attack: AttackDef & { interval: number; mpGain: number };
+  /** 連撃（手甲・双剣などの通常攻撃の段） */
+  chain?: (AttackDef & { interval: number })[];
+  mechanic: WeaponMechanic;
+  dodge?: { costMul?: number; speedMul?: number; iframesMul?: number };
+  icon: string;
+}
+
+export interface BuffDef {
+  status: string;
+  duration: Scaled;
+  mods: Partial<Record<ModKey, Scaled>>;
+  /** 楽器のリズムで強くなる */
+  rhythm?: boolean;
+  target?: 'self' | 'allies';
+}
+
+export interface SkillDef {
+  name: string;
+  tree: string;
+  tier: number;
+  type: 'active' | 'passive';
+  maxLevel: number;
+  requires?: { skill: string; level: number }[];
+  /** この武器を持っているときだけ使える（効く） */
+  weapon?: WeaponType | null;
+  icon?: string;
+  mp?: Scaled;
+  cooldown?: Scaled;
+  lock?: number;
+  attack?: AttackDef;
+  attacks?: AttackDef[];
+  buff?: BuffDef;
+  heal?: { power: Scaled; base: 'matk' | 'maxHp' };
+  dash?: { distance: number; speed: number; iframes?: number };
+  cleanse?: boolean;
+  consume?: { resource: 'combo' | 'rhythm'; powerPerStack: number };
+  reload?: boolean;
+  /** チャージ（両手剣）で威力が伸びる */
+  chargeable?: boolean;
+  /** パッシブの補正 */
+  mods?: Partial<Record<ModKey, Scaled>>;
+}
+
+export interface TreeDef {
+  name: string;
+  weapon?: WeaponType;
+  kind: 'weapon' | 'general';
+  order: number;
+  icon: string;
+}
+
+export interface StatusDef {
+  name: string;
+  kind: 'buff' | 'debuff';
+  /** 持続ダメージ（攻撃者の攻撃力 × power を tick ごと） */
+  dot?: { interval: number; element: Element };
+  maxStacks?: number;
+  cannotAct?: boolean;
+  mods?: Mods;
+  /** 被ダメージ倍率の増分（%） */
+  dmgTakenPct?: number;
+  /** 一定間隔で短く止まる（感電） */
+  jolt?: { interval: number; duration: number };
+  missChance?: number;
+  color: string;
+  /** ボスにかかったときの持続時間倍率 */
+  bossDurationMul?: number;
+}
+
+// ───────── モンスター ─────────
+
+export interface MonsterAttackDef extends AttackDef {
+  id: string;
+  windup: number;
+  cooldown: number;
+  range: number;
+  weight: number;
+  minRange?: number;
+  /** この難易度以上でだけ使う */
+  minDifficulty?: Difficulty;
+  /** このフェーズ以降でだけ使う */
+  phase?: number;
+}
+
+export interface PhaseDef {
+  /** HP 割合がこれ以下で移行 */
+  hp: number;
+  summon?: { monster: string; count: number; level?: number };
+  shield?: boolean;
+  /** 安全地帯の円を出してから全体攻撃 */
+  safeZones?: { count: number; radius: number; delay: number; power: number };
+  speedMul?: number;
+}
+
+export interface MonsterDef {
+  name: string;
+  sprite: string;
+  element: Element;
+  tags?: string[];
+  boss?: boolean;
+  fieldBoss?: boolean;
+  raid?: boolean;
+  scale?: number;
+  radius: number;
+  speed: number;
+  aggroRange: number;
+  leashRange: number;
+  attackInterval: number;
+  keepDistance?: number;
+  /** 各値はレベル曲線に掛ける倍率 */
+  hp: number; atk: number; matk: number; def: number; mdef: number;
+  crit?: number;
+  poise: number;
+  exp?: number;
+  gold?: number;
+  drops: string;
+  mats?: { id: string; chance: number; min?: number; max?: number }[];
+  crystal?: { id: string; chance: number };
+  ccResist?: number;
+  capturable?: boolean;
+  petSkills?: string[];
+  nightOnly?: boolean;
+  ambush?: boolean;
+  attacks: MonsterAttackDef[];
+  phases?: PhaseDef[];
+  enrageTime?: number;
+  respawn?: number;
+}
+
+// ───────── 装備 ─────────
+
+export interface EquipTier { level: number; prefix: string; mul: number }
+
+export interface EquipBaseDef {
+  name: string;
+  slot: EquipSlot;
+  look: string;
+  stats: Partial<Record<ModKey, number>>;
+  /** 部位ごとの種類（武器種・サブの種類・防具の重さ） */
+  kind: WeaponType | SubType | ArmorType | 'head' | 'accessory';
+}
+
+export interface OptionDef {
+  key: ModKey;
+  label: string;
+  unit: string;
+  /** Lv1 時点の幅と、Lv100 時点の幅 */
+  min: [number, number];
+  max: [number, number];
+  weight: number;
+  slots?: EquipSlot[];
+  decimals?: number;
+}
+
+export interface RarityDef {
+  name: string; color: string; statMul: number; options: number; slots: [number, number];
+  glow: boolean; pillar: boolean; sfx: boolean; optionRoll: [number, number]; sellMul: number;
+}
+
+export interface UniqueDef {
+  name: string;
+  slots: EquipSlot[];
+  mods?: Mods;
+  /** 条件つきの効果 */
+  when?: { hpBelow?: number; afterDodge?: number; vsBoss?: boolean; night?: boolean; fullHp?: boolean };
+  whenMods?: Mods;
+  proc?: { on: 'hit' | 'kill' | 'dodge' | 'hurt'; chance: number; effect: 'extraHit' | 'heal' | 'mp' | 'status' | 'explode'; value: number; status?: string };
+  cheatDeath?: number;
+}
+
+export interface MythicDef {
+  name: string;
+  slots: EquipSlot[];
+  effect: 'fireballAttack' | 'dodgeClone' | 'chainLightning' | 'extraHits' | 'deathBurst' | 'timeSand' | 'echoSkill';
+  value: number;
+  mods?: Mods;
+}
+
+export interface SetDef {
+  name: string;
+  pieces: Partial<Record<EquipSlot, string>>;
+  bonus: { count: number; mods: Mods }[];
+}
+
+export interface CrystalDef {
+  name: string;
+  slots: EquipSlot[] | 'any';
+  mods: Mods;
+  color: string;
+}
+
+export interface DropTable {
+  rolls: number;
+  chance: number;
+  rarity: Partial<Record<Rarity, number>>;
+  /** 部位の重み */
+  slots?: Partial<Record<EquipSlot, number>>;
+  set?: string;
+  setChance?: number;
+}
+
+// ───────── 素材・生産 ─────────
+
+export interface MaterialDef {
+  name: string;
+  kind: 'material' | 'consumable' | 'food' | 'capture' | 'crystal' | 'key';
+  icon: string;
+  color: string;
+  price: number;
+  rarity?: Rarity;
+  /** 使ったときの効果 */
+  use?: { heal?: number; healPct?: number; mpPct?: number; buff?: string; capture?: number };
+  stack?: number;
+}
+
+// ───────── 世界 ─────────
+
+export interface SpawnDef { monster: string; x: number; y: number; level: [number, number] }
+export interface NpcPlacement { npc: string; x: number; y: number }
+
+export interface NpcDef {
+  name: string;
+  sprite: string;
+  role: string;
+  shop?: string;
+  color: string;
+}
+
+export interface AreaDef {
+  name: string;
+  type: 'town' | 'field' | 'dungeon' | 'tower' | 'raid';
+  map: string;
+  level: [number, number];
+  playerSpawn: { x: number; y: number };
+  spawns?: SpawnDef[];
+  npcs?: NpcPlacement[];
+  safeRadius?: number;
+}
+
+// ───────── 全体 ─────────
+
+export interface PersonalDef { name: string; mods: Mods }
+
+export interface Balance {
+  tickRate: number;
+  element: {
+    advantage: number; disadvantage: number; neutral: number;
+    cycle: Element[]; mutual: [Element, Element][];
+  };
+  damage: {
+    defenseKBase: number; defenseKPerLevel: number; variance: number; minDamage: number;
+    breakDmgTakenPct: number;
+  };
+  stats: {
+    statBase: number; statMax: number; personalMax: number;
+    hpBase: number; hpPerLevel: number; hpPerVit: number;
+    mpBase: number; mpPerInt: number;
+    stBase: number;
+    atkPerLevel: number; matkPerLevel: number;
+    defPerLevel: number; defPerVit: number; mdefPerLevel: number; mdefPerInt: number;
+    critBase: number; critPerDex: number; critDamage: number; critDamagePerStr: number;
+    moveSpeedBase: number; moveSpeedPerAgi: number; moveSpeedMax: number;
+    aspdPerAgi: number; aspdMax: number; cspdPerDex: number; cspdMax: number;
+    evasionPerAgi: number;
+    refineStatPerLevel: number;
+  };
+  personal: Record<PersonalStat, PersonalDef>;
+  progression: {
+    maxLevel: number;
+    startStatPoints: number; statPointsPerLevel: number;
+    startSkillPoints: number; skillPointsPerLevel: number;
+    expKills: [number, number];
+    expMonster: [number, number, number];
+    levelDiffPenalty: number; levelDiffBonus: number; levelDiffMinMul: number; levelDiffMaxMul: number;
+    tierLevels: number[];
+  };
+  respec: { costBase: number; costPerLevel: number };
+  rebirth: { statPoints: number; skillPoints: number; expPct: number; max: number; titles: { count: number; title: string }[] };
+  builds: { slots: number };
+  player: {
+    maxStaminaBase: number; staminaRegen: number; staminaRegenDelay: number;
+    dodgeCost: number; dodgeDuration: number; dodgeIframes: number; dodgeSpeed: number; respawnTime: number;
+    autoTargetRange: number; pickupRange: number; inventorySize: number; skillSlots: number;
+    interactRange: number; mpRegenOutOfCombat: number; hpRegenOutOfCombat: number; combatTimeout: number;
+    blockReduce: number;
+  };
+  monster: {
+    hp: [number, number, number]; atk: [number, number]; def: number; mdef: number;
+    gold: [number, number, number];
+    hpRegenOnReturn: number; wanderRadius: number; wanderSpeedRatio: number;
+    enrageThreshold: number; enrageCooldownRatio: number; recovery: number;
+    poiseBase: number; poisePerLevel: number; breakDuration: number; bossBreakDuration: number;
+    poiseRegenDelay: number; poiseGrowth: number; flinchDuration: number;
+    respawn: number; bossRespawn: number; eliteMul: number; eliteAtkMul: number; elitePoiseMul: number; eliteRadiusMul: number;
+  };
+  drop: { lifetime: number; scatter: number };
+  sell: { base: number; perLevel: number; perRefine: number; materialMul: number };
+  world: { startArea: string };
+  start: { gold: number; bag: Record<string, number>; equipment: { base: string; slot: EquipSlot }[]; inventory: { base: string }[] };
+}
+
+export interface Content {
+  balance: Balance;
+  weapons: Record<WeaponType, WeaponDef>;
+  skills: Record<string, SkillDef>;
+  trees: Record<string, TreeDef>;
+  statuses: Record<string, StatusDef>;
+  monsters: Record<string, MonsterDef>;
+  equipment: {
+    tiers: EquipTier[];
+    bases: Record<string, EquipBaseDef>;
+    subRules: Record<string, SubType[]>;
+  };
+  rarities: { order: Rarity[]; defs: Record<Rarity, RarityDef> };
+  options: { pool: OptionDef[]; weaponElementChance: number; weaponElements: Element[] };
+  drops: Record<string, DropTable>;
+  materials: Record<string, MaterialDef>;
+  areas: Record<string, AreaDef>;
+  maps: Record<string, { legend: Record<string, { tile: string; solid: boolean; sprite?: string }>; rows: string[] }>;
+  npcs: Record<string, NpcDef>;
+  shops: Record<string, { items: string[] }>;
+  tiles: Record<string, { colors: [string, string]; shine?: string }>;
+  text: Record<string, string>;
+}

@@ -1,0 +1,10 @@
+{
+  "potion_s":     { "name": "回復薬",       "kind": "consumable", "icon": "potion", "color": "#ff6b7a", "price": 30,  "use": { "healPct": 30 } },
+  "potion_m":     { "name": "上回復薬",     "kind": "consumable", "icon": "potion", "color": "#ff3d6a", "price": 150, "use": { "healPct": 60 } },
+  "ether":        { "name": "魔力の雫",     "kind": "consumable", "icon": "potion", "color": "#5aa8ff", "price": 100, "use": { "mpPct": 50 } },
+  "slime_gel":    { "name": "スライムゼリー", "kind": "material", "icon": "gel",    "color": "#46a8ff", "price": 6 },
+  "hornet_needle":{ "name": "蜂の針",       "kind": "material", "icon": "needle", "color": "#f2c230", "price": 8 },
+  "golem_core":   { "name": "岩の核",       "kind": "material", "icon": "stone",  "color": "#9a9388", "price": 14 },
+  "wisp_ember":   { "name": "影の残り火",   "kind": "material", "icon": "flame",  "color": "#9b6bff", "price": 10 },
+  "ember_scale":  { "name": "灰燼の鱗",     "kind": "material", "icon": "scale",  "color": "#ff7a2a", "price": 80, "rarity": "epic" }
+}

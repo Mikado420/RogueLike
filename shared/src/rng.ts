@@ -38,3 +38,18 @@ export class Rng {
     return entries.filter(([, w]) => w > 0).at(-1)![0];
   }
 }
+
+/** 文字列や数値から決まった 32bit の値を作る（天気・日替わりなどの決定的な抽選用） */
+export function hash32(...parts: (string | number)[]): number {
+  let h = 0x811c9dc5;
+  for (const p of parts) {
+    const s = String(p);
+    for (let i = 0; i < s.length; i++) {
+      h ^= s.charCodeAt(i);
+      h = Math.imul(h, 0x01000193);
+    }
+    h ^= 0xff;
+    h = Math.imul(h, 0x01000193);
+  }
+  return h >>> 0;
+}

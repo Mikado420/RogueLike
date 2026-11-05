@@ -1,0 +1,5 @@
+{
+  "memory":   { "name": "記憶の泉",   "sprite": "npc_fountain", "role": "memory",  "color": "#7fd8ff" },
+  "priest":   { "name": "転生の神官", "sprite": "npc_priest",   "role": "rebirth", "color": "#fff27a" },
+  "merchant": { "name": "道具屋",     "sprite": "npc_merchant", "role": "shop", "shop": "general", "color": "#ffb02e" }
+}

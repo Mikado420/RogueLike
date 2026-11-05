@@ -1,0 +1,7 @@
+{
+  "grass": { "colors": ["#3f7a3a", "#447f3e"] },
+  "dirt":  { "colors": ["#8a6e48", "#8f7350"] },
+  "arena": { "colors": ["#5a3a33", "#553730"] },
+  "water": { "colors": ["#2a64a8", "#2c68ad"], "shine": "#5aa0e0" },
+  "wall":  { "colors": ["#3a3d48", "#3a3d48"] }
+}

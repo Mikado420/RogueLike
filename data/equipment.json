@@ -1,0 +1,24 @@
+{
+  "tiers": [
+    { "level": 1,  "prefix": "粗末な",   "mul": 1.0 },
+    { "level": 10, "prefix": "鉄の",     "mul": 2.0 },
+    { "level": 20, "prefix": "鋼の",     "mul": 3.2 },
+    { "level": 32, "prefix": "銀の",     "mul": 4.6 },
+    { "level": 45, "prefix": "ミスリルの", "mul": 6.2 },
+    { "level": 58, "prefix": "魔晶の",   "mul": 8.0 },
+    { "level": 70, "prefix": "竜鱗の",   "mul": 10.0 },
+    { "level": 82, "prefix": "星屑の",   "mul": 12.2 },
+    { "level": 92, "prefix": "天穹の",   "mul": 14.5 }
+  ],
+  "subRules": {},
+  "bases": {
+    "w_oneHandSword": { "name": "片手剣", "slot": "weapon", "kind": "oneHandSword", "look": "sword", "stats": { "atk": 20 } },
+    "w_bow":          { "name": "弓",     "slot": "weapon", "kind": "bow",          "look": "bow",   "stats": { "atk": 18 } },
+    "w_staff":        { "name": "杖",     "slot": "weapon", "kind": "staff",        "look": "staff", "stats": { "matk": 22, "atk": 5 } },
+    "a_light":        { "name": "軽鎧",   "slot": "body", "kind": "light", "look": "light", "stats": { "def": 6, "maxHp": 10 } },
+    "a_heavy":        { "name": "重鎧",   "slot": "body", "kind": "heavy", "look": "heavy", "stats": { "def": 10, "maxHp": 20 } },
+    "a_cloth":        { "name": "法衣",   "slot": "body", "kind": "cloth", "look": "cloth", "stats": { "def": 3, "mdef": 6, "maxMp": 6 } },
+    "x_ring":         { "name": "指輪",   "slot": "accessory", "kind": "accessory", "look": "ring",   "stats": { "atk": 3, "matk": 3 } },
+    "x_amulet":       { "name": "首飾り", "slot": "accessory", "kind": "accessory", "look": "amulet", "stats": { "maxHp": 15, "mdef": 3 } }
+  }
+}

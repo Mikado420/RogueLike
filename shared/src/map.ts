@@ -1,4 +1,4 @@
-import type { MapDef } from './types';
+export interface MapDef { legend: Record<string, { tile: string; solid: boolean; sprite?: string }>; rows: string[] }
 
 /** タイルマップ。タイル (i, j) はワールド座標 [i, i+1) × [j, j+1) を占める。 */
 export interface GameMap {

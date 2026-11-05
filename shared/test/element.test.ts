@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { affinity } from '../src/element';
-import { ELEMENTS, type Element } from '../src/types';
+import { ELEMENTS, type Element } from '../src/core';
 
 const ADV = 1.25, DIS = 0.75, N = 1.0;
 

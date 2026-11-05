@@ -1,10 +1,10 @@
 {
   "order": ["common", "rare", "epic", "legend", "mythic"],
   "defs": {
-    "common": { "name": "コモン",   "color": "#d9dde3", "statMul": 1.0,  "options": 0, "slots": [0, 0], "glow": false, "pillar": false, "sfx": false },
-    "rare":   { "name": "レア",     "color": "#4aa8ff", "statMul": 1.12, "options": 1, "slots": [0, 1], "glow": true,  "pillar": false, "sfx": false },
-    "epic":   { "name": "エピック", "color": "#b866ff", "statMul": 1.28, "options": 2, "slots": [1, 1], "glow": true,  "pillar": true,  "sfx": false },
-    "legend": { "name": "レジェンド", "color": "#ffb02e", "statMul": 1.48, "options": 3, "slots": [1, 2], "glow": true,  "pillar": true,  "sfx": true },
-    "mythic": { "name": "ミシック", "color": "#ff4f7a", "statMul": 1.75, "options": 4, "slots": [2, 2], "glow": true,  "pillar": true,  "sfx": true }
+    "common": { "name": "コモン",     "color": "#d9dde3", "statMul": 1.0,  "options": 0, "slots": [0, 0], "glow": false, "pillar": false, "sfx": false, "optionRoll": [0.0, 0.6], "sellMul": 1 },
+    "rare":   { "name": "レア",       "color": "#4aa8ff", "statMul": 1.12, "options": 1, "slots": [0, 1], "glow": true,  "pillar": false, "sfx": false, "optionRoll": [0.0, 0.8], "sellMul": 3 },
+    "epic":   { "name": "エピック",   "color": "#b866ff", "statMul": 1.28, "options": 2, "slots": [1, 1], "glow": true,  "pillar": true,  "sfx": false, "optionRoll": [0.2, 0.9], "sellMul": 8 },
+    "legend": { "name": "レジェンド", "color": "#ffb02e", "statMul": 1.48, "options": 3, "slots": [1, 2], "glow": true,  "pillar": true,  "sfx": true,  "optionRoll": [0.35, 1.0], "sellMul": 20 },
+    "mythic": { "name": "ミシック",   "color": "#ff4f7a", "statMul": 1.75, "options": 4, "slots": [2, 2], "glow": true,  "pillar": true,  "sfx": true,  "optionRoll": [0.5, 1.0], "sellMul": 50 }
   }
 }

@@ -1,10 +1,11 @@
-import { Application, Container, Graphics } from 'pixi.js';
-import type { Drop, GameEvent, Monster, Player, Projectile, World } from '../../shared/src/sim';
-import { CONTENT } from '../../shared/src/content';
+import { Application, Container, Graphics, Text } from 'pixi.js';
+import {
+  CONTENT, type Drop, type GameEvent, type Item, type Monster, type Player, type Projectile, type World,
+} from '../../shared/src';
 import { depth, isoRadii, TILE_H, TILE_W, toScreen } from './iso';
-import { makeSprite, makeWeaponGlyph } from './sprites';
+import { makeBagIcon, makePlayerSprite, makeSprite, makeWeaponGlyph } from './sprites';
 import { drawIsoShape, Effects } from './fx';
-import { ELEMENT_COLOR, rarityColorNum } from './colors';
+import { BODY_COLORS, ELEMENT_COLOR, hex, HAIR_COLORS, rarityColorNum, statusColor } from './colors';
 import type { Settings } from './settings';
 import type { Sfx } from './audio';
 
@@ -13,7 +14,8 @@ interface ActorView {
   body: Container;
   weapon?: Graphics;
   weaponType?: string;
-  hpBar?: Graphics;
+  bar?: Graphics;
+  aura?: Graphics;
   prev: { x: number; y: number };
   cur: { x: number; y: number };
   hurt: number;
@@ -23,13 +25,18 @@ interface ActorView {
 interface DropView { root: Container; glow: Graphics; pillar?: Graphics; icon: Container; t: number }
 interface ProjView { root: Container; prev: { x: number; y: number }; cur: { x: number; y: number } }
 
-const TILE_COLORS: Record<string, [number, number]> = {
-  grass: [0x3f7a3a, 0x447f3e],
-  dirt: [0x8a6e48, 0x8f7350],
-  arena: [0x5a3a33, 0x553730],
-  water: [0x2a64a8, 0x2c68ad],
-  wall: [0x3a3d48, 0x3a3d48],
-};
+const FONT = '"Hiragino Kaku Gothic ProN", "Noto Sans JP", system-ui, sans-serif';
+
+/** 落ちている装備の見た目 */
+export function itemIconName(it: Item): string {
+  if (it.slot === 'weapon') {
+    if (it.kind === 'bow') return 'item_bow';
+    if (it.kind === 'staff' || it.kind === 'instrument') return 'item_staff';
+    return 'item_sword';
+  }
+  if (it.slot === 'accessory') return 'item_ring';
+  return 'item_armor';
+}
 
 export class WorldView {
   readonly camera = new Container();
@@ -40,38 +47,40 @@ export class WorldView {
   private actors = new Map<number, ActorView>();
   private projectiles = new Map<number, ProjView>();
   private drops = new Map<number, DropView>();
+  private npcs = new Map<number, Container>();
   private camPos = { x: 0, y: 0 };
   private time = 0;
+  private areaId = '';
 
   constructor(private app: Application, private world: World, private myId: number, private settings: Settings, private sfx: Sfx) {
     app.stage.addChild(this.camera);
     this.entities.sortableChildren = true;
     this.camera.addChild(this.ground, this.fx.groundLayer, this.telegraphs, this.entities, this.fx.layer);
-    this.drawGround();
-    const me = this.myPlayer();
-    const s = toScreen(me.x, me.y);
-    this.camPos = { x: s.x, y: s.y };
+    this.setArea();
   }
 
-  private myPlayer(): Player {
+  private me(): Player {
     return this.world.players.find((p) => p.id === this.myId)!;
   }
 
-  private drawGround() {
-    const m = this.world.map;
+  /** エリアが変わったら地面と置物を作り直す */
+  setArea() {
+    this.areaId = this.world.area.id;
+    for (const c of [...this.entities.children]) c.destroy({ children: true });
+    this.actors.clear(); this.projectiles.clear(); this.drops.clear(); this.npcs.clear();
+    this.ground.clear();
+    const m = this.world.area.map;
     const g = this.ground;
     const hw = TILE_W / 2, hh = TILE_H / 2;
     for (let j = 0; j < m.height; j++) {
       for (let i = 0; i < m.width; i++) {
         const k = j * m.width + i;
         const tile = m.tiles[k];
-        const cols = TILE_COLORS[tile] ?? [0xff00ff, 0xff00ff];
-        const c = cols[(i + j) % 2];
+        const td = CONTENT.tiles[tile];
+        const c = td ? hex(td.colors[(i + j) % 2]) : 0xff00ff;
         const p = toScreen(i, j);
         g.poly([p.x, p.y, p.x + hw, p.y + hh, p.x, p.y + 2 * hh, p.x - hw, p.y + hh]).fill(c);
-        if (tile === 'water') {
-          g.poly([p.x, p.y + 6, p.x + hw - 10, p.y + hh, p.x, p.y + 2 * hh - 6, p.x - hw + 10, p.y + hh]).fill({ color: 0x5aa0e0, alpha: 0.18 });
-        }
+        if (td?.shine) g.poly([p.x, p.y + 6, p.x + hw - 10, p.y + hh, p.x, p.y + 2 * hh - 6, p.x - hw + 10, p.y + hh]).fill({ color: hex(td.shine), alpha: 0.18 });
         const sp = m.sprites[k];
         if (sp) {
           const s = makeSprite(sp);
@@ -82,23 +91,47 @@ export class WorldView {
         }
       }
     }
-    // 外周の暗い縁
     const tl = toScreen(0, 0), tr = toScreen(m.width, 0), br = toScreen(m.width, m.height), bl = toScreen(0, m.height);
     g.poly([tl.x, tl.y, tr.x, tr.y, br.x, br.y, bl.x, bl.y]).stroke({ width: 4, color: 0x0a0c10 });
+    // NPC
+    for (const n of this.world.area.npcs) {
+      const def = CONTENT.npcs[n.npc];
+      const root = new Container();
+      root.addChild(makeSprite(def.sprite));
+      const label = new Text({ text: def.name, style: { fontFamily: FONT, fontSize: 12, fontWeight: '800', fill: hex(def.color), stroke: { color: 0x000000, width: 3 } } });
+      label.anchor.set(0.5, 1);
+      label.y = -62;
+      root.addChild(label);
+      const s = toScreen(n.x, n.y);
+      root.x = s.x; root.y = s.y;
+      root.zIndex = depth(n.x, n.y);
+      this.entities.addChild(root);
+      this.npcs.set(n.id, root);
+    }
+    const me = this.me();
+    const s = toScreen(me.x, me.y);
+    this.camPos = { x: s.x, y: s.y };
   }
 
   /** step の前に呼ぶ。補間用に今の位置を覚える */
   capturePrev() {
     for (const p of this.world.players) { const v = this.actors.get(p.id); if (v) v.prev = { x: p.x, y: p.y }; }
-    for (const m of this.world.monsters) { const v = this.actors.get(m.id); if (v) v.prev = { x: m.x, y: m.y }; }
-    for (const pr of this.world.projectiles) { const v = this.projectiles.get(pr.id); if (v) v.prev = { x: pr.x, y: pr.y }; }
+    for (const m of this.world.area.monsters) { const v = this.actors.get(m.id); if (v) v.prev = { x: m.x, y: m.y }; }
+    for (const pr of this.world.area.projectiles) { const v = this.projectiles.get(pr.id); if (v) v.prev = { x: pr.x, y: pr.y }; }
   }
 
   handleEvents(events: GameEvent[]) {
     const mode = this.settings.damageDisplay;
     for (const e of events) {
       switch (e.type) {
+        case 'areaChanged':
+          if (e.playerId === this.myId && this.world.area.id !== this.areaId) this.setArea();
+          break;
         case 'damage': {
+          if (e.dot) {
+            if (mode !== 'mine' || e.src === this.myId || e.tgt === this.myId) this.fx.dot(e.x, e.y, e.amount, e.toPlayer, ELEMENT_COLOR[e.element]);
+            break;
+          }
           if (mode !== 'mine' || e.src === this.myId) this.fx.damage(e, mode);
           const col = e.toPlayer ? 0xff5050 : e.weak ? ELEMENT_COLOR[e.element] : e.crit ? 0xffd23a : 0xffffff;
           this.fx.spark(e.x, e.y, col);
@@ -109,17 +142,29 @@ export class WorldView {
           else this.sfx.play(e.crit ? 'crit' : 'hit', e.src === this.myId ? 1 : 0.4);
           break;
         }
-        case 'evade':
-          if (e.tgt === this.myId) { this.fx.text(e.x, e.y, 'MISS', 0x9fe8ff); this.sfx.play('evade'); }
+        case 'heal':
+          if (e.tgt === this.myId) this.fx.text(e.x, e.y, `+${e.amount}`, 0x6fe39a);
           break;
+        case 'evade':
+          if (e.tgt === this.myId) { this.fx.text(e.x, e.y, e.block ? 'BLOCK' : 'MISS', 0x9fe8ff); this.sfx.play('evade'); }
+          else if (e.block) this.fx.text(e.x, e.y, 'GUARD', 0xb0b8c8);
+          else this.fx.text(e.x, e.y, 'MISS', 0xb0b8c8);
+          break;
+        case 'break': {
+          const m = this.world.area.monsters.find((x) => x.id === e.id);
+          if (m) { this.fx.bigText(m.x, m.y, CONTENT.text['hud.break'] ?? 'BREAK', 0xffd23a); this.fx.burst(m.x, m.y, 0xffd23a, m.r + 0.6, 0.35); }
+          this.sfx.play('crit');
+          if (this.settings.shake) this.fx.shake = Math.max(this.fx.shake, 7);
+          break;
+        }
         case 'attack': {
           if (e.src !== this.myId) {
-            const m = this.world.monsters.find((x) => x.id === e.src);
+            const m = this.world.area.monsters.find((x) => x.id === e.src);
             if (m && CONTENT.monsters[m.defId].boss) this.sfx.play('warn', 0.8);
             break;
           }
           if (e.skill) this.sfx.play('skill');
-          else this.sfx.play(e.weapon === 'bow' ? 'shoot' : e.weapon === 'staff' ? 'magic' : 'swing');
+          else this.sfx.play(e.weapon === 'bow' || e.weapon === 'gun' ? 'shoot' : e.weapon === 'staff' || e.weapon === 'instrument' ? 'magic' : 'swing');
           break;
         }
         case 'impact': {
@@ -141,6 +186,7 @@ export class WorldView {
           if (e.boss && this.settings.shake) this.fx.shake = 16;
           break;
         case 'drop': {
+          if (!e.rarity) break;
           const rd = CONTENT.rarities.defs[e.rarity];
           if (rd.sfx) this.sfx.play('legend');
           else if (rd.glow) this.sfx.play('dropRare');
@@ -163,6 +209,14 @@ export class WorldView {
         case 'equip':
           if (e.playerId === this.myId) this.sfx.play('equip');
           break;
+        case 'levelUp':
+          if (e.playerId === this.myId) {
+            const p = this.me();
+            this.fx.burst(p.x, p.y, 0xffe14a, 1.6, 0.8);
+            this.fx.bigText(p.x, p.y, CONTENT.text['hud.levelUp'] ?? 'LEVEL UP', 0xffe14a);
+            this.sfx.play('legend');
+          }
+          break;
       }
     }
   }
@@ -171,17 +225,25 @@ export class WorldView {
     let v = this.actors.get(a.id);
     if (!v) {
       const root = new Container();
-      const sprite = a.kind === 'player' ? 'player' : CONTENT.monsters[a.defId].sprite;
-      const body = makeSprite(sprite);
+      root.sortableChildren = true;
+      let body: Container;
+      if (a.kind === 'player') body = makePlayerSprite(BODY_COLORS[a.char.look.body % BODY_COLORS.length], HAIR_COLORS[a.char.look.hair % HAIR_COLORS.length]);
+      else body = makeSprite(CONTENT.monsters[a.defId].sprite);
+      if (a.kind === 'monster') {
+        const sc = (CONTENT.monsters[a.defId].scale ?? 1) * (a.elite ? 1.15 : 1);
+        body.scale.set(sc);
+      }
       root.addChild(body);
       v = { root, body, prev: { x: a.x, y: a.y }, cur: { x: a.x, y: a.y }, hurt: 0, float: Math.random() * 10 };
-      if (a.kind === 'monster' && !CONTENT.monsters[a.defId].boss) {
-        v.hpBar = new Graphics();
-        root.addChild(v.hpBar);
-      }
-      if (a.kind === 'player' && a.id !== this.myId) {
-        // 自分以外のプレイヤー（オンライン化後）
-        body.tint = 0xb0ffb0;
+      if (a.kind === 'monster') {
+        if (!CONTENT.monsters[a.defId].boss) { v.bar = new Graphics(); v.bar.zIndex = 5; root.addChild(v.bar); }
+        if (a.elite) {
+          v.aura = new Graphics();
+          const { rx, ry } = isoRadii(a.r + 0.25);
+          v.aura.ellipse(0, 0, rx, ry).stroke({ width: 3, color: 0xffb02e, alpha: 0.8 });
+          v.aura.zIndex = -1;
+          root.addChild(v.aura);
+        }
       }
       this.entities.addChild(root);
       this.actors.set(a.id, v);
@@ -193,15 +255,14 @@ export class WorldView {
     const dt = dtMs / 1000;
     this.time += dt;
     const w = this.world;
+    if (w.area.id !== this.areaId) this.setArea();
     const seen = new Set<number>();
-
     const lerp = (v: { prev: { x: number; y: number } }, x: number, y: number) => ({
       x: v.prev.x + (x - v.prev.x) * alpha,
       y: v.prev.y + (y - v.prev.y) * alpha,
     });
 
-    // キャラ
-    for (const a of [...w.players, ...w.monsters] as (Player | Monster)[]) {
+    for (const a of [...w.players, ...w.area.monsters] as (Player | Monster)[]) {
       seen.add(a.id);
       const v = this.actorView(a);
       const pos = lerp(v, a.x, a.y);
@@ -211,16 +272,17 @@ export class WorldView {
       v.root.zIndex = depth(pos.x, pos.y) + 0.01;
       v.hurt = Math.max(0, v.hurt - dt);
       v.float += dt;
-      const flying = a.kind === 'monster' && (a.defId === 'hornet' || a.defId === 'wisp');
+      const flying = a.kind === 'monster' && (CONTENT.monsters[a.defId].tags ?? []).includes('flying');
       v.body.y = flying ? Math.sin(v.float * 4) * 3 : 0;
-      if (a.kind === 'monster' && a.moving && !flying) v.body.scale.y = 1 + Math.sin(v.float * 14) * 0.05;
-      else v.body.scale.y = 1;
-      v.body.tint = v.hurt > 0 ? 0xff8080 : 0xffffff;
+      const frozen = a.statuses.some((st) => st.id === 'freeze');
+      const stunned = a.stagger > 0 || a.statuses.some((st) => st.id === 'stun');
+      v.body.tint = v.hurt > 0 ? 0xff8080 : frozen ? 0x9fe0ff : stunned ? 0xfff0a0 : 0xffffff;
+      const facingLeft = Math.cos(a.facing) - Math.sin(a.facing) < 0;
 
       if (a.kind === 'player') {
         v.root.visible = !a.dead;
         v.root.alpha = a.dodgeTicks > 0 ? 0.55 : a.iframes > 0 ? 0.75 + Math.sin(this.time * 30) * 0.2 : 1;
-        const wt = a.equipment.weapon?.weaponType;
+        const wt = a.char.equipment.weapon?.kind;
         if (v.weaponType !== wt) {
           v.weapon?.destroy();
           v.weapon = makeWeaponGlyph(wt);
@@ -236,18 +298,26 @@ export class WorldView {
           v.weapon.scale.x = wt !== 'oneHandSword' && f.x < 0 ? -1 : 1;
           v.weapon.zIndex = f.y < 0 ? -1 : 1;
         }
-        v.body.scale.x = Math.cos(a.facing) - Math.sin(a.facing) < 0 ? -1 : 1;
+        v.body.scale.x = facingLeft ? -1 : 1;
       } else {
         const def = CONTENT.monsters[a.defId];
-        if (v.hpBar) {
-          v.hpBar.clear();
+        const sc = (def.scale ?? 1) * (a.elite ? 1.15 : 1);
+        v.body.scale.set(facingLeft ? -sc : sc, a.moving && !flying ? sc * (1 + Math.sin(v.float * 14) * 0.05) : sc);
+        if (v.bar) {
+          v.bar.clear();
+          const top = -(def.radius > 0.5 ? 66 : 46) * sc;
           if (a.hp < a.stats.maxHp) {
-            const wbar = 34, top = def.radius > 0.5 ? -66 : -46;
-            v.hpBar.rect(-wbar / 2 - 1, top - 1, wbar + 2, 6).fill(0x000000);
-            v.hpBar.rect(-wbar / 2, top, wbar * Math.max(0, a.hp / a.stats.maxHp), 4).fill(0xe8453c);
+            const wbar = 34;
+            v.bar.rect(-wbar / 2 - 1, top - 1, wbar + 2, 6).fill(0x000000);
+            v.bar.rect(-wbar / 2, top, wbar * Math.max(0, a.hp / a.stats.maxHp), 4).fill(a.elite ? 0xffb02e : 0xe8453c);
+          }
+          let x = -14;
+          for (const st of a.statuses) {
+            v.bar.circle(x, top - 7, 3).fill(statusColor(st.id));
+            x += 7;
           }
         }
-        v.body.scale.x = Math.cos(a.facing) - Math.sin(a.facing) < 0 ? -1 : 1;
+        if (v.aura) v.aura.alpha = 0.6 + Math.sin(this.time * 5) * 0.3;
       }
     }
     for (const [id, v] of this.actors) {
@@ -256,11 +326,12 @@ export class WorldView {
 
     // 飛び道具
     const seenP = new Set<number>();
-    for (const pr of w.projectiles) {
+    for (const pr of w.area.projectiles) {
       seenP.add(pr.id);
       let v = this.projectiles.get(pr.id);
       if (!v) {
         const root = makeSprite(pr.sprite);
+        if (pr.team === 1) root.tint = 0xffb0b0;
         this.entities.addChild(root);
         v = { root, prev: { x: pr.x - pr.vx, y: pr.y - pr.vy }, cur: { x: pr.x, y: pr.y } };
         this.projectiles.set(pr.id, v);
@@ -273,7 +344,7 @@ export class WorldView {
 
     // ドロップ
     const seenD = new Set<number>();
-    for (const d of w.drops) {
+    for (const d of w.area.drops) {
       seenD.add(d.id);
       let v = this.drops.get(d.id);
       if (!v) { v = this.makeDrop(d); this.drops.set(d.id, v); }
@@ -287,21 +358,22 @@ export class WorldView {
       if (!seenD.has(id)) { v.root.destroy({ children: true }); this.drops.delete(id); }
     }
 
-    // ボスの予兆
+    // 予兆
     this.telegraphs.clear();
-    for (const s of w.strikes) {
+    for (const s of w.area.strikes) {
       if (!s.telegraph || w.tick >= s.nextTick) continue;
       const total = Math.max(1, s.nextTick - s.startTick);
       const k = Math.min(1, (w.tick - s.startTick + alpha) / total);
       drawIsoShape(this.telegraphs, s.x, s.y, s.shape, s.dir);
       this.telegraphs.fill({ color: 0xff2a1a, alpha: 0.14 + 0.1 * Math.sin(this.time * 18) }).stroke({ width: 2, color: 0xff3a2a, alpha: 0.9 });
-      const inner = s.shape.type === 'circle' ? { ...s.shape, radius: s.shape.radius * k } : { ...s.shape, range: s.shape.range * k };
+      const inner = s.shape.type === 'circle' ? { ...s.shape, radius: s.shape.radius * k }
+        : s.shape.type === 'arc' || s.shape.type === 'line' ? { ...s.shape, range: s.shape.range * k } : s.shape;
       drawIsoShape(this.telegraphs, s.x, s.y, inner, s.dir);
       this.telegraphs.fill({ color: 0xff2a1a, alpha: 0.32 });
     }
 
-    // 自分の足元の向き
-    const me = this.myPlayer();
+    // 自分の足元
+    const me = this.me();
     const mv = this.actors.get(me.id);
     if (mv && !me.dead) {
       const tip = toScreen(mv.cur.x + Math.cos(me.facing) * 0.75, mv.cur.y + Math.sin(me.facing) * 0.75);
@@ -332,7 +404,7 @@ export class WorldView {
   /** 自分のキャラの画面上の位置（マウスで狙うときの基準） */
   playerScreenPos(): { x: number; y: number } {
     const v = this.actors.get(this.myId);
-    const p = v ? v.cur : this.myPlayer();
+    const p = v ? v.cur : this.me();
     const s = toScreen(p.x, p.y);
     const z = this.camera.scale.x;
     return { x: this.camera.x + s.x * z, y: this.camera.y + (s.y - 22) * z };
@@ -350,39 +422,45 @@ export class WorldView {
   }
 
   private makeDrop(d: Drop): DropView {
-    const rd = CONTENT.rarities.defs[d.item.rarity];
-    const color = rarityColorNum(d.item.rarity);
     const root = new Container();
     const s = toScreen(d.x, d.y);
     root.x = s.x; root.y = s.y;
     root.zIndex = depth(d.x, d.y);
     const glow = new Graphics();
-    const { rx, ry } = isoRadii(rd.glow ? 0.6 : 0.3);
-    if (rd.glow) {
-      for (let i = 4; i >= 1; i--) glow.ellipse(0, 0, rx * i / 4, ry * i / 4).fill({ color, alpha: 0.12 });
-    } else {
-      glow.ellipse(0, 0, rx, ry).fill({ color: 0x000000, alpha: 0.25 });
-    }
     glow.blendMode = 'add';
-    root.addChild(glow);
     let pillar: Graphics | undefined;
-    if (rd.pillar) {
-      pillar = new Graphics();
-      const h = d.item.rarity === 'epic' ? 140 : 220;
-      const wdt = d.item.rarity === 'epic' ? 26 : 34;
-      for (let i = 0; i < 12; i++) {
-        const k = i / 12;
-        const ww = wdt * (0.55 + k * 0.45);
-        pillar.rect(-ww / 2, -h + h * k, ww, h / 12 + 1).fill({ color, alpha: 0.04 + k * 0.22 });
+    let icon: Container;
+    if (d.item) {
+      const rd = CONTENT.rarities.defs[d.item.rarity];
+      const color = rarityColorNum(d.item.rarity);
+      const { rx, ry } = isoRadii(rd.glow ? 0.6 : 0.3);
+      if (rd.glow) for (let i = 4; i >= 1; i--) glow.ellipse(0, 0, rx * i / 4, ry * i / 4).fill({ color, alpha: 0.12 });
+      else glow.ellipse(0, 0, rx, ry).fill({ color: 0x000000, alpha: 0.25 });
+      if (rd.pillar) {
+        pillar = new Graphics();
+        const h = d.item.rarity === 'epic' ? 140 : 220;
+        const wdt = d.item.rarity === 'epic' ? 26 : 34;
+        for (let i = 0; i < 12; i++) {
+          const k = i / 12;
+          const ww = wdt * (0.55 + k * 0.45);
+          pillar.rect(-ww / 2, -h + h * k, ww, h / 12 + 1).fill({ color, alpha: 0.04 + k * 0.22 });
+        }
+        pillar.rect(-3, -h, 6, h).fill({ color: 0xffffff, alpha: 0.45 });
+        pillar.blendMode = 'add';
       }
-      pillar.rect(-3, -h, 6, h).fill({ color: 0xffffff, alpha: 0.45 });
-      pillar.blendMode = 'add';
-      root.addChild(pillar);
+      icon = makeSprite(itemIconName(d.item));
+      const ring = new Graphics();
+      ring.circle(0, 0, 13).fill({ color: 0x0b0e14, alpha: 0.6 }).stroke({ width: 2, color });
+      icon.addChildAt(ring, 0);
+    } else {
+      const md = d.bag ? CONTENT.materials[d.bag.id] : null;
+      const color = md ? hex(md.color) : 0xffd23a;
+      const { rx, ry } = isoRadii(0.25);
+      glow.ellipse(0, 0, rx, ry).fill({ color: 0x000000, alpha: 0.25 });
+      icon = makeBagIcon(color);
     }
-    const icon = makeSprite(d.item.sprite);
-    const ring = new Graphics();
-    ring.circle(0, 0, 13).fill({ color: 0x0b0e14, alpha: 0.6 }).stroke({ width: 2, color });
-    icon.addChildAt(ring, 0);
+    root.addChild(glow);
+    if (pillar) root.addChild(pillar);
     root.addChild(icon);
     this.entities.addChild(root);
     return { root, glow, pillar, icon, t: Math.random() * 3 };

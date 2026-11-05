@@ -19,12 +19,29 @@ function gfx(draw: (g: Graphics) => void): Container {
 }
 
 const DRAWERS: Record<string, Drawer> = {
-  player: () => gfx((g) => {
+  player: () => makePlayerSprite(0x3b6fd8, 0x5a3a22),
+  npc_fountain: () => gfx((g) => {
+    shadow(g, 26);
+    g.ellipse(0, -6, 26, 13).fill(0x6a7080).stroke({ width: 2, color: 0x3a3e48 });
+    g.ellipse(0, -8, 20, 9).fill(0x4ab3ff);
+    g.rect(-4, -40, 8, 32).fill(0x9aa0b0);
+    g.circle(0, -44, 7).fill({ color: 0x9fe8ff, alpha: 0.9 });
+    g.circle(0, -44, 12).fill({ color: 0x9fe8ff, alpha: 0.25 });
+  }),
+  npc_priest: () => gfx((g) => {
     shadow(g, 13);
-    g.roundRect(-9, -34, 18, 26, 7).fill(0x3b6fd8).stroke({ width: 2, color: 0x1d356b });
-    g.rect(-9, -16, 18, 4).fill(0x6b4a2b);
+    g.poly([-12, -4, 12, -4, 8, -36, -8, -36]).fill(0xf2eedc).stroke({ width: 2, color: 0x8a8670 });
+    g.rect(-2, -32, 4, 22).fill(0xe0b84a);
+    g.circle(0, -42, 8).fill(0xf2c9a0).stroke({ width: 2, color: 0x7a5236 });
+    g.poly([-9, -46, 0, -60, 9, -46]).fill(0xe0b84a);
+  }),
+  npc_merchant: () => gfx((g) => {
+    shadow(g, 16);
+    g.roundRect(-11, -34, 22, 28, 8).fill(0x8a5a2a).stroke({ width: 2, color: 0x4a2a10 });
+    g.rect(-11, -18, 22, 4).fill(0xe0b84a);
     g.circle(0, -40, 9).fill(0xf2c9a0).stroke({ width: 2, color: 0x7a5236 });
-    g.moveTo(-9, -44).arc(0, -41, 9.5, Math.PI, 0).fill(0x5a3a22);
+    g.ellipse(0, -47, 12, 4).fill(0x3a6a3a);
+    g.roundRect(12, -26, 12, 14, 3).fill(0xc89a5a).stroke({ width: 1.5, color: 0x5a3a1a });
   }),
   slime: () => gfx((g) => {
     shadow(g, 16);
@@ -105,6 +122,13 @@ const DRAWERS: Record<string, Drawer> = {
     g.poly([22, 0, 12, -7, 12, 7]).fill(0xffffff);
     g.circle(0, 0, 10).fill({ color: 0xfff1b8, alpha: 0.25 });
   }),
+  wave: () => gfx((g) => {
+    g.moveTo(-6, -16).quadraticCurveTo(14, 0, -6, 16).stroke({ width: 5, color: 0xdff4ff, alpha: 0.9 });
+    g.moveTo(-12, -12).quadraticCurveTo(6, 0, -12, 12).stroke({ width: 3, color: 0x9fd8ff, alpha: 0.6 });
+  }),
+  crystal: () => gfx((g) => {
+    g.poly([12, 0, 0, -6, -10, 0, 0, 6]).fill({ color: 0x9fe8ff, alpha: 0.9 }).stroke({ width: 1.5, color: 0xffffff });
+  }),
   bolt: () => gfx((g) => {
     g.circle(0, 0, 9).fill({ color: 0x9fd8ff, alpha: 0.3 });
     g.circle(0, 0, 5).fill(0xdff4ff);
@@ -143,6 +167,25 @@ const DRAWERS: Record<string, Drawer> = {
     g.circle(0, -6, 3).fill(0x7cf0ff);
   }),
 };
+
+/** 見た目（服・髪の色）つきのプレイヤー */
+export function makePlayerSprite(body: number, hair: number): Container {
+  return gfx((g) => {
+    shadow(g, 13);
+    g.roundRect(-9, -34, 18, 26, 7).fill(body).stroke({ width: 2, color: 0x1a1d26 });
+    g.rect(-9, -16, 18, 4).fill(0x6b4a2b);
+    g.circle(0, -40, 9).fill(0xf2c9a0).stroke({ width: 2, color: 0x7a5236 });
+    g.moveTo(-9, -44).arc(0, -41, 9.5, Math.PI, 0).fill(hair);
+  });
+}
+
+/** 素材・消耗品の小さな印 */
+export function makeBagIcon(color: number): Container {
+  return gfx((g) => {
+    g.circle(0, 0, 7).fill(color).stroke({ width: 2, color: 0x10141c });
+    g.circle(-2, -2, 2).fill({ color: 0xffffff, alpha: 0.6 });
+  });
+}
 
 export function makeSprite(name: string): Container {
   const d = DRAWERS[name];
