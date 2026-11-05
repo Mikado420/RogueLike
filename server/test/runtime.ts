@@ -5,6 +5,9 @@
 import { readFileSync } from 'node:fs';
 import { DatabaseSync } from 'node:sqlite';
 import { platform } from '../src/util/platform';
+import { logger } from '../src/util/log';
+
+logger.quiet = true;
 import type { Env } from '../src/env';
 import worker, { AccountDO, AreaDO, ChatDO, GuildDO, InstanceDO, MarketDO, PartyDO, WorldDO } from '../src/index';
 

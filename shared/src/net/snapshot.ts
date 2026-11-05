@@ -39,8 +39,16 @@ function strip<T extends object>(o: T, drop: string[]): EntityState {
 /** その tick の全員分の形（JSON 文字列）を1回だけ作る */
 export interface FrameCache {
   tick: number;
-  ents: { kind: Kind; id: number; x: number; y: number; json: string; ownerId?: number }[];
+  ents: { kind: Kind; id: number; x: number; y: number; json: string; fields: Record<string, string>; ownerId?: number }[];
   areaJson: string;
+}
+
+/** 位置と向きは 1/100 に丸める（送る量と、少しの揺れで送り直すのを減らす） */
+const ROUND = new Set(['x', 'y', 'facing', 'vx', 'vy', 'homeX', 'homeY']);
+function rounded(o: EntityState): EntityState {
+  const out: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(o)) out[k] = ROUND.has(k) && typeof v === 'number' ? Math.round(v * 100) / 100 : v;
+  return out as EntityState;
 }
 
 export function areaState(a: AreaInstance): Record<string, unknown> {
@@ -53,7 +61,10 @@ export function areaState(a: AreaInstance): Record<string, unknown> {
 export function buildFrame(w: World): FrameCache {
   const ents: FrameCache['ents'] = [];
   const add = (kind: Kind, o: { id: number; x: number; y: number }, s: EntityState, ownerId?: number) => {
-    ents.push({ kind, id: o.id, x: o.x, y: o.y, json: JSON.stringify(s), ownerId });
+    const r = rounded(s);
+    const fields: Record<string, string> = {};
+    for (const [k, v] of Object.entries(r)) fields[k] = JSON.stringify(v) ?? 'null';
+    ents.push({ kind, id: o.id, x: o.x, y: o.y, json: JSON.stringify(r), fields, ownerId });
   };
   for (const p of w.players) add('pl', p, playerState(p));
   for (const m of w.area.monsters) if (!m.dead) add('mo', m, strip(m, ['damageBy', 'spawnKey', 'homeX', 'homeY', 'wanderX', 'wanderY', 'timer']));
@@ -68,7 +79,7 @@ export function buildFrame(w: World): FrameCache {
 
 /** 1人ぶんの、前回から変わったもの */
 export class Viewer {
-  private seen = new Map<number, string>();
+  private seen = new Map<number, { json: string; fields: Record<string, string> }>();
   private areaJson = '';
   constructor(public radius: number) {}
 
@@ -84,9 +95,15 @@ export class Viewer {
       if (e.kind === 'dr' && me && e.ownerId !== undefined && e.ownerId !== -1 && e.ownerId !== me.id) continue;
       if (!near) continue;
       now.add(e.id);
-      if (this.seen.get(e.id) === e.json) continue;
-      this.seen.set(e.id, e.json);
-      (msg[e.kind] ??= []).push(JSON.parse(e.json));
+      const prev = this.seen.get(e.id);
+      if (prev?.json === e.json) continue;
+      this.seen.set(e.id, { json: e.json, fields: e.fields });
+      if (!prev) { (msg[e.kind] ??= []).push(JSON.parse(e.json)); continue; }
+      // 前に送ったものとの違い（項目ごと）だけ
+      const part: Record<string, unknown> = { id: e.id };
+      for (const [k, v] of Object.entries(e.fields)) if (prev.fields[k] !== v) part[k] = JSON.parse(v);
+      for (const k of Object.keys(prev.fields)) if (!(k in e.fields)) part[k] = null;
+      (msg[e.kind] ??= []).push(part as EntityState);
     }
     const gone: number[] = [];
     for (const id of this.seen.keys()) if (!now.has(id)) { gone.push(id); this.seen.delete(id); }
@@ -115,7 +132,7 @@ export function applySnapshot(w: World, msg: SnapshotMsg, myId: number, myChar: 
   w.players = upsert(w.players, msg.pl, (o) => {
     const p = o as unknown as Player;
     if (p.id === myId && myChar) p.char = myChar;
-    else p.char = { ...(p.char as unknown as object), inventory: [], bag: {}, counters: {}, tutorial: { step: 0, count: 0, done: true } } as unknown as CharacterData;
+    else if ('char' in p) p.char = { ...(p.char as unknown as object), inventory: [], bag: {}, counters: {}, tutorial: { step: 0, count: 0, done: true } } as unknown as CharacterData;
     return o;
   });
   w.area.monsters = upsert(w.area.monsters, msg.mo);

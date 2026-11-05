@@ -39,12 +39,12 @@ describe('差分スナップショット', () => {
     for (const m of host.world.area.monsters.filter((m) => !m.dead && near(m))) {
       const c = mirror.area.monsters.find((x) => x.id === m.id);
       expect(c, `monster ${m.id}`).toBeTruthy();
-      expect(c!.x).toBeCloseTo(m.x, 5);
+      expect(c!.x).toBeCloseTo(m.x, 1);
       expect(c!.hp).toBe(m.hp);
     }
     for (const p of host.world.players.filter(near)) {
       const c = mirror.players.find((x) => x.id === p.id)!;
-      expect(c.x).toBeCloseTo(p.x, 5);
+      expect(c.x).toBeCloseTo(p.x, 1);
       expect(c.char.name).toBe(p.char.name);
     }
     // 毎回すべて送るより小さい

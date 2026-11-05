@@ -1,3 +1,4 @@
+import { logger } from '../util/log';
 import { CONTENT, type Item, type MailItem } from '../../../shared/src';
 import type { Env } from '../env';
 import { HttpError, call, dispatch } from '../util/http';
@@ -49,7 +50,7 @@ export class MarketDO {
         await call(this.env.ACCOUNT.get(this.env.ACCOUNT.idFromName(r.account)), 'mailAdd', { mail: JSON.parse(r.mail) });
         this.sql.exec('DELETE FROM outbox WHERE id = ?', r.id);
       } catch (e) {
-        console.warn('deliver failed', r.id, e);
+        logger.warn('deliver failed', [r.id, e]);
       }
     }
     const left = (this.sql.exec('SELECT COUNT(*) AS n FROM outbox').one() as { n: number }).n;

@@ -12,7 +12,8 @@
     "typecheck": "tsc --noEmit && tsc -p server --noEmit",
     "balance": "vite-node scripts/balance.ts",
     "dev:server": "wrangler dev --config server/wrangler.jsonc --port 8787",
-    "db:migrate:local": "wrangler d1 migrations apply DB --local --config server/wrangler.jsonc"
+    "db:migrate:local": "wrangler d1 migrations apply DB --local --config server/wrangler.jsonc",
+    "loadtest": "vite-node scripts/loadtest.ts"
   },
   "dependencies": {
     "pixi.js": "^8.6.6"

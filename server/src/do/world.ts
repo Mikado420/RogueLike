@@ -1,3 +1,4 @@
+import { logger } from '../util/log';
 import { CONTENT, Rng, createItem, invasionTier, invasionWindow, pickBase, tierFor, type InstanceSpec, type MailItem } from '../../../shared/src';
 import type { Env } from '../env';
 import { loadConfig } from '../config';
@@ -65,11 +66,11 @@ export class WorldDO {
         const uid = rng.int(1, 0x3ffffff) * 0x4000000 + rng.int(0, 0x3ffffff);
         mails.push({ id: `${id}:epic`, from: 'invasion', item: createItem(uid, pickBase(rng, { weapon: 2, sub: 1, body: 1, head: 1, accessory: 1 }, CONTENT), tierFor(c.level, CONTENT), c.level, 'epic', rng, CONTENT), at: now });
       }
-      for (const mail of mails) await call(this.env.ACCOUNT.get(this.env.ACCOUNT.idFromName(c.a)), 'mailAdd', { mail }).catch((e) => console.warn('invasion mail', e));
+      for (const mail of mails) await call(this.env.ACCOUNT.get(this.env.ACCOUNT.idFromName(c.a)), 'mailAdd', { mail }).catch((e) => logger.warn('invasion mail', e));
     }
     inv.rewarded = inv.slot;
     await this.state.storage.put('invasion', inv);
-    console.log(JSON.stringify({ ev: 'invasionReward', slot: inv.slot, n: Object.keys(inv.contrib).length }));
+    logger.info('invasionReward', { slot: inv.slot, n: Object.keys(inv.contrib).length });
   }
 
   /** 全エリアに知らせる */
@@ -89,7 +90,7 @@ export class WorldDO {
     try {
       await this.env.DB.batch(list.map((r) => this.env.DB.prepare('INSERT INTO time_attack (course, time, names, account_ids, at) VALUES (?, ?, ?, ?, ?)').bind(r.course, r.time, r.names, r.accounts, r.at)));
     } catch (e) {
-      console.warn('ta flush failed', e);
+      logger.warn('ta flush failed', [e]);
       this.taBuffer.unshift(...list);
     }
     await this.state.storage.put('taBuffer', this.taBuffer);
@@ -136,7 +137,7 @@ export class WorldDO {
           const ns = g.key.startsWith('inst:') ? this.env.INSTANCE : this.env.AREA;
           return call(ns.get(ns.idFromName(g.key)), 'sendTo', { sid: g.sid, spec }).catch(() => {});
         }));
-        console.log(JSON.stringify({ ev: 'match', dungeon, n: group.length }));
+        logger.info('match', { dungeon, n: group.length });
       }
       if (!q.length) this.queues.delete(k);
     }
@@ -201,6 +202,8 @@ export class WorldDO {
         await this.schedule();
         return { ok: true };
       },
+      /** 管理：お知らせ（重複を気にせず全エリアへ） */
+      adminNotice: async (b: { text: string }) => { await this.broadcast('notice.admin', [b.text], true); return { ok: true, areas: this.channels.size }; },
       /** テスト・管理用：時間を進める */
       worldTick: async (b: { now: number }) => { await this.rewardInvasion(b.now); await this.flushTa(); return { ok: true }; },
       channels: () => ({ channels: [...this.channels.entries()].map(([key, v]) => ({ key, ...v })) }),

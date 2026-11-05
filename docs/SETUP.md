@@ -98,6 +98,14 @@ npm run dev
 遅延を入れて試すときは URL に `?lag=200&loss=0.05`（200ms の遅延と 5% の取りこぼし）を付けます。
 サーバーなしでひとりで動かすとき（開発用）は `?local=1`。
 
+## 管理用 API
+
+`ADMIN_TOKEN` をヘッダー `x-admin-token` につけて呼びます（README の「管理用 API」）。例：
+
+```bash
+curl -X POST https://endless-garden.<サブドメイン>.workers.dev/admin/notice -H "x-admin-token: <ADMIN_TOKEN>" -H "content-type: application/json" -d '{"text":"メンテナンスのお知らせ"}'
+```
+
 ## 設定を変える（有料プランに移るときなど）
 
 `server/config.json` が既定値です。tick の頻度・スナップショットの頻度・チャンネルの人数・関心範囲などがあります。

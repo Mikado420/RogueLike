@@ -82,6 +82,20 @@ export class AreaHost {
     return { events, transfers };
   }
 
+  /**
+   * 眠っていたエリアが起きたとき：tick で数えていた待ち時間（魔物の復活・採集ポイント）は済んだことにする。
+   * 昼夜・天候・侵攻は時計で決まるので、次の step で自然に今に合う
+   */
+  wake(sleptMs: number) {
+    const w = this.world;
+    const slept = Math.round(sleptMs / (1000 / w.content.balance.tickRate));
+    if (slept <= 0) return;
+    for (const sp of w.area.spawns) if (sp.monsterId === -1) sp.respawnAt = Math.min(sp.respawnAt, w.tick);
+    for (const n of w.area.nodes) if (n.charges <= 0) n.respawnAt = Math.min(n.respawnAt, w.tick);
+    w.area.drops = w.area.drops.filter((d) => d.ticksLeft > slept);
+    for (const d of w.area.drops) d.ticksLeft -= slept;
+  }
+
   eventsFor(sessionId: string, events = this.lastEvents): GameEvent[] {
     const id = this.sessions.get(sessionId);
     return id === undefined ? [] : eventsFor(events, id);

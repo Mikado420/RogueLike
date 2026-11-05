@@ -15,8 +15,10 @@
     "inputsPerSec": 40,
     "commandsPerSec": 10,
     "httpPerMin": 120,
-    "chatPerMin": 20
+    "chatPerMin": 20,
+    "attacksPerSec": 12
   },
   "reconnectGraceSec": 20,
-  "resumeTicketSec": 600
+  "resumeTicketSec": 600,
+  "statsLogSec": 60
 }

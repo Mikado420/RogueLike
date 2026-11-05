@@ -1,7 +1,8 @@
+import { logger } from './util/log';
 import type { Env } from './env';
 import { loadConfig } from './config';
 import { HttpError, call, corsHeaders, errorResponse, json, readJson } from './util/http';
-import { bearer, parseToken, randomCode, randomId, sha256, signTicket, verifyTicket } from './util/auth';
+import { bearer, parseToken, randomCode, randomId, safeEqual, sha256, signTicket, verifyTicket } from './util/auth';
 import { platform } from './util/platform';
 import type { CharSummary, Ticket } from '../../shared/src/net/protocol';
 import { resolveLocation } from '../../shared/src/systems/world';
@@ -36,7 +37,7 @@ const routes: [string, RegExp, Route][] = [
     const accountId = `a_${randomId(12)}`;
     const secret = randomId(24);
     await call(accountStub(env, accountId), 'init', { id: accountId, secretHash: await sha256(secret), now: platform.now() });
-    console.log(JSON.stringify({ ev: 'guest' }));
+    logger.info('guest');
     return json({ token: `${accountId}.${secret}`, accountId });
   }],
   ['GET', /^\/api\/me$/, async (req, env) => {
@@ -319,6 +320,75 @@ routes.push(
   }],
 );
 
+// ───────── 管理用（ADMIN_TOKEN を持つ人だけ） ─────────
+
+function admin(req: Request, env: Env) {
+  const t = req.headers.get('x-admin-token') ?? '';
+  if (!env.ADMIN_TOKEN || env.ADMIN_TOKEN.length < 8 || !safeEqual(t, env.ADMIN_TOKEN)) throw new HttpError(403, 'notAdmin');
+}
+
+routes.push(
+  // お知らせを全員に
+  ['POST', /^\/admin\/notice$/, async (req, env) => {
+    admin(req, env);
+    const b = await readJson<{ text: string }>(req);
+    const text = String(b.text ?? '').slice(0, 200);
+    if (!text) throw new HttpError(400, 'empty');
+    const r = await call(worldStub(env), 'adminNotice', { text });
+    await call(env.CHAT.get(env.CHAT.idFromName('world')), 'push', { msg: { t: 'msg', ch: 'world', from: { a: 'admin', name: '運営', handle: null }, text, at: platform.now() } });
+    return json(r);
+  }],
+  // 停止・解除
+  ['POST', /^\/admin\/ban$/, async (req, env) => {
+    admin(req, env);
+    const b = await readJson<{ accountId: string; reason: string; hours: number }>(req);
+    const until = platform.now() + Math.max(1, Number(b.hours) || 24) * 3600_000;
+    await env.DB.prepare('INSERT INTO bans (account_id, reason, until, at) VALUES (?, ?, ?, ?) ON CONFLICT(account_id) DO UPDATE SET reason = excluded.reason, until = excluded.until, at = excluded.at')
+      .bind(b.accountId, String(b.reason ?? '').slice(0, 100), until, platform.now()).run();
+    await call(accountStub(env, b.accountId), 'ban', { reason: b.reason, until });
+    logger.info('ban', { account: b.accountId, until });
+    return json({ ok: true, until });
+  }],
+  ['POST', /^\/admin\/unban$/, async (req, env) => {
+    admin(req, env);
+    const b = await readJson<{ accountId: string }>(req);
+    await env.DB.prepare('DELETE FROM bans WHERE account_id = ?').bind(b.accountId).run();
+    await call(accountStub(env, b.accountId), 'unban');
+    return json({ ok: true });
+  }],
+  // ログ（不正の疑い・通報）
+  ['GET', /^\/admin\/logs$/, async (req, env) => {
+    admin(req, env);
+    const sp = new URL(req.url).searchParams;
+    const kind = sp.get('kind') ?? '';
+    const limit = Math.min(500, Math.max(1, Number(sp.get('limit')) || 100));
+    const rows = await env.DB.prepare('SELECT * FROM reports WHERE (? = \'\' OR kind = ?) ORDER BY at DESC LIMIT ?').bind(kind, kind, limit).all();
+    return json({ list: rows.results });
+  }],
+  // 接続数など
+  ['GET', /^\/admin\/stats$/, async (req, env) => {
+    admin(req, env);
+    const ch = await call<{ channels: { key: string; n: number; at: number }[] }>(worldStub(env), 'channels');
+    const chat = await call<{ n: number }>(env.CHAT.get(env.CHAT.idFromName('world')), 'online');
+    const market = await call(env.MARKET.get(env.MARKET.idFromName('market')), 'stats');
+    const now = platform.now();
+    const live = ch.channels.filter((c) => c.n > 0 && now - c.at < 300_000);
+    return json({ players: live.reduce((s, c) => s + c.n, 0), areas: live, chatSockets: chat.n, market });
+  }],
+);
+
+/** HTTP の回数の上限（同じ IP から1分あたり。Worker の中だけで数える簡易版） */
+const httpHits = new Map<string, { at: number; n: number }>();
+function rateLimited(req: Request, env: Env): boolean {
+  const ip = req.headers.get('cf-connecting-ip') ?? '';
+  if (!ip) return false;
+  const now = platform.now();
+  const h = httpHits.get(ip);
+  if (!h || now - h.at > 60_000) { httpHits.set(ip, { at: now, n: 1 }); if (httpHits.size > 5000) httpHits.clear(); return false; }
+  h.n++;
+  return h.n > loadConfig(env).rate.httpPerMin;
+}
+
 async function handle(req: Request, env: Env): Promise<Response> {
   const url = new URL(req.url);
   // WebSocket：チケットを確かめて AreaDO / InstanceDO へ
@@ -337,6 +407,7 @@ async function handle(req: Request, env: Env): Promise<Response> {
     const name = url.pathname === '/social' ? `user:${t.a}` : 'world';
     return env.CHAT.get(env.CHAT.idFromName(name)).fetch(req);
   }
+  if (url.pathname.startsWith('/api/') && rateLimited(req, env)) throw new HttpError(429, 'tooMany');
   for (const [method, re, fn] of routes) {
     if (req.method !== method) continue;
     const m = url.pathname.match(re);

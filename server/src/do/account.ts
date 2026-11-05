@@ -1,3 +1,4 @@
+import { logger } from '../util/log';
 import { type MailItem, type TradeOp, CONTENT, LIMITS, migrateAccount, newAccount, newCharacter, normalizeCharacter, sanitizeAccount, type AccountData, type CharSummary, type Item, type Removed } from '../../../shared/src';
 import type { Env } from '../env';
 import { loadConfig } from '../config';
@@ -109,7 +110,7 @@ export class AccountDO {
           this.pending = this.pending.filter((x) => x !== p);
           changed = true;
         } else {
-          console.warn('pending retry later', p.op, e);
+          logger.warn('pending retry later', [p.op, e]);
         }
       }
     }
@@ -144,7 +145,7 @@ export class AccountDO {
     if (!s) return;
     if (s.key) {
       const ns = s.key.startsWith('inst:') ? this.env.INSTANCE : this.env.AREA;
-      try { await call(ns.get(ns.idFromName(s.key)), 'kick', { sid: s.sid, reason }); } catch (e) { console.warn('kick failed', e); }
+      try { await call(ns.get(ns.idFromName(s.key)), 'kick', { sid: s.sid, reason }); } catch (e) { logger.warn('kick failed', [e]); }
     }
     this.meta!.session = null;
   }
@@ -262,7 +263,9 @@ export class AccountDO {
         if (t?.kind === 'stallOpen') meta.stall = t.items;
         if (t?.kind === 'stallClose') this.closeStall();
         if (b.leaving) { meta.session.key = null; if (meta.stall?.length) this.closeStall(); }
-        await this.persist();
+        // ふだんの定期保存はアカウントだけ書く（書き込みの行数を減らす）
+        if (!t && !b.claim?.length && !b.leaving) await this.state.storage.put('account', this.account);
+        else await this.persist();
         if (t?.kind === 'cancel') await call(this.market(), 'cancel', { id: t.id, seller: meta.id });
         if (t?.kind === 'stallClose' && !b.leaving) await this.toArea('mailArrived', {});
         if (this.pending.length) await this.flushPending();
@@ -271,7 +274,7 @@ export class AccountDO {
       /** 郵便受け（ほかの DO から。同じ番号は1回だけ） */
       mailAdd: async (b: { mail: MailItem }) => {
         this.need();
-        if (this.mail.length >= CONTENT.market.mailMax && !this.seen.includes(b.mail.id)) console.warn('mailbox full', this.meta!.id);
+        if (this.mail.length >= CONTENT.market.mailMax && !this.seen.includes(b.mail.id)) logger.warn('mailbox full', [this.meta!.id]);
         if (this.addMail(b.mail)) { await this.persist(); await this.toArea('mailArrived', {}); }
         return { ok: true };
       },
@@ -334,7 +337,7 @@ export class AccountDO {
         if (Object.keys(account.base.levels).length === 0) account.base = clean.base;
         meta.migrated = true;
         await this.persist();
-        console.log(JSON.stringify({ ev: 'migrate', account: meta.id, added, removed: removed.length }));
+        logger.info('migrate', { account: meta.id, added, removed: removed.length });
         return { ok: true, characters: added, removed };
       },
       session: async () => ({ session: this.need().meta.session }),
@@ -369,6 +372,12 @@ export class AccountDO {
         meta.published ??= {};
         if (b.visibility === 'private') delete meta.published[b.charId]; else meta.published[b.charId] = b.visibility;
         await this.state.storage.put('meta', meta);
+        return { ok: true };
+      },
+      unban: async () => {
+        const { meta } = this.need();
+        meta.banned = null;
+        await this.persist();
         return { ok: true };
       },
       ban: async (b: { reason: string; until: number }) => {

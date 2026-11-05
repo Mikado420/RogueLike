@@ -1,3 +1,4 @@
+import { logger } from '../util/log';
 import {
   type InstanceSpec, type MailItem, AreaHost, BTN_ATTACK, charKey, receiveMail, BTN_DODGE, BTN_INTERACT, CONTENT, Viewer, buildFrame, eventsFor, type AccountData, type ClientMsg,
   type GameEvent, type PlayerInput, type ServerMsg, type Ticket, type Transfer,
@@ -23,6 +24,7 @@ interface Conn {
   closed: boolean;
   inputs: RateWindow;
   commands: RateWindow;
+  attacks: RateWindow;
   lastPos: { x: number; y: number; tick: number } | null;
   strikes: number;
   /** 切れた時刻（猶予のあいだはエリアに残す） */
@@ -90,11 +92,11 @@ export class AreaDO {
     this.key = t.k;
     if (t.inst) {
       this.spec = t.inst;
-      this.host = new AreaHost(t.k, 'instance', 0, { areaId: 'instance', seed: t.inst.seed, now: platform.now(), content: CONTENT, instance: t.inst });
+      this.host = new AreaHost(t.k, 'instance', 0, { areaId: 'instance', seed: t.inst.seed, now: platform.now(), content: this.content, instance: t.inst });
     } else {
       const [areaId, ch] = t.k.split('#');
       if (!CONTENT.areas[areaId]) throw new HttpError(400, 'badArea');
-      this.host = new AreaHost(t.k, areaId, Number(ch) || 1, { areaId, seed: (Math.random() * 2 ** 30) | 0, now: platform.now(), content: CONTENT });
+      this.host = new AreaHost(t.k, areaId, Number(ch) || 1, { areaId, seed: (Math.random() * 2 ** 30) | 0, now: platform.now(), content: this.content });
     }
     this.host.world.online = true;
   }
@@ -110,7 +112,7 @@ export class AreaDO {
     const conn: Conn = {
       sid: t.s, ws: server, ticket: t, account: null, viewer: new Viewer(this.cfg.interestRadius), events: [], lastSeq: 0,
       lastSave: platform.now(), charJson: '', joined: false, closed: false,
-      inputs: new RateWindow(1000, this.cfg.rate.inputsPerSec), commands: new RateWindow(1000, this.cfg.rate.commandsPerSec),
+      inputs: new RateWindow(1000, this.cfg.rate.inputsPerSec), commands: new RateWindow(1000, this.cfg.rate.commandsPerSec), attacks: new RateWindow(1000, this.cfg.rate.attacksPerSec),
       lastPos: null, strikes: 0, awaySince: 0, dirty: false, guild: null, mail: true, busy: Promise.resolve(),
     };
     // 同じセッションが残っていたら（再接続）古い方を閉じる
@@ -154,15 +156,15 @@ export class AreaDO {
       this.send(conn, {
         resume,
         t: 'welcome', you: p.id, key: this.key, area: host.world.area.id, tick: host.world.tick, clock: host.world.clock, sid: conn.sid,
-        tickRate: CONTENT.balance.tickRate, snapshotRate: this.cfg.snapshotRate, inputRate: this.cfg.inputRate, interest: this.cfg.interestRadius,
+        tickRate: this.content.balance.tickRate, snapshotRate: this.cfg.snapshotRate, inputRate: this.cfg.inputRate, interest: this.cfg.interestRadius,
         map: host.isInstance ? host.world.area.map : undefined, spec: t.inst ?? null,
       });
       conn.viewer.reset();
       this.sendChar(conn, true);
       this.startLoop();
-      console.log(JSON.stringify({ ev: 'join', key: this.key, players: this.conns.size }));
+      logger.info('join', { key: this.key, players: this.conns.size });
     } catch (e) {
-      console.warn('join failed', e);
+      logger.warn('join failed', [e]);
       this.send(conn, { t: 'kick', reason: e instanceof HttpError ? e.code : 'joinFailed' });
       conn.closed = true;
       this.conns.delete(conn.sid);
@@ -197,7 +199,7 @@ export class AreaDO {
   private suspect(conn: Conn, s: Suspicion) {
     conn.strikes++;
     if (conn.strikes === 1 || conn.strikes % 100 === 0) {
-      console.warn(JSON.stringify({ ev: 'suspect', account: conn.ticket.a, ...s, n: conn.strikes }));
+      logger.warn('suspect', { account: conn.ticket.a, ...s, n: conn.strikes });
       this.env.DB?.prepare('INSERT INTO reports (kind, account_id, target, detail, at) VALUES (?, ?, ?, ?, ?)')
         .bind('cheat', conn.ticket.a, this.key, JSON.stringify({ ...s, n: conn.strikes }), platform.now()).run().catch(() => {});
     }
@@ -223,15 +225,32 @@ export class AreaDO {
     this.send(conn, { t: 'char', char: p.char, account: { storage: acc.storage, base: acc.base, records: acc.records, id: acc.id } });
   }
 
+  private sleepingSince = 0;
+  private statsAt = 0;
+  private tickMs = 0;
+  private statsTicks = 0;
+
   private startLoop() {
+    if (this.sleepingSince && this.host) { this.host.wake(platform.now() - this.sleepingSince); logger.info('wake', { key: this.key, slept: platform.now() - this.sleepingSince }); }
+    this.sleepingSince = 0;
     if (this.timer || this.env.TICK_MODE === 'manual') return;
-    this.timer = setInterval(() => { void this.tick(); }, 1000 / CONTENT.balance.tickRate);
+    this.timer = setInterval(() => { void this.tick(); }, 1000 / this.content.balance.tickRate);
   }
 
+  /** 誰もいない：tick を止めて眠る（DO はやがてメモリから消え、費用がかからない） */
   private stopLoop() {
     if (this.timer) clearInterval(this.timer);
     this.timer = null;
+    if (!this.sleepingSince) { this.sleepingSince = platform.now(); logger.info('sleep', { key: this.key }); }
   }
+
+  /** 設定の tick 頻度に合わせたデータ（秒→tick の換算がすべて変わる） */
+  protected get content() {
+    const r = this.cfg.tickRate;
+    if (!r || r === CONTENT.balance.tickRate) return CONTENT;
+    return (this._content ??= { ...CONTENT, balance: { ...CONTENT.balance, tickRate: r } });
+  }
+  private _content: typeof CONTENT | undefined;
 
   /** 1tick */
   async tick(dt?: number) {
@@ -244,6 +263,7 @@ export class AreaDO {
     }
     this.emptySince = 0;
     const now = dt ? host.world.clock + dt : platform.now();
+    const started = platform.now();
     // 速度のチェック用に前の位置を覚える
     const before = new Map<string, { x: number; y: number }>();
     const sidOf = new Map<number, string>([...host.sessions.entries()].map(([s, id]) => [id, s]));
@@ -260,6 +280,9 @@ export class AreaDO {
         if (mine.some((e) => IMPORTANT.has(e.type) && 'playerId' in e)) c.dirty = true;
         const b = before.get(sid);
         if (b) { const s = checkMovement(host.world, p, b); if (s) this.suspect(c, s); }
+        // 攻撃の間隔（サーバーが計算するので、超えたら不具合か不正）
+        const n = r.events.filter((e) => e.type === 'attack' && e.src === p.id).length;
+        if (n && !c.attacks.hit(platform.now(), n)) this.suspect(c, { kind: 'attackRate' });
       }
     }
     await this.social(r.events);
@@ -269,9 +292,15 @@ export class AreaDO {
     for (const c of this.conns.values()) if (c.joined && c.mail && !c.awaySince) this.claim(c);
     for (const t of r.transfers) await this.transfer(t);
     await this.expireAway();
-    const every = Math.max(1, Math.round(CONTENT.balance.tickRate / this.cfg.snapshotRate));
+    const every = Math.max(1, Math.round(this.content.balance.tickRate / this.cfg.snapshotRate));
     if (this.tickCount % every === 0) this.flush();
     const nowMs = platform.now();
+    // 監視：エリアの様子をときどきログに
+    this.tickMs += platform.now() - started;
+    if (nowMs - this.statsAt > this.cfg.statsLogSec * 1000) {
+      logger.info('area', { key: this.key, players: host.population, conns: this.conns.size, monsters: host.world.area.monsters.length, avgTickMs: Math.round((this.tickMs / Math.max(1, this.tickCount - this.statsTicks)) * 100) / 100 });
+      this.statsAt = nowMs; this.tickMs = 0; this.statsTicks = this.tickCount;
+    }
     for (const c of this.conns.values()) {
       if (!c.joined || c.awaySince) continue;
       if (nowMs - c.lastSave > this.cfg.saveIntervalSec * 1000 || (c.dirty && nowMs - c.lastSave > 3000)) { c.lastSave = nowMs; c.dirty = false; void this.save(c, false); }
@@ -296,7 +325,7 @@ export class AreaDO {
           await call(this.accountStub(c.ticket.a), 'save', { sid: c.ticket.s, epoch: c.ticket.e, account, key: this.key, trade: { op: `t_${randomId(10)}`, t: op } });
           c.lastSave = platform.now();
         } catch (err) {
-          console.warn('trade failed', err);
+          logger.warn('trade failed', [err]);
           // 書き戻せなかった：手元の写しは捨てる（出した品も戻る）
           await this.drop(c.sid, 'stale', false);
         }
@@ -353,7 +382,7 @@ export class AreaDO {
           if (e.type === 'facility') await call(g, 'setFacility', { a: c.ticket.a, facility: e.facility, level: e.level });
           else await call(g, 'upkeep', { a: c.ticket.a, day: e.day });
         }
-      } catch (err) { console.warn('social failed', err); }
+      } catch (err) { logger.warn('social failed', [err]); }
     }
     // 救援の募集はクリア・失敗で消す
     const inst = host.world.area.instance;
@@ -413,7 +442,7 @@ export class AreaDO {
       await call(this.accountStub(c.ticket.a), 'save', { sid: c.ticket.s, epoch: c.ticket.e, account, leaving, key: this.key });
       return true;
     } catch (e) {
-      console.warn('save failed', c.ticket.a, e);
+      logger.warn('save failed', [c.ticket.a, e]);
       return false;
     }
   }
@@ -458,7 +487,7 @@ export class AreaDO {
     // しばらくはエリアに残して、つなぎ直しを待つ
     conn.awaySince = platform.now();
     if (!conn.joined) { this.conns.delete(conn.sid); return; }
-    console.log(JSON.stringify({ ev: 'away', key: this.key }));
+    logger.info('away', { key: this.key });
   }
 
   /** 猶予を過ぎた人を保存して出す */
@@ -477,7 +506,7 @@ export class AreaDO {
         host!.leave(conn.sid);
         if (ok) await call(this.accountStub(conn.ticket.a), 'logout', { sid: conn.ticket.s, epoch: conn.ticket.e }).catch(() => {});
       }
-      console.log(JSON.stringify({ ev: 'leave', key: this.key, players: this.conns.size }));
+      logger.info('leave', { key: this.key, players: this.conns.size });
       this.reportPopulation();
     }
   }
@@ -519,7 +548,7 @@ export class AreaDO {
         this.reported = { ...r.invasion.contribution };
       }
     } catch (e) {
-      console.warn('sync failed', e);
+      logger.warn('sync failed', [e]);
     } finally {
       this.syncing = false;
     }

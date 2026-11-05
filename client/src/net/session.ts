@@ -120,6 +120,8 @@ export class NetSession {
         this.resume = m.resume;
         this.key = m.key;
         this.snapshotMs = 1000 / m.snapshotRate;
+        // サーバーの tick 頻度に合わせる（設定で変えられる。秒→tick の換算はすべてこれに従う）
+        if (m.tickRate && m.tickRate !== CONTENT.balance.tickRate) (CONTENT.balance as { tickRate: number }).tickRate = m.tickRate;
         this.inputMinMs = 1000 / m.inputRate;
         const changed = m.area !== this.world.area.id || !!m.spec || !this.world.players.length || m.you !== this.myId;
         if (changed) {

@@ -420,7 +420,7 @@
   "net.badCode": "コードが違います",
   "net.handleTaken": "使われているIDです",
   "net.badHandle": "IDの形が違います",
-  "net.tooMany": "これ以上作れません",
+  "net.tooMany": "少し待ってください",
   "net.badToken": "ログインできません",
   "net.noCharacter": "キャラがいません",
   "net.online": "接続中のキャラです",
@@ -550,5 +550,7 @@
   "net.claimFailed": "受け取れません",
   "notice.mythicDrop": "{0} がミシック「{1}」を手に入れた",
   "mail.from.invasion": "侵攻の報酬",
-  "gate.ranking": "ランキング"
+  "gate.ranking": "ランキング",
+  "notice.admin": "{0}",
+  "net.notAdmin": "権限がありません"
 }

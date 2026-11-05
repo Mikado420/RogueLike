@@ -1,3 +1,4 @@
+import { logger } from './log';
 /** JSON の応答・エラー・CORS */
 export class HttpError extends Error {
   constructor(public status: number, public code: string) { super(code); }
@@ -9,7 +10,7 @@ export function json(data: unknown, status = 200, headers: Record<string, string
 
 export function errorResponse(e: unknown): Response {
   if (e instanceof HttpError) return json({ error: e.code }, e.status);
-  console.error('internal error', e);
+  logger.error('internal', e);
   return json({ error: 'internal' }, 500);
 }
 
