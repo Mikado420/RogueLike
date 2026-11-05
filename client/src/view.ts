@@ -23,6 +23,8 @@ interface ActorView {
   cur: { x: number; y: number };
   hurt: number;
   float: number;
+  stall?: Text;
+  stallKey?: string;
 }
 
 interface DropView { root: Container; glow: Graphics; pillar?: Graphics; icon: Container; t: number }
@@ -378,6 +380,21 @@ export class WorldView {
           v.weaponType = undefined;
         }
         v.root.visible = !a.dead;
+        // 露店の看板
+        const sk = a.stall ? `${a.stall.title}/${a.stall.items.length}` : '';
+        if (sk !== (v.stallKey ?? '')) {
+          v.stallKey = sk;
+          v.stall?.destroy();
+          v.stall = undefined;
+          if (a.stall) {
+            const t = new Text({ text: `🏷 ${a.stall.title || CONTENT.text['online.stall']}  ${a.stall.items.length}`, style: { fontSize: 12, fontWeight: '800', fill: 0xffe28a, stroke: { color: 0x000000, width: 3 }, fontFamily: 'system-ui, sans-serif' } });
+            t.anchor.set(0.5, 1);
+            t.y = -58;
+            t.zIndex = 7;
+            v.root.addChild(t);
+            v.stall = t;
+          }
+        }
         v.root.alpha = a.dodgeTicks > 0 ? 0.55 : a.iframes > 0 ? 0.75 + Math.sin(this.time * 30) * 0.2 : 1;
         const look = shownLook(a.char, 'weapon');
         const lookKind = look ? Object.values(CONTENT.equipment.bases).find((b) => b.look === look.split(':')[0])?.kind : undefined;

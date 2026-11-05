@@ -171,6 +171,13 @@ export type Command =
   | { type: 'releasePet'; uid: number }
   | { type: 'skipTutorial' }
   | { type: 'say'; text: string }
+  | { type: 'marketList'; uid: number; price: number }
+  | { type: 'marketBuy'; id: string; price: number }
+  | { type: 'marketCancel'; id: string }
+  | { type: 'claimMail' }
+  | { type: 'stallOpen'; title: string; items: { uid: number; price: number }[] }
+  | { type: 'stallClose' }
+  | { type: 'stallBuy'; seller: number; uid: number; price: number }
   | { type: 'emote'; emote: string }
   | { type: 'rescue' }
   | { type: 'matchDungeon'; dungeon: string; difficulty: Difficulty; cancel?: boolean };
@@ -232,6 +239,8 @@ export interface Player extends ActorBase {
   guildBase: AccountData['base'] | null;
   /** 救援で来た */
   rescuer: boolean;
+  /** 露店（街の中で開いている間だけ） */
+  stall: StallState | null;
   mp: number;
   st: number;
   stDelay: number;
@@ -467,6 +476,11 @@ export interface SharedWorldState {
 }
 
 /** 1つのエリア（街・フィールド・インスタンス）のワールド。中に何人でも入れる */
+export interface StallState { title: string; items: { uid: number; item: Item; price: number }[] }
+
+/** 郵便受けの1通（取引の売上・落札品・返品など） */
+export interface MailItem { id: string; from: string; item?: Item; gold?: number; bag?: { id: string; n: number }; at: number }
+
 export interface World {
   seed: number;
   tick: number;
@@ -484,6 +498,8 @@ export interface World {
   /** 区切り（天候の切り替わり）を見張る */
   lastWeatherSlot: number;
   shared: SharedWorldState;
+  /** サーバーにつながっている（取引ができる） */
+  online?: boolean;
 }
 
 // ═════════════ イベント（描画・効果音・通知用） ═════════════
@@ -534,4 +550,15 @@ export type GameEvent =
   | { type: 'facility'; playerId: number; facility: string; level: number; guild: boolean }
   | { type: 'upkeep'; playerId: number; day: number; guild: boolean }
   | { type: 'request'; playerId: number; what: 'rescue' | 'match' | 'matchCancel'; dungeon?: string; difficulty?: Difficulty }
-  | { type: 'rescued'; playerId: number; gold: number; exp: number };
+  | { type: 'rescued'; playerId: number; gold: number; exp: number }
+  | { type: 'trade'; playerId: number; op: TradeOp };
+
+/** 取引で、サーバー（AccountDO / MarketDO）に頼むこと */
+export type TradeOp =
+  | { kind: 'list'; item: Item; price: number }
+  | { kind: 'buy'; id: string; price: number }
+  | { kind: 'cancel'; id: string }
+  | { kind: 'claim' }
+  | { kind: 'stallOpen'; items: { uid: number; item: Item; price: number }[] }
+  | { kind: 'stallClose' }
+  | { kind: 'stallBuy'; seller: string; sellerPlayer: number; uid: number; price: number; item: Item };

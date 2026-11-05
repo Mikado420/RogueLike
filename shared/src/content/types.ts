@@ -527,6 +527,7 @@ export interface Content {
   recipes: RecipesDef;
   pets: PetsDef;
   social: SocialDef;
+  market: { feePct: number; stallFeePct: number; maxListings: number; minPrice: number; maxPrice: number; durationHours: number; stallMax: number; mailMax: number; searchLimit: number };
   tutorial: { area: string; steps: { id: string; type: string; n: number; text: string; keys: string[]; tab?: string; dir?: string; gift?: { base: string; rarity: Rarity } }[]; reward: { gold: number; items: Record<string, number> } };
   tiles: Record<string, { colors: [string, string]; shine?: string }>;
   text: Record<string, string>;

@@ -47,3 +47,4 @@ export * from './net/localhub';
 export * from './validate';
 export * from './systems/social';
 export * from './net/social';
+export * from './systems/trade';

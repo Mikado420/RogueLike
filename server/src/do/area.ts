@@ -1,11 +1,11 @@
 import {
-  type InstanceSpec, AreaHost, BTN_ATTACK, charKey, BTN_DODGE, BTN_INTERACT, CONTENT, Viewer, buildFrame, eventsFor, type AccountData, type ClientMsg,
+  type InstanceSpec, type MailItem, AreaHost, BTN_ATTACK, charKey, receiveMail, BTN_DODGE, BTN_INTERACT, CONTENT, Viewer, buildFrame, eventsFor, type AccountData, type ClientMsg,
   type GameEvent, type PlayerInput, type ServerMsg, type Ticket, type Transfer,
 } from '../../../shared/src';
 import type { Env } from '../env';
 import { loadConfig, type ServerConfig } from '../config';
 import { HttpError, call, dispatch } from '../util/http';
-import { signTicket, verifyTicket } from '../util/auth';
+import { randomId, signTicket, verifyTicket } from '../util/auth';
 import { platform } from '../util/platform';
 import { RateWindow, checkMovement, type Suspicion } from '../util/guard';
 
@@ -30,6 +30,10 @@ interface Conn {
   /** 大事な操作（精錬・生産・レベルアップなど）のあと、すぐ保存する */
   dirty: boolean;
   guild: string | null;
+  /** 郵便受けに何か届いた（受け取りに行く） */
+  mail: boolean;
+  /** 取引の処理中（順番に1つずつ） */
+  busy: Promise<void>;
 }
 
 const IMPORTANT = new Set(['refine', 'crafted', 'levelUp', 'achievement', 'instance', 'petLevel', 'subLevel']);
@@ -62,6 +66,12 @@ export class AreaDO {
       tick: async (b: { n?: number; dt?: number }) => { for (let i = 0; i < (b.n ?? 1); i++) await this.tick(b.dt); return { tick: this.host?.world.tick ?? 0 }; },
       stats: async () => ({ key: this.key, players: this.conns.size, tick: this.host?.world.tick ?? 0, running: !!this.timer }),
       notice: async (b: { key: string; args?: (string | number)[] }) => { this.broadcast({ t: 'notice', key: b.key, args: b.args }); return { ok: true }; },
+      mailArrived: async (b: { sid: string }) => { const c = this.conns.get(b.sid); if (c) c.mail = true; return { ok: true }; },
+      stallSold: async (b: { sid: string; uid: number }) => {
+        const p = this.host?.player(b.sid);
+        if (p?.stall) { p.stall.items = p.stall.items.filter((x) => x.uid !== b.uid); if (!p.stall.items.length) p.stall = null; }
+        return { ok: true };
+      },
       setParty: async (b: { sid: string; party: string | null }) => { const p = this.host?.player(b.sid); if (p) p.partyId = b.party; return { ok: !!p }; },
       setGuild: async (b: { sid: string; base: AccountData['base'] | null }) => { const p = this.host?.player(b.sid); if (p) { p.guildBase = b.base; p.statsDirty = true; } return { ok: !!p }; },
       /** 自動マッチングがそろった・救援に入る：この人をインスタンスへ */
@@ -86,6 +96,7 @@ export class AreaDO {
       if (!CONTENT.areas[areaId]) throw new HttpError(400, 'badArea');
       this.host = new AreaHost(t.k, areaId, Number(ch) || 1, { areaId, seed: (Math.random() * 2 ** 30) | 0, now: platform.now(), content: CONTENT });
     }
+    this.host.world.online = true;
   }
 
   private async connect(req: Request): Promise<Response> {
@@ -100,7 +111,7 @@ export class AreaDO {
       sid: t.s, ws: server, ticket: t, account: null, viewer: new Viewer(this.cfg.interestRadius), events: [], lastSeq: 0,
       lastSave: platform.now(), charJson: '', joined: false, closed: false,
       inputs: new RateWindow(1000, this.cfg.rate.inputsPerSec), commands: new RateWindow(1000, this.cfg.rate.commandsPerSec),
-      lastPos: null, strikes: 0, awaySince: 0, dirty: false, guild: null,
+      lastPos: null, strikes: 0, awaySince: 0, dirty: false, guild: null, mail: true, busy: Promise.resolve(),
     };
     // 同じセッションが残っていたら（再接続）古い方を閉じる
     const old = this.conns.get(t.s);
@@ -235,6 +246,7 @@ export class AreaDO {
     const now = dt ? host.world.clock + dt : platform.now();
     // 速度のチェック用に前の位置を覚える
     const before = new Map<string, { x: number; y: number }>();
+    const sidOf = new Map<number, string>([...host.sessions.entries()].map(([s, id]) => [id, s]));
     for (const sid of host.sessions.keys()) { const p = host.player(sid); if (p) before.set(sid, { x: p.x, y: p.y }); }
     const r = host.step(now);
     this.tickCount++;
@@ -250,6 +262,8 @@ export class AreaDO {
       }
     }
     await this.social(r.events);
+    this.trades(r.events, sidOf, r.transfers);
+    for (const c of this.conns.values()) if (c.joined && c.mail && !c.awaySince) this.claim(c);
     for (const t of r.transfers) await this.transfer(t);
     await this.expireAway();
     const every = Math.max(1, Math.round(CONTENT.balance.tickRate / this.cfg.snapshotRate));
@@ -259,6 +273,57 @@ export class AreaDO {
       if (!c.joined || c.awaySince) continue;
       if (nowMs - c.lastSave > this.cfg.saveIntervalSec * 1000 || (c.dirty && nowMs - c.lastSave > 3000)) { c.lastSave = nowMs; c.dirty = false; void this.save(c, false); }
     }
+  }
+
+  /** 取引：書き戻しと一緒にサーバーへ頼む（順番に1つずつ） */
+  private trades(events: GameEvent[], sidOf: Map<number, string>, transfers: Transfer[]) {
+    const host = this.host!;
+    for (const e of events) {
+      if (e.type !== 'trade') continue;
+      const sid = sidOf.get(e.playerId);
+      const c = sid ? this.conns.get(sid) : undefined;
+      if (!c) continue;
+      if (e.op.kind === 'claim') { c.mail = true; continue; }
+      const op = e.op;
+      // 同じ tick にエリアを出た人も、取引を先に書き戻す
+      const account = host.player(c.sid)?.account ?? transfers.find((t) => t.sessionId === c.sid)?.account;
+      if (!account) continue;
+      c.busy = c.busy.then(async () => {
+        try {
+          await call(this.accountStub(c.ticket.a), 'save', { sid: c.ticket.s, epoch: c.ticket.e, account, key: this.key, trade: { op: `t_${randomId(10)}`, t: op } });
+          c.lastSave = platform.now();
+        } catch (err) {
+          console.warn('trade failed', err);
+          // 書き戻せなかった：手元の写しは捨てる（出した品も戻る）
+          await this.drop(c.sid, 'stale', false);
+        }
+      });
+    }
+  }
+
+  /** 郵便受けの品を受け取る（受け取った番号と一緒に書き戻す。だめなら手元を元に戻す） */
+  private claim(c: Conn) {
+    c.mail = false;
+    c.busy = c.busy.then(async () => {
+      const host = this.host!;
+      const p = host.player(c.sid);
+      if (!p) return;
+      const r = await call<{ mail: MailItem[] }>(this.accountStub(c.ticket.a), 'mail').catch(() => ({ mail: [] as MailItem[] }));
+      if (!r.mail.length) return;
+      const took = receiveMail(p.char, r.mail, CONTENT.balance.player.inventorySize);
+      if (!took.length) return;
+      try {
+        await call(this.accountStub(c.ticket.a), 'save', { sid: c.ticket.s, epoch: c.ticket.e, account: p.account, key: this.key, claim: took });
+        c.events.push({ type: 'notice', playerId: p.id, key: 'notice.mail', args: [took.length] });
+      } catch {
+        // 受け取れなかった分を手元から外す
+        for (const m of r.mail.filter((x) => took.includes(x.id))) {
+          if (m.item) p.char.inventory = p.char.inventory.filter((i) => i.uid !== m.item!.uid);
+          if (m.gold) p.char.gold -= m.gold;
+          if (m.bag) { p.char.bag[m.bag.id] = (p.char.bag[m.bag.id] ?? 0) - m.bag.n; if (p.char.bag[m.bag.id] <= 0) delete p.char.bag[m.bag.id]; }
+        }
+      }
+    });
   }
 
   /** 人と遊ぶための知らせ（救援・自動マッチング・ギルドの拠点） */
@@ -320,6 +385,7 @@ export class AreaDO {
       const ch = t.account.characters.find((x) => x.id === t.char.id);
       if (ch) ch.location = { area: tr.to, x: tr.pos?.x ?? -1, y: tr.pos?.y ?? -1 };
     }
+    await c.busy;
     const ok = await this.saveAccount(c, t.account, true);
     if (!ok) { await this.drop(c.sid, 'stale', false); return; }
     let key: string;
@@ -350,13 +416,19 @@ export class AreaDO {
   }
 
   /** 定期保存（エリアにいるまま） */
-  private async save(c: Conn, leaving: boolean) {
-    const host = this.host;
-    const p = host?.player(c.sid);
-    if (!p) return false;
-    host!.world.players.forEach((x) => { if (x === p) { x.char.location = { area: host!.world.area.id, x: x.x, y: x.y }; x.char.hp = Math.round(x.hp); x.char.mp = Math.round(x.mp); } });
-    const ok = await this.saveAccount(c, p.account, leaving);
-    if (!ok) await this.drop(c.sid, 'stale', false);
+  private async save(c: Conn, leaving: boolean): Promise<boolean> {
+    let ok = false;
+    // 取引の書き戻しと前後しないよう、同じ順番待ちに並べる
+    c.busy = c.busy.then(async () => {
+      const host = this.host;
+      const p = host?.player(c.sid);
+      if (!p) return;
+      p.char.location = { area: host!.world.area.id, x: p.x, y: p.y };
+      p.char.hp = Math.round(p.hp); p.char.mp = Math.round(p.mp);
+      ok = await this.saveAccount(c, p.account, leaving);
+    });
+    await c.busy;
+    if (!ok && this.host?.player(c.sid)) await this.drop(c.sid, 'stale', false);
     return ok;
   }
 
@@ -397,6 +469,7 @@ export class AreaDO {
       if (p) {
         p.char.location = { area: host!.world.area.id, x: p.x, y: p.y };
         p.char.hp = p.dead ? 0 : Math.round(p.hp); p.char.mp = Math.round(p.mp);
+        await conn.busy;
         const ok = await this.saveAccount(conn, p.account, true);
         host!.leave(conn.sid);
         if (ok) await call(this.accountStub(conn.ticket.a), 'logout', { sid: conn.ticket.s, epoch: conn.ticket.e }).catch(() => {});

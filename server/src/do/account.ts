@@ -1,4 +1,4 @@
-import { CONTENT, LIMITS, migrateAccount, newAccount, newCharacter, normalizeCharacter, sanitizeAccount, type AccountData, type CharSummary, type Item, type Removed } from '../../../shared/src';
+import { type MailItem, type TradeOp, CONTENT, LIMITS, migrateAccount, newAccount, newCharacter, normalizeCharacter, sanitizeAccount, type AccountData, type CharSummary, type Item, type Removed } from '../../../shared/src';
 import type { Env } from '../env';
 import { loadConfig } from '../config';
 import { HttpError, call, dispatch } from '../util/http';
@@ -27,7 +27,15 @@ interface Meta {
   guild?: { id: string; role: string; base: AccountData['base'] } | null;
   /** 公開しているビルド（キャラ id → 公開範囲） */
   published?: Record<string, 'public' | 'guild'>;
+  /** 露店に並べている品（預かり） */
+  stall?: { uid: number; item: Item; price: number }[] | null;
 }
+
+/** 出す側で済ませて、相手に届けるのを待っている取引 */
+type Pending =
+  | { op: string; kind: 'list'; item: Item; price: number; name: string }
+  | { op: string; kind: 'buy'; id: string; price: number }
+  | { op: string; kind: 'stallBuy'; seller: string; uid: number; price: number };
 
 /**
  * AccountDO：アカウントごとに1つ。キャラ・持ち物・倉庫・ゴールドの「正」のデータを持つ。
@@ -42,15 +50,83 @@ export class AccountDO {
     this.cfg = loadConfig(env);
   }
 
+  private mail: MailItem[] = [];
+  /** 受け取り済みの郵便の番号（同じものを2回受け取らない） */
+  private seen: string[] = [];
+  private pending: Pending[] = [];
+
   private async load() {
     if (this.meta) return;
     this.meta = (await this.state.storage.get<Meta>('meta')) ?? null;
     const raw = await this.state.storage.get<AccountData>('account');
     this.account = raw ? migrateAccount(raw as unknown as Record<string, unknown>) : null;
+    this.mail = (await this.state.storage.get<MailItem[]>('mail')) ?? [];
+    this.seen = (await this.state.storage.get<string[]>('seen')) ?? [];
+    this.pending = (await this.state.storage.get<Pending[]>('pending')) ?? [];
   }
 
-  private async persist() {
-    await this.state.storage.put({ meta: this.meta, account: this.account });
+  /** アカウント・郵便受け・待ちの取引を一度に書く（どれかだけ書かれることはない） */
+  private async persist(extra: Record<string, unknown> = {}) {
+    await this.state.storage.put({ meta: this.meta, account: this.account, mail: this.mail, seen: this.seen.slice(-2000), pending: this.pending, ...extra });
+  }
+
+  /** 郵便受けに入れる（同じ番号は1回だけ） */
+  private addMail(m: MailItem): boolean {
+    if (this.seen.includes(m.id)) return false;
+    this.seen.push(m.id);
+    this.mail.push(m);
+    return true;
+  }
+
+  private market() { return this.env.MARKET.get(this.env.MARKET.idFromName('market')); }
+
+  /**
+   * 待っている取引を相手へ届ける。相手が断ったら自分の郵便受けに返す。
+   * 通信の失敗なら残して、あとで（アラーム）送り直す
+   */
+  private async flushPending() {
+    const meta = this.meta!;
+    let changed = false;
+    for (const p of [...this.pending]) {
+      try {
+        if (p.kind === 'list') {
+          await call(this.market(), 'create', { id: p.op, seller: meta.id, sellerName: p.name, item: p.item, price: p.price });
+        } else if (p.kind === 'buy') {
+          const r = await call<{ ok: boolean }>(this.market(), 'buy', { op: p.op, id: p.id, buyer: meta.id, price: p.price });
+          if (!r.ok) this.addMail({ id: `${p.op}:refund`, from: 'market.refund', gold: p.price, at: Date.now() });
+        } else if (p.kind === 'stallBuy') {
+          const r = await call<{ ok: boolean; item?: Item }>(this.env.ACCOUNT.get(this.env.ACCOUNT.idFromName(p.seller)), 'stallSold', { op: p.op, uid: p.uid, price: p.price, buyer: meta.id });
+          if (r.ok && r.item) this.addMail({ id: `${p.op}:item`, from: 'stall.bought', item: r.item, at: Date.now() });
+          else this.addMail({ id: `${p.op}:refund`, from: 'stall.refund', gold: p.price, at: Date.now() });
+        }
+        this.pending = this.pending.filter((x) => x !== p);
+        changed = true;
+      } catch (e) {
+        if (e instanceof HttpError && e.status < 500) {
+          // 断られた：出した品・代金を返す
+          if (p.kind === 'list') this.addMail({ id: `${p.op}:back`, from: 'market.back', item: p.item, at: Date.now() });
+          else this.addMail({ id: `${p.op}:refund`, from: 'market.refund', gold: p.price, at: Date.now() });
+          this.pending = this.pending.filter((x) => x !== p);
+          changed = true;
+        } else {
+          console.warn('pending retry later', p.op, e);
+        }
+      }
+    }
+    if (changed) { await this.persist(); await this.toArea('mailArrived', {}); }
+    if (this.pending.length) await this.state.storage.setAlarm(Date.now() + 15_000);
+  }
+
+  async alarm() {
+    await this.load();
+    if (this.meta) await this.flushPending();
+  }
+
+  /** 露店を閉じる：残りの品は郵便受けへ */
+  private closeStall() {
+    const meta = this.meta!;
+    for (const s of meta.stall ?? []) this.addMail({ id: `stall:${s.uid}:${Date.now()}`, from: 'stall.back', item: s.item, at: Date.now() });
+    meta.stall = null;
   }
 
   private need(): { meta: Meta; account: AccountData } {
@@ -163,15 +239,63 @@ export class AccountDO {
         return { account, party: meta.party ?? null, guild: meta.guild ?? null, handle: meta.handle };
       },
       /** エリアからの書き戻し */
-      save: async (b: { sid: string; epoch: number; account: AccountData; leaving?: boolean; key?: string }) => {
+      /**
+       * エリアからの書き戻し。claim があれば郵便受けからその番号を消す（全部そろっていなければ断る）。
+       * trade があれば、書き戻しと同じ書き込みで「待ちの取引」を残してから相手に届ける
+       */
+      save: async (b: { sid: string; epoch: number; account: AccountData; leaving?: boolean; key?: string; claim?: string[]; trade?: { op: string; t: TradeOp } }) => {
         const { meta } = this.need();
         if (b.epoch !== meta.epoch || meta.session?.sid !== b.sid) throw new HttpError(409, 'stale');
         if (b.key && meta.session.key && meta.session.key !== b.key) throw new HttpError(409, 'elsewhere');
+        if (b.claim?.length) {
+          const ids = new Set(b.claim);
+          if (this.mail.filter((m) => ids.has(m.id)).length !== ids.size) throw new HttpError(409, 'claimFailed');
+          this.mail = this.mail.filter((m) => !ids.has(m.id));
+        }
         this.account = migrateAccount(b.account as unknown as Record<string, unknown>);
         for (const c of this.account.characters) normalizeCharacter(c);
-        if (b.leaving) meta.session.key = null;
+        const t = b.trade?.t;
+        const op = b.trade?.op ?? '';
+        if (t?.kind === 'list') this.pending.push({ op, kind: 'list', item: t.item, price: t.price, name: this.account.characters.find((c) => c.id === meta.session!.char)?.name ?? '' });
+        if (t?.kind === 'buy') this.pending.push({ op, kind: 'buy', id: t.id, price: t.price });
+        if (t?.kind === 'stallBuy') this.pending.push({ op, kind: 'stallBuy', seller: t.seller, uid: t.uid, price: t.price });
+        if (t?.kind === 'stallOpen') meta.stall = t.items;
+        if (t?.kind === 'stallClose') this.closeStall();
+        if (b.leaving) { meta.session.key = null; if (meta.stall?.length) this.closeStall(); }
         await this.persist();
+        if (t?.kind === 'cancel') await call(this.market(), 'cancel', { id: t.id, seller: meta.id });
+        if (t?.kind === 'stallClose' && !b.leaving) await this.toArea('mailArrived', {});
+        if (this.pending.length) await this.flushPending();
+        return { ok: true, mail: this.mail.length };
+      },
+      /** 郵便受け（ほかの DO から。同じ番号は1回だけ） */
+      mailAdd: async (b: { mail: MailItem }) => {
+        this.need();
+        if (this.mail.length >= CONTENT.market.mailMax && !this.seen.includes(b.mail.id)) console.warn('mailbox full', this.meta!.id);
+        if (this.addMail(b.mail)) { await this.persist(); await this.toArea('mailArrived', {}); }
         return { ok: true };
+      },
+      mail: async () => ({ mail: this.mail, stall: this.meta?.stall ?? null }),
+      /** 露店で売れた（買い手の AccountDO から）。品を渡し、代金は自分の郵便受けへ */
+      stallSold: async (b: { op: string; uid: number; price: number; buyer: string }) => {
+        const { meta } = this.need();
+        const key = `${b.op}:sold`;
+        const prev = (await this.state.storage.get<{ ok: boolean; item?: Item }>(`op:${key}`));
+        if (prev) return prev;
+        const i = (meta.stall ?? []).findIndex((s) => s.uid === b.uid && s.price === b.price);
+        let r: { ok: boolean; item?: Item };
+        if (i < 0 || b.buyer === meta.id) r = { ok: false };
+        else {
+          const s = meta.stall!.splice(i, 1)[0];
+          if (s.item.trade === 'once') s.item.trade = 'none';
+          const fee = Math.floor(b.price * CONTENT.market.stallFeePct / 100);
+          this.addMail({ id: `${b.op}:gold`, from: 'stall.sold', gold: b.price - fee, at: Date.now() });
+          r = { ok: true, item: s.item };
+        }
+        await this.persist({ [`op:${key}`]: r });
+        await this.toArea('mailArrived', {});
+        await this.toArea('stallSold', { uid: b.uid });
+        return r;
       },
       /** 接続が切れた（エリアが最後の保存をしたあと） */
       logout: async (b: { sid: string; epoch: number }) => {

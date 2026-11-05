@@ -288,6 +288,20 @@ routes.push(
     if (!w.guild) throw new HttpError(400, 'noGuild');
     return json(await call(guild(env, w.guild.id), 'setRole', { by: id, a: b.a, role: b.role }));
   }],
+  // ── 取引所・郵便受け（出品・購入はエリアの中のコマンドで） ──
+  ['GET', /^\/api\/market$/, async (req, env) => {
+    const id = await authed(req, env);
+    const sp = new URL(req.url).searchParams;
+    const q: Record<string, string | number | undefined> = {};
+    for (const k of ['slot', 'rarity', 'opt', 'name', 'sort']) { const v = sp.get(k); if (v) q[k] = v.slice(0, 32); }
+    for (const k of ['min', 'max']) { const v = Number(sp.get(k)); if (v > 0) q[k] = v; }
+    if (sp.get('mine')) q.seller = id;
+    return json(await call(env.MARKET.get(env.MARKET.idFromName('market')), 'search', q));
+  }],
+  ['GET', /^\/api\/mail$/, async (req, env) => {
+    const id = await authed(req, env);
+    return json(await call(accountStub(env, id), 'mail'));
+  }],
   // ── 通報 ──
   ['POST', /^\/api\/report$/, async (req, env) => {
     const id = await authed(req, env);

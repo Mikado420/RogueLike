@@ -1,0 +1,11 @@
+{
+  "feePct": 5,
+  "stallFeePct": 2,
+  "maxListings": 20,
+  "minPrice": 1,
+  "maxPrice": 999999999,
+  "durationHours": 72,
+  "stallMax": 8,
+  "mailMax": 200,
+  "searchLimit": 50
+}

@@ -1,13 +1,16 @@
 import {
-  CONTENT, OfflineServices, txt, type BuildRow, type OnlineResult, type OnlineServices, type RecruitEntry, type RescueEntry, type Visibility,
+  CONTENT, EQUIP_SLOTS, OfflineServices, RARITIES, txt, type Item, type MailItem, type BuildRow, type OnlineResult, type OnlineServices, type RecruitEntry, type RescueEntry, type Visibility,
 } from '../../../shared/src';
 import type { SocialClient } from '../net/social';
+import { api } from '../net/api';
+
+interface MarketRow { id: string; seller: string; sellerName: string; price: number; item: Item }
 import { btn, h, kv } from './dom';
 import type { Menu } from './menu';
 import type { Ctx } from './ctx';
 
-type Sub = 'party' | 'recruit' | 'rescue' | 'builds' | 'guild';
-const SUBS: Sub[] = ['party', 'recruit', 'rescue', 'builds', 'guild'];
+type Sub = 'party' | 'recruit' | 'rescue' | 'builds' | 'guild' | 'market' | 'mail' | 'stall';
+const SUBS: Sub[] = ['party', 'recruit', 'rescue', 'market', 'mail', 'stall', 'builds', 'guild'];
 
 /** 目的（募集の掲示に出す行き先） */
 function goalName(g: string | null): string {
@@ -23,7 +26,8 @@ export function registerOnlineTab(menu: Menu, ctx: Ctx, services: OnlineServices
   const st: {
     sub: Sub; recruits: RecruitEntry[]; rescues: RescueEntry[]; builds: BuildRow[]; card: Record<string, unknown> | null;
     q: string; msg: string; loaded: Partial<Record<Sub, boolean>>;
-  } = { sub: 'party', recruits: [], rescues: [], builds: [], card: null, q: '', msg: '', loaded: {} };
+    market: MarketRow[]; mine: MarketRow[]; mail: MailItem[]; mq: Record<string, string>; sell: { uid: number; price: string }; stallSel: Record<number, string>; stallTitle: string;
+  } = { sub: 'party', recruits: [], rescues: [], builds: [], card: null, q: '', msg: '', loaded: {}, market: [], mine: [], mail: [], mq: {}, sell: { uid: 0, price: '' }, stallSel: {}, stallTitle: '' };
   const refresh = () => menu.refresh();
   if (social) social.onChange = () => { if (menu.isOpen && menu.tab === ('online' as never)) refresh(); };
   const run = async <T>(p: Promise<OnlineResult<T>>, ok?: (v: T) => void) => {
@@ -37,7 +41,20 @@ export function registerOnlineTab(menu: Menu, ctx: Ctx, services: OnlineServices
     if (sub === 'recruit') void run(services.party.recruits(), (v) => { st.recruits = v; });
     if (sub === 'rescue') void run(services.rescue.list(), (v) => { st.rescues = v; });
     if (sub === 'builds') void run(services.builds.search(st.q), (v) => { st.builds = v; });
+    if (sub === 'market') {
+      void run(services.market.search(st.mq), (v) => { st.market = v as MarketRow[]; });
+      void run(services.market.search({ mine: 1 }), (v) => { st.mine = v as MarketRow[]; });
+    }
+    if (sub === 'mail') void api.get<{ mail: MailItem[] }>('/api/mail').then((r) => { st.mail = r.mail; refresh(); }).catch(() => {});
   };
+  const itemLine = (it: Item, extra: string) => {
+    const row = h('div', 'online-line');
+    const n = h('span', 'name', `${it.name}${it.refine ? ` +${it.refine}` : ''}`);
+    n.style.color = CONTENT.rarities.defs[it.rarity].color;
+    row.append(n, h('span', 'muted', `Lv${it.ilvl}  ${extra}`));
+    return row;
+  };
+  const tradable = () => ctx.me().char.inventory.filter((i) => !i.locked && i.trade !== 'none');
   const input = (ph: string, max = 16) => { const i = h('input'); i.placeholder = ph; i.maxLength = max; return i; };
 
   menu.extraTabs.push({
@@ -140,6 +157,103 @@ export function registerOnlineTab(menu: Menu, ctx: Ctx, services: OnlineServices
           row.append(h('span', 'name', `${b.name}${b.handle ? ` @${b.handle}` : ''}`), h('span', 'muted', `${txt('stat.level')} ${b.level}  ${b.weapon ? CONTENT.weapons[b.weapon as keyof typeof CONTENT.weapons]?.name ?? '' : ''}`));
           row.append(btn(txt('online.view'), () => void run(services.builds.view(b.char_id), (v) => { st.card = v; }), 'mini'));
           box.append(row);
+        }
+      }
+
+      // ───── 取引所 ─────
+      if (st.sub === 'market') {
+        const f = h('div', 'online-form');
+        const sel = (key: string, opts: [string, string][]) => {
+          const e = h('select');
+          for (const [v, name] of [['', txt('market.any')] as [string, string], ...opts]) { const o = h('option'); o.value = v; o.textContent = name; if ((st.mq[key] ?? '') === v) o.selected = true; e.append(o); }
+          e.addEventListener('change', () => { st.mq[key] = e.value; });
+          return e;
+        };
+        f.append(sel('slot', EQUIP_SLOTS.map((x) => [x, txt(`slot.${x}`)])));
+        f.append(sel('rarity', RARITIES.map((x) => [x, CONTENT.rarities.defs[x].name])));
+        f.append(sel('opt', CONTENT.options.pool.map((o) => [o.key, o.label])));
+        f.append(sel('sort', [['low', txt('market.low')], ['high', txt('market.high')], ['new', txt('market.new')]]));
+        const mx = input(txt('market.max'), 10);
+        mx.value = st.mq.max ?? '';
+        mx.addEventListener('input', () => { st.mq.max = mx.value; });
+        f.append(mx, btn(txt('online.search'), () => load('market', true), 'btn'));
+        box.append(f);
+        for (const r of st.market) {
+          const row = itemLine(r.item, `${r.price.toLocaleString()} G  ${r.sellerName}`);
+          row.append(btn(txt('market.buy'), () => { ctx.send({ type: 'marketBuy', id: r.id, price: r.price }); st.market = st.market.filter((x) => x !== r); refresh(); }, 'mini primary'));
+          box.append(row);
+        }
+        box.append(h('div', 'sub-title', txt('market.sell')));
+        const g = h('div', 'online-form');
+        const pick = h('select');
+        for (const it of tradable()) { const o = h('option'); o.value = String(it.uid); o.textContent = `${it.name}${it.refine ? ` +${it.refine}` : ''}`; if (st.sell.uid === it.uid) o.selected = true; pick.append(o); }
+        const price = input(txt('market.price'), 10);
+        price.value = st.sell.price;
+        price.inputMode = 'numeric';
+        g.append(pick, price, btn(txt('market.list'), () => {
+          const uid = Number(pick.value), pr = Math.floor(Number(price.value));
+          if (!uid || !(pr > 0)) return;
+          ctx.send({ type: 'marketList', uid, price: pr });
+          st.sell = { uid: 0, price: '' };
+          setTimeout(() => load('market', true), 1500);
+        }, 'btn primary'));
+        box.append(g);
+        if (st.mine.length) box.append(h('div', 'sub-title', txt('market.mine')));
+        for (const r of st.mine) {
+          const row = itemLine(r.item, `${r.price.toLocaleString()} G`);
+          row.append(btn(txt('market.cancel'), () => { ctx.send({ type: 'marketCancel', id: r.id }); st.mine = st.mine.filter((x) => x !== r); refresh(); }, 'mini'));
+          box.append(row);
+        }
+      }
+
+      // ───── 郵便受け ─────
+      if (st.sub === 'mail') {
+        const acts = h('div', 'online-form');
+        acts.append(btn(txt('mail.take'), () => { ctx.send({ type: 'claimMail' }); setTimeout(() => load('mail', true), 1500); }, 'btn primary'), btn(txt('online.reload'), () => load('mail', true), 'mini'));
+        box.append(acts);
+        for (const m of st.mail) {
+          const row = m.item ? itemLine(m.item, txt(`mail.from.${m.from}`)) : h('div', 'online-line');
+          if (!m.item) row.append(h('span', 'name', m.gold ? `${m.gold.toLocaleString()} G` : m.bag ? `${CONTENT.materials[m.bag.id]?.name ?? m.bag.id} ×${m.bag.n}` : ''), h('span', 'muted', txt(`mail.from.${m.from}`)));
+          box.append(row);
+        }
+      }
+
+      // ───── 露店 ─────
+      if (st.sub === 'stall') {
+        const meP = ctx.me();
+        if (meP.stall) {
+          box.append(h('div', 'char-name', meP.stall.title || txt('online.stall')));
+          for (const x of meP.stall.items) box.append(itemLine(x.item, `${x.price.toLocaleString()} G`));
+          box.append(btn(txt('stall.close'), () => ctx.send({ type: 'stallClose' }), 'btn danger'));
+        } else if (ctx.world.area.type === 'town') {
+          const t = input(txt('stall.title'), 16);
+          t.value = st.stallTitle;
+          t.addEventListener('input', () => { st.stallTitle = t.value; });
+          box.append(t);
+          for (const it of tradable()) {
+            const row = itemLine(it, '');
+            const pr = input(txt('market.price'), 10);
+            pr.inputMode = 'numeric';
+            pr.value = st.stallSel[it.uid] ?? '';
+            pr.addEventListener('input', () => { st.stallSel[it.uid] = pr.value; });
+            row.append(pr);
+            box.append(row);
+          }
+          box.append(btn(txt('stall.open'), () => {
+            const items = Object.entries(st.stallSel).map(([uid, v]) => ({ uid: Number(uid), price: Math.floor(Number(v)) })).filter((x) => x.price > 0);
+            if (items.length) ctx.send({ type: 'stallOpen', title: st.stallTitle, items });
+            st.stallSel = {};
+          }, 'btn primary'));
+        }
+        const others = ctx.world.players.filter((p) => p.id !== meP.id && p.stall);
+        if (others.length) box.append(h('div', 'sub-title', txt('stall.near')));
+        for (const p of others) {
+          box.append(h('div', 'name', `${p.char.name}  ${p.stall!.title}`));
+          for (const x of p.stall!.items) {
+            const row = itemLine(x.item, `${x.price.toLocaleString()} G`);
+            row.append(btn(txt('market.buy'), () => ctx.send({ type: 'stallBuy', seller: p.id, uid: x.uid, price: x.price }), 'mini primary'));
+            box.append(row);
+          }
         }
       }
 

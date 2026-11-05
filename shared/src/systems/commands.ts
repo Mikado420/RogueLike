@@ -1,3 +1,4 @@
+import { claimMail, marketBuy, marketCancel, marketList, stallBuy, stallClose, stallOpen } from './trade';
 import { emote, requestMatch, requestRescue, say } from './social';
 import type { Command, Player, World } from '../state';
 import {
@@ -92,6 +93,13 @@ export function applyCommand(w: World, p: Player, cmd: Command) {
     case 'alchemy': err = nearRole(w, p, 'smith') ? alchemy(w, p, cmd.uid, cmd.mode, cmd.index) : 'err.notNear'; break;
     case 'capture': err = capture(w, p, cmd.item); break;
     case 'say': err = say(w, p, cmd.text); break;
+    case 'marketList': err = marketList(w, p, cmd.uid, cmd.price); break;
+    case 'marketBuy': err = marketBuy(w, p, cmd.id, cmd.price); break;
+    case 'marketCancel': err = marketCancel(w, p, cmd.id); break;
+    case 'claimMail': err = claimMail(w, p); break;
+    case 'stallOpen': err = stallOpen(w, p, cmd.title, cmd.items); break;
+    case 'stallClose': err = stallClose(w, p); break;
+    case 'stallBuy': err = stallBuy(w, p, cmd.seller, cmd.uid, cmd.price); break;
     case 'emote': err = emote(w, p, cmd.emote); break;
     case 'rescue': err = requestRescue(w, p); break;
     case 'matchDungeon': err = requestMatch(w, p, cmd.dungeon, cmd.difficulty, !!cmd.cancel); break;
