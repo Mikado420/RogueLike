@@ -1,8 +1,15 @@
-import { CONTENT, migrateAccount, newAccount, newCharacter, normalizeCharacter, type AccountData, type CharSummary } from '../../../shared/src';
+import { CONTENT, LIMITS, migrateAccount, newAccount, newCharacter, normalizeCharacter, sanitizeAccount, type AccountData, type CharSummary, type Item, type Removed } from '../../../shared/src';
 import type { Env } from '../env';
 import { loadConfig } from '../config';
 import { HttpError, call, dispatch } from '../util/http';
 import { randomId, safeEqual, sha256 } from '../util/auth';
+
+/** 52bit のアイテム番号 */
+function randomUid(): number {
+  const a = new Uint32Array(2);
+  crypto.getRandomValues(a);
+  return (a[0] & 0x3ffffff) * 0x4000000 + (a[1] & 0x3ffffff) + 1;
+}
 
 interface Meta {
   id: string;
@@ -159,6 +166,40 @@ export class AccountDO {
         const { meta } = this.need();
         if (meta.session?.sid === b.sid && b.epoch === meta.epoch) { meta.session = null; await this.persist(); }
         return { ok: true };
+      },
+      /**
+       * オフライン版のセーブの引き継ぎ（1アカウント1回）。検証して、おかしいものは削り、何を削ったかを返す
+       */
+      migrate: async (b: { account: unknown }) => {
+        const { meta, account } = this.need();
+        if (meta.migrated) throw new HttpError(409, 'migrated');
+        if (meta.session) throw new HttpError(409, 'online');
+        let clean: AccountData, removed: Removed[];
+        try { ({ account: clean, removed } = sanitizeAccount(b.account, CONTENT)); } catch { throw new HttpError(400, 'badSave'); }
+        // アイテム番号はサーバーで振り直す（ほかのアカウントと重ならないように）
+        const reUid = (it: Item) => { it.uid = randomUid(); return it; };
+        let added = 0;
+        for (const ch of clean.characters) {
+          if (account.characters.length >= this.cfg.maxCharacters) { removed.push({ char: ch.name, what: ch.name, reason: 'count' }); continue; }
+          ch.id = `${account.id}.c${account.nextUid++}`;
+          ch.inventory.forEach(reUid);
+          for (const k of Object.keys(ch.equipment) as (keyof typeof ch.equipment)[]) { const it = ch.equipment[k]; if (it) reUid(it); }
+          for (const pt of ch.pets) { const old = pt.uid; pt.uid = randomUid(); if (ch.activePet === old) ch.activePet = pt.uid; }
+          account.characters.push(ch);
+          added++;
+        }
+        const st = account.storage;
+        st.capacity = Math.max(st.capacity, clean.storage.capacity);
+        for (const it of clean.storage.items) {
+          if (st.items.length >= st.capacity) { removed.push({ char: null, what: it.name, reason: 'count' }); continue; }
+          st.items.push(reUid(it));
+        }
+        for (const [id, n] of Object.entries(clean.storage.bag)) st.bag[id] = Math.min(LIMITS.bagEach, (st.bag[id] ?? 0) + n);
+        if (Object.keys(account.base.levels).length === 0) account.base = clean.base;
+        meta.migrated = true;
+        await this.persist();
+        console.log(JSON.stringify({ ev: 'migrate', account: meta.id, added, removed: removed.length }));
+        return { ok: true, characters: added, removed };
       },
       ban: async (b: { reason: string; until: number }) => {
         const { meta } = this.need();

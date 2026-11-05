@@ -1,4 +1,4 @@
-import type { CharSummary } from '../../../shared/src';
+import type { CharSummary, Removed } from '../../../shared/src';
 
 /** 接続先（ビルド時の VITE_SERVER_URL。なければ手元の wrangler dev） */
 export const SERVER_URL: string = (import.meta.env.VITE_SERVER_URL as string | undefined)?.replace(/\/$/, '') || 'http://localhost:8787';
@@ -53,7 +53,7 @@ export const api = {
     setToken(r.token);
     return r;
   },
-  migrate: (account: unknown) => req<{ ok: true; removed: string[]; characters: number }>('POST', '/api/migrate', { account }),
+  migrate: (account: unknown) => req<{ ok: true; removed: Removed[]; characters: number }>('POST', '/api/migrate', { account }),
   get: <T>(path: string) => req<T>('GET', path),
   post: <T>(path: string, body?: unknown) => req<T>('POST', path, body),
 };

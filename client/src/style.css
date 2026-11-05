@@ -420,3 +420,5 @@ body.touch .keys-sec { display: none; }
 .conn-state { position: absolute; left: 50%; transform: translateX(-50%); top: calc(20px + var(--safe-t)); padding: 4px 12px; border-radius: 999px;
   background: rgba(80,30,30,0.9); color: #fff; font-size: 12px; font-weight: 800; display: none; pointer-events: none; }
 .conn-state.show { display: block; }
+.removed-list { display: flex; flex-direction: column; gap: 4px; max-height: 40vh; overflow-y: auto; margin: 8px 0; }
+.removed-row { display: grid; grid-template-columns: 1fr 1.4fr 1fr; gap: 8px; font-size: 12px; padding: 4px 8px; border-radius: 6px; background: rgba(255,255,255,0.05); }

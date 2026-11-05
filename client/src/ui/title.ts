@@ -184,7 +184,7 @@ export function showTitle(hooks: TitleHooks = {}): Promise<string> {
       acts.append(btn(txt('account.save'), () => void busy(err, async () => { await api.profile(handle.value.trim(), name.value.trim()); me = await api.me(); err.textContent = txt('account.saved'); }), 'btn primary'));
       const code = h('div', 'title-code');
       acts.append(btn(txt('account.issue'), () => void busy(err, async () => { const r = await api.issueTransfer(); code.textContent = r.code; }), 'btn'));
-      if (hooks.migrate && me && !me.migrated) acts.append(btn(txt('account.migrate'), () => hooks.migrate!(box, account, me!), 'btn'));
+      if (hooks.migrate && me && !me.migrated) acts.append(btn(txt('account.migrate'), () => hooks.migrate!(box, () => void api.me().then((m) => { me = m; account(); }).catch(() => account()), me!), 'btn'));
       acts.append(btn(txt('title.back'), main, 'btn'));
       box.append(form, code, acts, err);
     };

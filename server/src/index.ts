@@ -88,6 +88,12 @@ const routes: [string, RegExp, Route][] = [
     const id = await authed(req, env);
     return json(await call(accountStub(env, id), 'deleteCharacter', { id: decodeURIComponent(m[1]) }));
   }],
+  // オフライン版のセーブを引き継ぐ（1回だけ。検証して削ったものを返す）
+  ['POST', /^\/api\/migrate$/, async (req, env) => {
+    const id = await authed(req, env);
+    const b = await readJson<{ account: unknown }>(req);
+    return json(await call(accountStub(env, id), 'migrate', b));
+  }],
   // 遊び始める：チケットと入るエリアを返す
   ['POST', /^\/api\/play$/, async (req, env) => {
     const id = await authed(req, env);

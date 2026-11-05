@@ -27,7 +27,11 @@ interface Conn {
   strikes: number;
   /** 切れた時刻（猶予のあいだはエリアに残す） */
   awaySince: number;
+  /** 大事な操作（精錬・生産・レベルアップなど）のあと、すぐ保存する */
+  dirty: boolean;
 }
+
+const IMPORTANT = new Set(['refine', 'crafted', 'levelUp', 'achievement', 'instance', 'petLevel', 'subLevel']);
 
 /**
  * AreaDO：街・フィールド1つ×チャンネル1つ。InstanceDO：ダンジョン・塔・レイドを1つ。
@@ -83,7 +87,7 @@ export class AreaDO {
       sid: t.s, ws: server, ticket: t, account: null, viewer: new Viewer(this.cfg.interestRadius), events: [], lastSeq: 0,
       lastSave: platform.now(), charJson: '', joined: false, closed: false,
       inputs: new RateWindow(1000, this.cfg.rate.inputsPerSec), commands: new RateWindow(1000, this.cfg.rate.commandsPerSec),
-      lastPos: null, strikes: 0, awaySince: 0,
+      lastPos: null, strikes: 0, awaySince: 0, dirty: false,
     };
     // 同じセッションが残っていたら（再接続）古い方を閉じる
     const old = this.conns.get(t.s);
@@ -219,7 +223,9 @@ export class AreaDO {
       if (!c.joined) continue;
       const p = host.player(sid);
       if (p) {
-        c.events.push(...eventsFor(r.events, p.id));
+        const mine = eventsFor(r.events, p.id);
+        c.events.push(...mine);
+        if (mine.some((e) => IMPORTANT.has(e.type) && 'playerId' in e)) c.dirty = true;
         const b = before.get(sid);
         if (b) { const s = checkMovement(host.world, p, b); if (s) this.suspect(c, s); }
       }
@@ -230,7 +236,8 @@ export class AreaDO {
     if (this.tickCount % every === 0) this.flush();
     const nowMs = platform.now();
     for (const c of this.conns.values()) {
-      if (c.joined && nowMs - c.lastSave > this.cfg.saveIntervalSec * 1000) { c.lastSave = nowMs; void this.save(c, false); }
+      if (!c.joined || c.awaySince) continue;
+      if (nowMs - c.lastSave > this.cfg.saveIntervalSec * 1000 || (c.dirty && nowMs - c.lastSave > 3000)) { c.lastSave = nowMs; c.dirty = false; void this.save(c, false); }
     }
   }
 

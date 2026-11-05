@@ -44,3 +44,4 @@ export * from './net/protocol';
 export * from './net/snapshot';
 export * from './net/mirror';
 export * from './net/localhub';
+export * from './validate';
