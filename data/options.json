@@ -1,0 +1,19 @@
+{
+  "pool": [
+    { "stat": "atkPct",     "label": "ATK",        "unit": "%", "min": 2,  "max": 8,  "weight": 10 },
+    { "stat": "matkPct",    "label": "MATK",       "unit": "%", "min": 2,  "max": 8,  "weight": 10 },
+    { "stat": "critRate",   "label": "クリティカル率", "unit": "%", "min": 1,  "max": 6,  "weight": 8 },
+    { "stat": "critDamage", "label": "クリティカルダメージ", "unit": "%", "min": 3,  "max": 15, "weight": 6 },
+    { "stat": "maxHp",      "label": "MaxHP",      "unit": "",  "min": 20, "max": 120, "weight": 10 },
+    { "stat": "def",        "label": "DEF",        "unit": "",  "min": 3,  "max": 15, "weight": 8 },
+    { "stat": "mdef",       "label": "MDEF",       "unit": "",  "min": 3,  "max": 15, "weight": 8 },
+    { "stat": "str",        "label": "STR",        "unit": "",  "min": 1,  "max": 6,  "weight": 5 },
+    { "stat": "int",        "label": "INT",        "unit": "",  "min": 1,  "max": 6,  "weight": 5 },
+    { "stat": "vit",        "label": "VIT",        "unit": "",  "min": 1,  "max": 6,  "weight": 5 },
+    { "stat": "agi",        "label": "AGI",        "unit": "",  "min": 1,  "max": 6,  "weight": 5 },
+    { "stat": "dex",        "label": "DEX",        "unit": "",  "min": 1,  "max": 6,  "weight": 5 },
+    { "stat": "aspdPct",    "label": "攻撃速度",     "unit": "%", "min": 2,  "max": 8,  "weight": 4 }
+  ],
+  "weaponElementChance": 0.3,
+  "weaponElements": ["fire", "water", "wind", "earth", "light", "dark"]
+}

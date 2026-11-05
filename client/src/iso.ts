@@ -1,0 +1,30 @@
+/** アイソメ投影。ワールド1単位 = タイル1枚。 */
+export const TILE_W = 64;
+export const TILE_H = 32;
+const HW = TILE_W / 2, HH = TILE_H / 2;
+
+export function toScreen(x: number, y: number): { x: number; y: number } {
+  return { x: (x - y) * HW, y: (x + y) * HH };
+}
+
+export function toWorld(sx: number, sy: number): { x: number; y: number } {
+  const a = sx / HW, b = sy / HH;
+  return { x: (a + b) / 2, y: (b - a) / 2 };
+}
+
+/** 画面上の向き（右が+x、下が+y）をワールドの向きに直す */
+export function screenDirToWorld(dx: number, dy: number): { x: number; y: number } {
+  const wx = dx / HW + dy / HH, wy = dy / HH - dx / HW;
+  const l = Math.hypot(wx, wy);
+  if (l < 1e-6) return { x: 0, y: 0 };
+  const m = Math.min(1, Math.hypot(dx, dy));
+  return { x: (wx / l) * m, y: (wy / l) * m };
+}
+
+/** ワールドの半径 r の円が画面上で作る楕円の半径 */
+export function isoRadii(r: number): { rx: number; ry: number } {
+  return { rx: r * HW * Math.SQRT2, ry: r * HH * Math.SQRT2 };
+}
+
+/** 奥行き（大きいほど手前） */
+export const depth = (x: number, y: number) => x + y;

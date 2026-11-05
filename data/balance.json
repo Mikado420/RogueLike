@@ -1,0 +1,57 @@
+{
+  "tickRate": 20,
+  "element": {
+    "advantage": 1.25,
+    "disadvantage": 0.75,
+    "neutral": 1.0,
+    "cycle": ["fire", "wind", "earth", "water"],
+    "mutual": [["light", "dark"]]
+  },
+  "damage": {
+    "defenseConstant": 100,
+    "variance": 0.1,
+    "minDamage": 1
+  },
+  "stats": {
+    "hpBase": 200,
+    "hpPerVit": 15,
+    "defPerVit": 1.0,
+    "mdefPerInt": 0.6,
+    "critBase": 0.05,
+    "critPerDex": 0.002,
+    "critPerCrt": 0.01,
+    "critDamage": 1.5,
+    "moveSpeedBase": 4.2,
+    "moveSpeedPerAgi": 0.012,
+    "attackSpeedPerAgi": 0.006,
+    "refineStatPerLevel": 0.04
+  },
+  "player": {
+    "baseStats": { "str": 30, "int": 30, "vit": 20, "agi": 20, "dex": 30, "personal": { "type": "crt", "value": 10 } },
+    "maxMp": 100,
+    "maxStamina": 100,
+    "staminaRegen": 30,
+    "staminaRegenDelay": 0.6,
+    "dodgeCost": 30,
+    "dodgeDuration": 0.3,
+    "dodgeIframes": 0.35,
+    "dodgeSpeed": 11,
+    "respawnTime": 5,
+    "autoTargetRange": 8,
+    "pickupRange": 0.9,
+    "inventorySize": 60,
+    "skillSlots": 4
+  },
+  "monster": {
+    "hpRegenOnReturn": 0.05,
+    "wanderRadius": 3,
+    "wanderSpeedRatio": 0.45,
+    "enrageThreshold": 0.5,
+    "enrageCooldownRatio": 0.7,
+    "recovery": 0.3
+  },
+  "drop": {
+    "lifetime": 120,
+    "scatter": 0.8
+  }
+}

@@ -1,0 +1,47 @@
+{
+  "slash": {
+    "name": "スラッシュ", "weapon": "oneHandSword", "mp": 30, "cooldown": 2.5, "lock": 0.25,
+    "delivery": "strike", "anchor": "self", "shape": { "type": "arc", "range": 2.4, "arc": 160 },
+    "power": 2.4, "hits": 1, "element": "weapon", "range": 2.4
+  },
+  "renga": {
+    "name": "連牙", "weapon": "oneHandSword", "mp": 40, "cooldown": 5, "lock": 0.55,
+    "delivery": "strike", "anchor": "self", "follow": true, "shape": { "type": "arc", "range": 2.0, "arc": 120 },
+    "power": 0.9, "hits": 4, "interval": 0.12, "element": "weapon", "range": 2.0
+  },
+  "senpu": {
+    "name": "旋風斬", "weapon": "oneHandSword", "mp": 50, "cooldown": 8, "lock": 0.6,
+    "delivery": "strike", "anchor": "self", "follow": true, "shape": { "type": "circle", "radius": 2.6 },
+    "power": 1.0, "hits": 3, "interval": 0.2, "element": "wind", "range": 2.6
+  },
+  "power_shot": {
+    "name": "パワーショット", "weapon": "bow", "mp": 30, "cooldown": 3, "lock": 0.3,
+    "delivery": "projectile", "power": 2.6, "element": "weapon", "range": 12,
+    "projectile": { "count": 1, "spread": 0, "speed": 20, "range": 12, "radius": 0.35, "pierce": 5, "sprite": "arrow_big" }
+  },
+  "triple_arrow": {
+    "name": "トリプルアロー", "weapon": "bow", "mp": 35, "cooldown": 4, "lock": 0.25,
+    "delivery": "projectile", "power": 1.2, "element": "weapon", "range": 9,
+    "projectile": { "count": 3, "spread": 24, "speed": 16, "range": 9, "radius": 0.25, "pierce": 1, "sprite": "arrow" }
+  },
+  "arrow_rain": {
+    "name": "アローレイン", "weapon": "bow", "mp": 50, "cooldown": 9, "lock": 0.35,
+    "delivery": "strike", "anchor": "aim", "aimDistance": 6, "shape": { "type": "circle", "radius": 2.2 },
+    "delay": 0.35, "power": 0.6, "hits": 6, "interval": 0.18, "element": "weapon", "range": 9
+  },
+  "fireball": {
+    "name": "ファイアボール", "weapon": "staff", "mp": 30, "cooldown": 3, "lock": 0.3,
+    "delivery": "projectile", "power": 2.2, "element": "fire", "range": 9,
+    "projectile": { "count": 1, "spread": 0, "speed": 10, "range": 9, "radius": 0.4, "pierce": 1, "explodeRadius": 1.7, "sprite": "fireball" }
+  },
+  "aqua_lance": {
+    "name": "アクアランス", "weapon": "staff", "mp": 35, "cooldown": 4, "lock": 0.3,
+    "delivery": "projectile", "power": 2.0, "element": "water", "range": 10,
+    "projectile": { "count": 1, "spread": 0, "speed": 16, "range": 10, "radius": 0.4, "pierce": 99, "sprite": "aqua" }
+  },
+  "holy_nova": {
+    "name": "ホーリーノヴァ", "weapon": "staff", "mp": 50, "cooldown": 9, "lock": 0.5,
+    "delivery": "strike", "anchor": "self", "shape": { "type": "circle", "radius": 3.0 },
+    "delay": 0.25, "power": 1.6, "hits": 2, "interval": 0.3, "element": "light", "range": 3.0
+  }
+}

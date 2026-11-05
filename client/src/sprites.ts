@@ -1,0 +1,168 @@
+import { Container, Graphics } from 'pixi.js';
+import { TILE_H, TILE_W } from './iso';
+
+/**
+ * 見た目はすべて「スプライト名」で参照する。
+ * いまは図形で描いているが、ここを画像（Texture）に差し替えれば全体の見た目が変わる。
+ * 原点は足元（地面に接する点）。
+ */
+type Drawer = () => Container;
+
+const shadow = (g: Graphics, rx: number, ry = rx / 2) => g.ellipse(0, 0, rx, ry).fill({ color: 0x000000, alpha: 0.28 });
+
+function gfx(draw: (g: Graphics) => void): Container {
+  const c = new Container();
+  const g = new Graphics();
+  draw(g);
+  c.addChild(g);
+  return c;
+}
+
+const DRAWERS: Record<string, Drawer> = {
+  player: () => gfx((g) => {
+    shadow(g, 13);
+    g.roundRect(-9, -34, 18, 26, 7).fill(0x3b6fd8).stroke({ width: 2, color: 0x1d356b });
+    g.rect(-9, -16, 18, 4).fill(0x6b4a2b);
+    g.circle(0, -40, 9).fill(0xf2c9a0).stroke({ width: 2, color: 0x7a5236 });
+    g.moveTo(-9, -44).arc(0, -41, 9.5, Math.PI, 0).fill(0x5a3a22);
+  }),
+  slime: () => gfx((g) => {
+    shadow(g, 16);
+    g.ellipse(0, -11, 16, 13).fill({ color: 0x46a8ff, alpha: 0.92 }).stroke({ width: 2, color: 0x1f5b99 });
+    g.ellipse(-5, -16, 5, 3).fill({ color: 0xffffff, alpha: 0.5 });
+    g.circle(-5, -10, 2.2).fill(0x10243a);
+    g.circle(5, -10, 2.2).fill(0x10243a);
+  }),
+  hornet: () => gfx((g) => {
+    shadow(g, 9);
+    g.ellipse(-9, -30, 9, 5).fill({ color: 0xe8f4ff, alpha: 0.6 });
+    g.ellipse(9, -30, 9, 5).fill({ color: 0xe8f4ff, alpha: 0.6 });
+    g.ellipse(0, -24, 7, 10).fill(0xf2c230).stroke({ width: 1.5, color: 0x4a3505 });
+    g.rect(-7, -25, 14, 3).fill(0x2a2006);
+    g.rect(-6, -19, 12, 3).fill(0x2a2006);
+    g.circle(0, -35, 5).fill(0x2a2006);
+    g.poly([-2, -15, 2, -15, 0, -9]).fill(0x2a2006);
+  }),
+  golem: () => gfx((g) => {
+    shadow(g, 22);
+    g.roundRect(-18, -42, 36, 30, 6).fill(0x8a8378).stroke({ width: 2, color: 0x3e3a34 });
+    g.roundRect(-12, -56, 24, 16, 4).fill(0x9a9388).stroke({ width: 2, color: 0x3e3a34 });
+    g.roundRect(-26, -40, 9, 24, 4).fill(0x7a7368).stroke({ width: 2, color: 0x3e3a34 });
+    g.roundRect(17, -40, 9, 24, 4).fill(0x7a7368).stroke({ width: 2, color: 0x3e3a34 });
+    g.rect(-12, -14, 9, 12).fill(0x6d665c);
+    g.rect(3, -14, 9, 12).fill(0x6d665c);
+    g.circle(-5, -49, 2.5).fill(0x7cf0ff);
+    g.circle(5, -49, 2.5).fill(0x7cf0ff);
+  }),
+  wisp: () => gfx((g) => {
+    shadow(g, 10);
+    g.circle(0, -30, 18).fill({ color: 0x7a3cff, alpha: 0.18 });
+    g.circle(0, -30, 12).fill({ color: 0x5b2ab8, alpha: 0.5 });
+    g.circle(0, -30, 8).fill(0x2a0f55).stroke({ width: 2, color: 0xb98cff });
+    g.circle(-3, -31, 1.8).fill(0xff6bd5);
+    g.circle(3, -31, 1.8).fill(0xff6bd5);
+  }),
+  ignaros: () => gfx((g) => {
+    shadow(g, 46);
+    g.ellipse(0, -40, 42, 30).fill(0x8a2a18).stroke({ width: 3, color: 0x3a0c05 });
+    g.ellipse(0, -46, 30, 18).fill({ color: 0xc8461f, alpha: 0.85 });
+    for (const sx of [-1, 1]) {
+      g.roundRect(sx * 30 - 7, -24, 14, 24, 5).fill(0x6a1e10).stroke({ width: 2, color: 0x3a0c05 });
+      g.poly([sx * 14, -78, sx * 30, -104, sx * 24, -74]).fill(0x2a1a14).stroke({ width: 2, color: 0x110805 });
+    }
+    g.ellipse(0, -70, 20, 15).fill(0x9a3018).stroke({ width: 3, color: 0x3a0c05 });
+    g.circle(-8, -72, 3.5).fill(0xffe14a);
+    g.circle(8, -72, 3.5).fill(0xffe14a);
+    g.poly([-10, -62, 10, -62, 0, -56]).fill(0xffb02e);
+    for (let i = 0; i < 5; i++) g.poly([-20 + i * 10, -66, -15 + i * 10, -82 - (i % 2) * 6, -10 + i * 10, -66]).fill({ color: 0xff7a2a, alpha: 0.8 });
+  }),
+  tree: () => gfx((g) => {
+    shadow(g, 20);
+    g.rect(-4, -26, 8, 26).fill(0x6b4423);
+    g.circle(0, -42, 20).fill(0x2f7d3a);
+    g.circle(-9, -52, 14).fill(0x3a9147);
+    g.circle(9, -54, 13).fill(0x45a052);
+    g.circle(0, -64, 12).fill(0x52b05e);
+  }),
+  rock: () => gfx((g) => {
+    shadow(g, 22);
+    g.poly([-22, -4, -18, -20, -4, -30, 14, -26, 22, -10, 16, 0, -10, 2]).fill(0x7d8189).stroke({ width: 2, color: 0x3d4047 });
+    g.poly([-4, -30, 14, -26, 6, -16, -10, -18]).fill(0x9aa0a8);
+  }),
+  wall: () => gfx((g) => {
+    const hw = TILE_W / 2, hh = TILE_H / 2, h = 34;
+    g.poly([-hw, 0, 0, hh, 0, hh - h, -hw, -h]).fill(0x4b4f5c);
+    g.poly([hw, 0, 0, hh, 0, hh - h, hw, -h]).fill(0x3a3d48);
+    g.poly([0, -hh - h, hw, -h, 0, hh - h, -hw, -h]).fill(0x6a6f80).stroke({ width: 1, color: 0x2a2c34 });
+  }),
+  // 飛び道具（向きは描画側で回す。+x 方向が前）
+  arrow: () => gfx((g) => {
+    g.moveTo(-12, 0).lineTo(10, 0).stroke({ width: 2, color: 0xe8d8b0 });
+    g.poly([14, 0, 8, -4, 8, 4]).fill(0xdfe6ee);
+  }),
+  arrow_big: () => gfx((g) => {
+    g.moveTo(-18, 0).lineTo(14, 0).stroke({ width: 4, color: 0xfff1b8 });
+    g.poly([22, 0, 12, -7, 12, 7]).fill(0xffffff);
+    g.circle(0, 0, 10).fill({ color: 0xfff1b8, alpha: 0.25 });
+  }),
+  bolt: () => gfx((g) => {
+    g.circle(0, 0, 9).fill({ color: 0x9fd8ff, alpha: 0.3 });
+    g.circle(0, 0, 5).fill(0xdff4ff);
+  }),
+  fireball: () => gfx((g) => {
+    g.circle(-6, 0, 10).fill({ color: 0xff5a1f, alpha: 0.35 });
+    g.circle(0, 0, 11).fill({ color: 0xff7a2a, alpha: 0.5 });
+    g.circle(0, 0, 7).fill(0xffd25a);
+  }),
+  aqua: () => gfx((g) => {
+    g.poly([18, 0, -14, -6, -20, 0, -14, 6]).fill({ color: 0x3fa8ff, alpha: 0.85 });
+    g.poly([18, 0, -8, -3, -8, 3]).fill(0xd8f1ff);
+  }),
+  shadow: () => gfx((g) => {
+    g.circle(0, 0, 10).fill({ color: 0x7a3cff, alpha: 0.35 });
+    g.circle(0, 0, 6).fill(0x2a0f55).stroke({ width: 2, color: 0xd59cff });
+  }),
+  // 落ちているアイテム
+  item_sword: () => gfx((g) => {
+    g.moveTo(-8, 8).lineTo(8, -8).stroke({ width: 3, color: 0xdfe6ee });
+    g.moveTo(-9, 3).lineTo(-3, 9).stroke({ width: 3, color: 0x8a6a3a });
+  }),
+  item_bow: () => gfx((g) => {
+    g.moveTo(-6, -10).quadraticCurveTo(8, 0, -6, 10).stroke({ width: 3, color: 0xa0703a });
+    g.moveTo(-6, -10).lineTo(-6, 10).stroke({ width: 1, color: 0xeeeeee });
+  }),
+  item_staff: () => gfx((g) => {
+    g.moveTo(-6, 10).lineTo(5, -6).stroke({ width: 3, color: 0x8a5a2a });
+    g.circle(6, -8, 4).fill(0x8fe0ff);
+  }),
+  item_armor: () => gfx((g) => {
+    g.poly([-9, -8, -4, -10, 0, -7, 4, -10, 9, -8, 7, 9, -7, 9]).fill(0x9a8a6a).stroke({ width: 1.5, color: 0x3a3020 });
+  }),
+  item_ring: () => gfx((g) => {
+    g.circle(0, 0, 6).stroke({ width: 3, color: 0xf3d36a });
+    g.circle(0, -6, 3).fill(0x7cf0ff);
+  }),
+};
+
+export function makeSprite(name: string): Container {
+  const d = DRAWERS[name];
+  if (d) return d();
+  // 未定義の名前は目立つ色の箱にする
+  return gfx((g) => g.rect(-10, -20, 20, 20).fill(0xff00ff));
+}
+
+/** 武器の見た目（キャラの手元に出す） */
+export function makeWeaponGlyph(weaponType: string | undefined): Graphics {
+  const g = new Graphics();
+  if (weaponType === 'bow') {
+    g.moveTo(0, -12).quadraticCurveTo(12, 0, 0, 12).stroke({ width: 3, color: 0xa0703a });
+    g.moveTo(0, -12).lineTo(0, 12).stroke({ width: 1, color: 0xeeeeee });
+  } else if (weaponType === 'staff') {
+    g.moveTo(-4, 12).lineTo(4, -14).stroke({ width: 3, color: 0x8a5a2a });
+    g.circle(4, -16, 4.5).fill(0x8fe0ff);
+  } else {
+    g.moveTo(0, 2).lineTo(18, 0).stroke({ width: 3, color: 0xe6edf5 });
+    g.moveTo(1, -5).lineTo(1, 7).stroke({ width: 3, color: 0x8a6a3a });
+  }
+  return g;
+}

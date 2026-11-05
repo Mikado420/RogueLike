@@ -1,0 +1,390 @@
+import { Application, Container, Graphics } from 'pixi.js';
+import type { Drop, GameEvent, Monster, Player, Projectile, World } from '../../shared/src/sim';
+import { CONTENT } from '../../shared/src/content';
+import { depth, isoRadii, TILE_H, TILE_W, toScreen } from './iso';
+import { makeSprite, makeWeaponGlyph } from './sprites';
+import { drawIsoShape, Effects } from './fx';
+import { ELEMENT_COLOR, rarityColorNum } from './colors';
+import type { Settings } from './settings';
+import type { Sfx } from './audio';
+
+interface ActorView {
+  root: Container;
+  body: Container;
+  weapon?: Graphics;
+  weaponType?: string;
+  hpBar?: Graphics;
+  prev: { x: number; y: number };
+  cur: { x: number; y: number };
+  hurt: number;
+  float: number;
+}
+
+interface DropView { root: Container; glow: Graphics; pillar?: Graphics; icon: Container; t: number }
+interface ProjView { root: Container; prev: { x: number; y: number }; cur: { x: number; y: number } }
+
+const TILE_COLORS: Record<string, [number, number]> = {
+  grass: [0x3f7a3a, 0x447f3e],
+  dirt: [0x8a6e48, 0x8f7350],
+  arena: [0x5a3a33, 0x553730],
+  water: [0x2a64a8, 0x2c68ad],
+  wall: [0x3a3d48, 0x3a3d48],
+};
+
+export class WorldView {
+  readonly camera = new Container();
+  private ground = new Graphics();
+  private telegraphs = new Graphics();
+  private entities = new Container();
+  readonly fx = new Effects();
+  private actors = new Map<number, ActorView>();
+  private projectiles = new Map<number, ProjView>();
+  private drops = new Map<number, DropView>();
+  private camPos = { x: 0, y: 0 };
+  private time = 0;
+
+  constructor(private app: Application, private world: World, private myId: number, private settings: Settings, private sfx: Sfx) {
+    app.stage.addChild(this.camera);
+    this.entities.sortableChildren = true;
+    this.camera.addChild(this.ground, this.fx.groundLayer, this.telegraphs, this.entities, this.fx.layer);
+    this.drawGround();
+    const me = this.myPlayer();
+    const s = toScreen(me.x, me.y);
+    this.camPos = { x: s.x, y: s.y };
+  }
+
+  private myPlayer(): Player {
+    return this.world.players.find((p) => p.id === this.myId)!;
+  }
+
+  private drawGround() {
+    const m = this.world.map;
+    const g = this.ground;
+    const hw = TILE_W / 2, hh = TILE_H / 2;
+    for (let j = 0; j < m.height; j++) {
+      for (let i = 0; i < m.width; i++) {
+        const k = j * m.width + i;
+        const tile = m.tiles[k];
+        const cols = TILE_COLORS[tile] ?? [0xff00ff, 0xff00ff];
+        const c = cols[(i + j) % 2];
+        const p = toScreen(i, j);
+        g.poly([p.x, p.y, p.x + hw, p.y + hh, p.x, p.y + 2 * hh, p.x - hw, p.y + hh]).fill(c);
+        if (tile === 'water') {
+          g.poly([p.x, p.y + 6, p.x + hw - 10, p.y + hh, p.x, p.y + 2 * hh - 6, p.x - hw + 10, p.y + hh]).fill({ color: 0x5aa0e0, alpha: 0.18 });
+        }
+        const sp = m.sprites[k];
+        if (sp) {
+          const s = makeSprite(sp);
+          const c2 = toScreen(i + 0.5, j + 0.5);
+          s.x = c2.x; s.y = c2.y;
+          s.zIndex = depth(i + 0.5, j + 0.5);
+          this.entities.addChild(s);
+        }
+      }
+    }
+    // 外周の暗い縁
+    const tl = toScreen(0, 0), tr = toScreen(m.width, 0), br = toScreen(m.width, m.height), bl = toScreen(0, m.height);
+    g.poly([tl.x, tl.y, tr.x, tr.y, br.x, br.y, bl.x, bl.y]).stroke({ width: 4, color: 0x0a0c10 });
+  }
+
+  /** step の前に呼ぶ。補間用に今の位置を覚える */
+  capturePrev() {
+    for (const p of this.world.players) { const v = this.actors.get(p.id); if (v) v.prev = { x: p.x, y: p.y }; }
+    for (const m of this.world.monsters) { const v = this.actors.get(m.id); if (v) v.prev = { x: m.x, y: m.y }; }
+    for (const pr of this.world.projectiles) { const v = this.projectiles.get(pr.id); if (v) v.prev = { x: pr.x, y: pr.y }; }
+  }
+
+  handleEvents(events: GameEvent[]) {
+    const mode = this.settings.damageDisplay;
+    for (const e of events) {
+      switch (e.type) {
+        case 'damage': {
+          if (mode !== 'mine' || e.src === this.myId) this.fx.damage(e, mode);
+          const col = e.toPlayer ? 0xff5050 : e.weak ? ELEMENT_COLOR[e.element] : e.crit ? 0xffd23a : 0xffffff;
+          this.fx.spark(e.x, e.y, col);
+          const v = this.actors.get(e.tgt);
+          if (v) v.hurt = 0.15;
+          if (e.crit && e.src === this.myId && this.settings.shake) this.fx.shake = Math.max(this.fx.shake, 6);
+          if (e.tgt === this.myId) { this.sfx.play('hurt'); if (this.settings.shake) this.fx.shake = Math.max(this.fx.shake, 4); }
+          else this.sfx.play(e.crit ? 'crit' : 'hit', e.src === this.myId ? 1 : 0.4);
+          break;
+        }
+        case 'evade':
+          if (e.tgt === this.myId) { this.fx.text(e.x, e.y, 'MISS', 0x9fe8ff); this.sfx.play('evade'); }
+          break;
+        case 'attack': {
+          if (e.src !== this.myId) {
+            const m = this.world.monsters.find((x) => x.id === e.src);
+            if (m && CONTENT.monsters[m.defId].boss) this.sfx.play('warn', 0.8);
+            break;
+          }
+          if (e.skill) this.sfx.play('skill');
+          else this.sfx.play(e.weapon === 'bow' ? 'shoot' : e.weapon === 'staff' ? 'magic' : 'swing');
+          break;
+        }
+        case 'impact': {
+          const color = e.team === 0 ? (e.element === 'neutral' ? 0xdfefff : ELEMENT_COLOR[e.element]) : 0xff3a2a;
+          this.fx.flashShape(e.x, e.y, e.shape, e.dir, color, e.team === 0 ? 0.28 : 0.5);
+          if (e.team === 1 && e.shape.type === 'circle' && e.shape.radius >= 3) {
+            this.sfx.play('quake');
+            if (this.settings.shake) this.fx.shake = Math.max(this.fx.shake, 12);
+          }
+          break;
+        }
+        case 'explode':
+          this.fx.burst(e.x, e.y, ELEMENT_COLOR[e.element], e.radius * 0.6, 0.35);
+          this.sfx.play('explode', 0.7);
+          break;
+        case 'death':
+          this.fx.burst(e.x, e.y, e.player ? 0xff4040 : 0xffffff, e.boss ? 2.5 : 0.8, e.boss ? 0.8 : 0.4);
+          this.sfx.play('death', e.boss ? 1 : 0.6);
+          if (e.boss && this.settings.shake) this.fx.shake = 16;
+          break;
+        case 'drop': {
+          const rd = CONTENT.rarities.defs[e.rarity];
+          if (rd.sfx) this.sfx.play('legend');
+          else if (rd.glow) this.sfx.play('dropRare');
+          else this.sfx.play('drop', 0.6);
+          break;
+        }
+        case 'pickup':
+          if (e.playerId === this.myId) this.sfx.play('pickup');
+          break;
+        case 'dodge':
+          if (e.id === this.myId) this.sfx.play('dodge');
+          break;
+        case 'respawn':
+          if (e.id === this.myId) this.sfx.play('respawn');
+          break;
+        case 'enrage':
+          this.sfx.play('enrage');
+          if (this.settings.shake) this.fx.shake = 10;
+          break;
+        case 'equip':
+          if (e.playerId === this.myId) this.sfx.play('equip');
+          break;
+      }
+    }
+  }
+
+  private actorView(a: Player | Monster): ActorView {
+    let v = this.actors.get(a.id);
+    if (!v) {
+      const root = new Container();
+      const sprite = a.kind === 'player' ? 'player' : CONTENT.monsters[a.defId].sprite;
+      const body = makeSprite(sprite);
+      root.addChild(body);
+      v = { root, body, prev: { x: a.x, y: a.y }, cur: { x: a.x, y: a.y }, hurt: 0, float: Math.random() * 10 };
+      if (a.kind === 'monster' && !CONTENT.monsters[a.defId].boss) {
+        v.hpBar = new Graphics();
+        root.addChild(v.hpBar);
+      }
+      if (a.kind === 'player' && a.id !== this.myId) {
+        // 自分以外のプレイヤー（オンライン化後）
+        body.tint = 0xb0ffb0;
+      }
+      this.entities.addChild(root);
+      this.actors.set(a.id, v);
+    }
+    return v;
+  }
+
+  render(alpha: number, dtMs: number) {
+    const dt = dtMs / 1000;
+    this.time += dt;
+    const w = this.world;
+    const seen = new Set<number>();
+
+    const lerp = (v: { prev: { x: number; y: number } }, x: number, y: number) => ({
+      x: v.prev.x + (x - v.prev.x) * alpha,
+      y: v.prev.y + (y - v.prev.y) * alpha,
+    });
+
+    // キャラ
+    for (const a of [...w.players, ...w.monsters] as (Player | Monster)[]) {
+      seen.add(a.id);
+      const v = this.actorView(a);
+      const pos = lerp(v, a.x, a.y);
+      v.cur = pos;
+      const s = toScreen(pos.x, pos.y);
+      v.root.x = s.x; v.root.y = s.y;
+      v.root.zIndex = depth(pos.x, pos.y) + 0.01;
+      v.hurt = Math.max(0, v.hurt - dt);
+      v.float += dt;
+      const flying = a.kind === 'monster' && (a.defId === 'hornet' || a.defId === 'wisp');
+      v.body.y = flying ? Math.sin(v.float * 4) * 3 : 0;
+      if (a.kind === 'monster' && a.moving && !flying) v.body.scale.y = 1 + Math.sin(v.float * 14) * 0.05;
+      else v.body.scale.y = 1;
+      v.body.tint = v.hurt > 0 ? 0xff8080 : 0xffffff;
+
+      if (a.kind === 'player') {
+        v.root.visible = !a.dead;
+        v.root.alpha = a.dodgeTicks > 0 ? 0.55 : a.iframes > 0 ? 0.75 + Math.sin(this.time * 30) * 0.2 : 1;
+        const wt = a.equipment.weapon?.weaponType;
+        if (v.weaponType !== wt) {
+          v.weapon?.destroy();
+          v.weapon = makeWeaponGlyph(wt);
+          v.weaponType = wt;
+          v.root.addChild(v.weapon);
+        }
+        if (v.weapon) {
+          const f = toScreen(Math.cos(a.facing), Math.sin(a.facing));
+          const fl = Math.hypot(f.x, f.y) || 1;
+          v.weapon.x = (f.x / fl) * 16;
+          v.weapon.y = -22 + (f.y / fl) * 8;
+          v.weapon.rotation = wt === 'oneHandSword' ? Math.atan2(f.y, f.x) : 0;
+          v.weapon.scale.x = wt !== 'oneHandSword' && f.x < 0 ? -1 : 1;
+          v.weapon.zIndex = f.y < 0 ? -1 : 1;
+        }
+        v.body.scale.x = Math.cos(a.facing) - Math.sin(a.facing) < 0 ? -1 : 1;
+      } else {
+        const def = CONTENT.monsters[a.defId];
+        if (v.hpBar) {
+          v.hpBar.clear();
+          if (a.hp < a.stats.maxHp) {
+            const wbar = 34, top = def.radius > 0.5 ? -66 : -46;
+            v.hpBar.rect(-wbar / 2 - 1, top - 1, wbar + 2, 6).fill(0x000000);
+            v.hpBar.rect(-wbar / 2, top, wbar * Math.max(0, a.hp / a.stats.maxHp), 4).fill(0xe8453c);
+          }
+        }
+        v.body.scale.x = Math.cos(a.facing) - Math.sin(a.facing) < 0 ? -1 : 1;
+      }
+    }
+    for (const [id, v] of this.actors) {
+      if (!seen.has(id)) { v.root.destroy({ children: true }); this.actors.delete(id); }
+    }
+
+    // 飛び道具
+    const seenP = new Set<number>();
+    for (const pr of w.projectiles) {
+      seenP.add(pr.id);
+      let v = this.projectiles.get(pr.id);
+      if (!v) {
+        const root = makeSprite(pr.sprite);
+        this.entities.addChild(root);
+        v = { root, prev: { x: pr.x - pr.vx, y: pr.y - pr.vy }, cur: { x: pr.x, y: pr.y } };
+        this.projectiles.set(pr.id, v);
+      }
+      this.placeProjectile(v, pr, alpha);
+    }
+    for (const [id, v] of this.projectiles) {
+      if (!seenP.has(id)) { v.root.destroy({ children: true }); this.projectiles.delete(id); }
+    }
+
+    // ドロップ
+    const seenD = new Set<number>();
+    for (const d of w.drops) {
+      seenD.add(d.id);
+      let v = this.drops.get(d.id);
+      if (!v) { v = this.makeDrop(d); this.drops.set(d.id, v); }
+      v.t += dt;
+      v.icon.y = -14 + Math.sin(v.t * 3) * 3;
+      v.glow.alpha = 0.55 + Math.sin(v.t * 4) * 0.25;
+      if (v.pillar) v.pillar.alpha = 0.65 + Math.sin(v.t * 2.5) * 0.2;
+      v.root.alpha = d.ticksLeft < 100 ? 0.4 + 0.6 * Math.abs(Math.sin(v.t * 6)) : 1;
+    }
+    for (const [id, v] of this.drops) {
+      if (!seenD.has(id)) { v.root.destroy({ children: true }); this.drops.delete(id); }
+    }
+
+    // ボスの予兆
+    this.telegraphs.clear();
+    for (const s of w.strikes) {
+      if (!s.telegraph || w.tick >= s.nextTick) continue;
+      const total = Math.max(1, s.nextTick - s.startTick);
+      const k = Math.min(1, (w.tick - s.startTick + alpha) / total);
+      drawIsoShape(this.telegraphs, s.x, s.y, s.shape, s.dir);
+      this.telegraphs.fill({ color: 0xff2a1a, alpha: 0.14 + 0.1 * Math.sin(this.time * 18) }).stroke({ width: 2, color: 0xff3a2a, alpha: 0.9 });
+      const inner = s.shape.type === 'circle' ? { ...s.shape, radius: s.shape.radius * k } : { ...s.shape, range: s.shape.range * k };
+      drawIsoShape(this.telegraphs, s.x, s.y, inner, s.dir);
+      this.telegraphs.fill({ color: 0xff2a1a, alpha: 0.32 });
+    }
+
+    // 自分の足元の向き
+    const me = this.myPlayer();
+    const mv = this.actors.get(me.id);
+    if (mv && !me.dead) {
+      const tip = toScreen(mv.cur.x + Math.cos(me.facing) * 0.75, mv.cur.y + Math.sin(me.facing) * 0.75);
+      const l = toScreen(mv.cur.x + Math.cos(me.facing + 0.5) * 0.5, mv.cur.y + Math.sin(me.facing + 0.5) * 0.5);
+      const r = toScreen(mv.cur.x + Math.cos(me.facing - 0.5) * 0.5, mv.cur.y + Math.sin(me.facing - 0.5) * 0.5);
+      const { rx, ry } = isoRadii(0.55);
+      const c = toScreen(mv.cur.x, mv.cur.y);
+      this.telegraphs.ellipse(c.x, c.y, rx, ry).stroke({ width: 2, color: 0x8fd0ff, alpha: 0.45 });
+      this.telegraphs.poly([tip.x, tip.y, l.x, l.y, r.x, r.y]).fill({ color: 0x8fd0ff, alpha: 0.6 });
+    }
+
+    // カメラ
+    const target = mv ? toScreen(mv.cur.x, mv.cur.y) : toScreen(me.x, me.y);
+    const follow = 1 - Math.exp(-dt * 10);
+    this.camPos.x += (target.x - this.camPos.x) * follow;
+    this.camPos.y += (target.y - 30 - this.camPos.y) * follow;
+    const sh = this.fx.shake;
+    const ox = sh > 0 ? (Math.random() - 0.5) * sh : 0;
+    const oy = sh > 0 ? (Math.random() - 0.5) * sh : 0;
+    const zoom = Math.min(1.25, Math.max(0.8, Math.min(this.app.screen.width, this.app.screen.height) / 640));
+    this.camera.scale.set(zoom);
+    this.camera.x = Math.round(this.app.screen.width / 2 - this.camPos.x * zoom + ox);
+    this.camera.y = Math.round(this.app.screen.height / 2 - this.camPos.y * zoom + oy);
+
+    this.fx.update(dt, 0.6);
+  }
+
+  /** 自分のキャラの画面上の位置（マウスで狙うときの基準） */
+  playerScreenPos(): { x: number; y: number } {
+    const v = this.actors.get(this.myId);
+    const p = v ? v.cur : this.myPlayer();
+    const s = toScreen(p.x, p.y);
+    const z = this.camera.scale.x;
+    return { x: this.camera.x + s.x * z, y: this.camera.y + (s.y - 22) * z };
+  }
+
+  private placeProjectile(v: ProjView, pr: Projectile, alpha: number) {
+    const x = v.prev.x + (pr.x - v.prev.x) * alpha;
+    const y = v.prev.y + (pr.y - v.prev.y) * alpha;
+    v.cur = { x, y };
+    const s = toScreen(x, y);
+    v.root.x = s.x; v.root.y = s.y - 20;
+    v.root.zIndex = depth(x, y) + 0.02;
+    const d = toScreen(pr.vx, pr.vy);
+    v.root.rotation = Math.atan2(d.y, d.x);
+  }
+
+  private makeDrop(d: Drop): DropView {
+    const rd = CONTENT.rarities.defs[d.item.rarity];
+    const color = rarityColorNum(d.item.rarity);
+    const root = new Container();
+    const s = toScreen(d.x, d.y);
+    root.x = s.x; root.y = s.y;
+    root.zIndex = depth(d.x, d.y);
+    const glow = new Graphics();
+    const { rx, ry } = isoRadii(rd.glow ? 0.6 : 0.3);
+    if (rd.glow) {
+      for (let i = 4; i >= 1; i--) glow.ellipse(0, 0, rx * i / 4, ry * i / 4).fill({ color, alpha: 0.12 });
+    } else {
+      glow.ellipse(0, 0, rx, ry).fill({ color: 0x000000, alpha: 0.25 });
+    }
+    glow.blendMode = 'add';
+    root.addChild(glow);
+    let pillar: Graphics | undefined;
+    if (rd.pillar) {
+      pillar = new Graphics();
+      const h = d.item.rarity === 'epic' ? 140 : 220;
+      const wdt = d.item.rarity === 'epic' ? 26 : 34;
+      for (let i = 0; i < 12; i++) {
+        const k = i / 12;
+        const ww = wdt * (0.55 + k * 0.45);
+        pillar.rect(-ww / 2, -h + h * k, ww, h / 12 + 1).fill({ color, alpha: 0.04 + k * 0.22 });
+      }
+      pillar.rect(-3, -h, 6, h).fill({ color: 0xffffff, alpha: 0.45 });
+      pillar.blendMode = 'add';
+      root.addChild(pillar);
+    }
+    const icon = makeSprite(d.item.sprite);
+    const ring = new Graphics();
+    ring.circle(0, 0, 13).fill({ color: 0x0b0e14, alpha: 0.6 }).stroke({ width: 2, color });
+    icon.addChildAt(ring, 0);
+    root.addChild(icon);
+    this.entities.addChild(root);
+    return { root, glow, pillar, icon, t: Math.random() * 3 };
+  }
+}

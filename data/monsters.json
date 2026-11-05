@@ -1,0 +1,51 @@
+{
+  "slime": {
+    "name": "スライム", "sprite": "slime", "element": "water", "hp": 520, "atk": 52, "matk": 20, "def": 8, "mdef": 6,
+    "critRate": 0.03, "speed": 1.7, "radius": 0.4, "aggroRange": 5, "leashRange": 12, "respawn": 12, "drops": "field",
+    "attackInterval": 0.6,
+    "attacks": [
+      { "id": "tackle", "delivery": "strike", "anchor": "self", "shape": { "type": "arc", "range": 1.2, "arc": 100 },
+        "windup": 0.5, "cooldown": 1.6, "power": 1.0, "range": 1.1, "weight": 1 }
+    ]
+  },
+  "hornet": {
+    "name": "ホーネット", "sprite": "hornet", "element": "wind", "hp": 380, "atk": 56, "matk": 20, "def": 4, "mdef": 8,
+    "critRate": 0.08, "speed": 3.2, "radius": 0.3, "aggroRange": 7, "leashRange": 14, "respawn": 12, "drops": "field",
+    "attackInterval": 0.4,
+    "attacks": [
+      { "id": "sting", "delivery": "strike", "anchor": "self", "shape": { "type": "arc", "range": 1.1, "arc": 80 },
+        "windup": 0.3, "cooldown": 1.2, "power": 0.9, "range": 1.0, "weight": 1 }
+    ]
+  },
+  "golem": {
+    "name": "ストーンゴーレム", "sprite": "golem", "element": "earth", "hp": 1500, "atk": 82, "matk": 10, "def": 45, "mdef": 8,
+    "critRate": 0.02, "speed": 1.1, "radius": 0.55, "aggroRange": 4.5, "leashRange": 10, "respawn": 18, "drops": "field",
+    "attackInterval": 0.8,
+    "attacks": [
+      { "id": "smash", "delivery": "strike", "anchor": "self", "shape": { "type": "circle", "radius": 1.7 },
+        "windup": 0.9, "cooldown": 2.8, "power": 1.4, "range": 1.5, "weight": 1 }
+    ]
+  },
+  "wisp": {
+    "name": "シャドウウィスプ", "sprite": "wisp", "element": "dark", "hp": 440, "atk": 20, "matk": 68, "def": 5, "mdef": 32,
+    "critRate": 0.05, "speed": 2.0, "radius": 0.32, "aggroRange": 7, "leashRange": 13, "respawn": 14, "drops": "field",
+    "attackInterval": 0.6, "keepDistance": 4,
+    "attacks": [
+      { "id": "shadow_bolt", "delivery": "projectile", "damageType": "magic", "windup": 0.5, "cooldown": 2.0, "power": 1.0, "range": 6.5, "weight": 1,
+        "projectile": { "count": 1, "spread": 0, "speed": 7, "range": 8, "radius": 0.3, "pierce": 1, "sprite": "shadow" } }
+    ]
+  },
+  "ignaros": {
+    "name": "灰燼の巨獣イグナロス", "sprite": "ignaros", "element": "fire", "boss": true, "hp": 16000, "atk": 105, "matk": 90, "def": 30, "mdef": 25,
+    "critRate": 0.05, "speed": 2.0, "radius": 1.0, "aggroRange": 8, "leashRange": 15, "respawn": 60, "drops": "boss",
+    "attackInterval": 0.9,
+    "attacks": [
+      { "id": "swipe", "delivery": "strike", "anchor": "self", "shape": { "type": "arc", "range": 3.2, "arc": 140 }, "telegraph": true,
+        "windup": 0.75, "cooldown": 2.2, "power": 1.3, "range": 2.8, "weight": 3 },
+      { "id": "quake", "delivery": "strike", "anchor": "self", "shape": { "type": "circle", "radius": 4.2 }, "telegraph": true,
+        "windup": 1.3, "cooldown": 7, "power": 2.3, "range": 4.0, "weight": 2 },
+      { "id": "meteor", "delivery": "strike", "anchor": "target", "count": 4, "scatter": 2.6, "shape": { "type": "circle", "radius": 1.5 }, "telegraph": true,
+        "damageType": "magic", "windup": 1.1, "cooldown": 6, "power": 1.8, "range": 12, "weight": 2 }
+    ]
+  }
+}
