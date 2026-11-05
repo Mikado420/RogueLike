@@ -9,6 +9,8 @@ import { subJobsBox } from './crafting';
 import { btn, h, kv } from './dom';
 import { elName, modLabel, modText, type Ctx } from './ctx';
 import type { DamageDisplay } from '../settings';
+import { ACTIONS } from '../input';
+import { keyLabel } from '../keys';
 
 export type MenuTab = 'status' | 'skills' | 'items' | 'settings';
 const TABS: MenuTab[] = ['status', 'skills', 'items', 'settings'];
@@ -395,19 +397,94 @@ export class Menu {
   private renderSettings(el: HTMLElement) {
     const s = this.ctx.settings;
     const body = h('div', 'settings');
+    const apply = () => { this.ctx.applySettings(); this.ctx.saveSettings(); };
     const seg = <T extends string | boolean>(label: string, opts: [T, string][], get: () => T, set: (v: T) => void) => {
       const row = h('div', 'set-row');
       row.append(h('div', 'set-label', label));
       const g = h('div', 'seg');
       for (const [v, name] of opts) {
-        g.append(btn(name, () => { set(v); this.ctx.saveSettings(); this.refresh(); }, `seg-btn${get() === v ? ' on' : ''}`));
+        g.append(btn(name, () => { set(v); apply(); this.refresh(); }, `seg-btn${get() === v ? ' on' : ''}`));
       }
       row.append(g);
       body.append(row);
     };
     seg<DamageDisplay>(txt('settings.damage'), [['all', txt('settings.all')], ['mine', txt('settings.mine')], ['total', txt('settings.total')]], () => s.damageDisplay, (v) => (s.damageDisplay = v));
-    seg<boolean>(txt('settings.sound'), [[true, txt('on')], [false, txt('off')]], () => s.sound, (v) => { s.sound = v; this.ctx.sfx.enabled = v; });
+    seg<boolean>(txt('settings.sound'), [[true, txt('on')], [false, txt('off')]], () => s.sound, (v) => (s.sound = v));
     seg<boolean>(txt('settings.shake'), [[true, txt('on')], [false, txt('off')]], () => s.shake, (v) => (s.shake = v));
+    seg<'high' | 'low'>(txt('settings.quality'), [['high', txt('settings.high')], ['low', txt('settings.low')]], () => s.quality, (v) => (s.quality = v));
+
+    // 音量
+    const vol = h('div', 'set-sec');
+    vol.append(h('div', 'sec-title', txt('settings.volume')));
+    for (const k of ['master', 'sfx', 'bgm'] as const) {
+      const row = h('label', 'slider-row');
+      const input = h('input');
+      input.type = 'range'; input.min = '0'; input.max = '100'; input.step = '5';
+      input.value = String(Math.round(s.volume[k] * 100));
+      const v = h('span', 'v', input.value);
+      input.addEventListener('input', () => { s.volume[k] = Number(input.value) / 100; v.textContent = input.value; this.ctx.applySettings(); });
+      input.addEventListener('change', () => this.ctx.saveSettings());
+      row.append(h('span', '', txt(`settings.${k}`)), input, v);
+      vol.append(row);
+    }
+    body.append(vol);
+
+    // キー割り当て
+    const keys = h('div', 'set-sec keys-sec');
+    const kh = h('div', 'set-row');
+    kh.append(h('div', 'sec-title', txt('settings.keys')), btn(txt('settings.reset'), () => { s.keys = {}; apply(); this.refresh(); }, 'mini'));
+    keys.append(kh);
+    const grid = h('div', 'keys-grid');
+    const b = this.ctx.input.currentBindings;
+    for (const a of ACTIONS) {
+      const row = h('div', 'key-row');
+      const kb = h('button', 'key-btn', b[a].slice(0, 2).map(keyLabel).join(' / '));
+      kb.addEventListener('click', (e) => {
+        e.stopPropagation();
+        kb.textContent = txt('settings.waiting');
+        kb.classList.add('wait');
+        this.ctx.input.captureNext((code) => {
+          if (code) {
+            const cur = this.ctx.input.currentBindings;
+            // 他の操作に同じキーがあれば外す
+            for (const o of ACTIONS) {
+              if (o !== a && cur[o].includes(code)) s.keys[o] = cur[o].filter((c) => c !== code);
+            }
+            s.keys[a] = [code, ...cur[a].filter((c) => c !== code)].slice(0, 2);
+            apply();
+          }
+          this.refresh();
+        });
+      });
+      row.append(h('span', '', txt(`act.${a}`)), kb);
+      grid.append(row);
+    }
+    keys.append(grid);
+    body.append(keys);
+
+    // セーブデータ
+    const data = h('div', 'set-sec');
+    data.append(h('div', 'sec-title', txt('settings.data')));
+    const acts = h('div', 'set-actions');
+    acts.append(btn(txt('settings.export'), () => void this.ctx.exportSave(), 'btn'));
+    const file = h('input');
+    file.type = 'file';
+    file.accept = 'application/json,.json';
+    file.style.display = 'none';
+    let pending: string | null = null;
+    const over = btn(txt('settings.overwrite'), async () => {
+      if (pending && !(await this.ctx.importSave(pending))) this.ctx.hud.toast(txt('err.importFailed'), '#ff8a7a');
+    }, 'btn danger');
+    over.style.display = 'none';
+    file.addEventListener('change', async () => {
+      const f = file.files?.[0];
+      if (!f) return;
+      pending = await f.text();
+      over.style.display = '';
+    });
+    acts.append(btn(txt('settings.import'), () => file.click(), 'btn'), over, file);
+    data.append(acts);
+    body.append(data);
     el.append(body);
   }
 }

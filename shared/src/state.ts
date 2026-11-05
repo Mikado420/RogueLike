@@ -83,6 +83,7 @@ export interface CharacterData {
   sub: Record<'gather' | 'smith' | 'cook' | 'alchemy', { level: number; exp: number }>;
   pets: PetData[];
   activePet: number | null;
+  tutorial: { step: number; count: number; done: boolean };
 }
 
 export interface PetData { uid: number; species: string; name: string; level: number; exp: number; skills: string[]; role: 'battle' | 'gather'; elite: boolean }
@@ -167,7 +168,8 @@ export type Command =
   | { type: 'setActivePet'; uid: number | null }
   | { type: 'setPetRole'; uid: number; role: 'battle' | 'gather' }
   | { type: 'inheritPet'; base: number; material: number; skill: string; slot: number }
-  | { type: 'releasePet'; uid: number };
+  | { type: 'releasePet'; uid: number }
+  | { type: 'skipTutorial' };
 
 export const emptyInput = (): PlayerInput => ({
   move: { x: 0, y: 0 }, aim: null, attack: false, skill: -1, dodge: false, interact: false, commands: [],
@@ -246,6 +248,7 @@ export interface Player extends ActorBase {
   /** 固有効果の条件（HP・回避直後など）の今の状態 */
   condKey: string;
   cheatDeathAt: number;
+  tutPos: { x: number; y: number };
 }
 
 export type AiState = 'wander' | 'chase' | 'return';
@@ -476,4 +479,5 @@ export type GameEvent =
   | { type: 'crafted'; playerId: number; kind: 'smith' | 'cook' | 'alchemy'; uid?: number; id?: string }
   | { type: 'subLevel'; playerId: number; job: string; level: number }
   | { type: 'capture'; playerId: number; success: boolean; species: string; x: number; y: number }
-  | { type: 'petLevel'; playerId: number; uid: number; level: number };
+  | { type: 'petLevel'; playerId: number; uid: number; level: number }
+  | { type: 'tutorial'; playerId: number; step: number; done: boolean };

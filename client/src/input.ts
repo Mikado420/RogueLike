@@ -1,6 +1,7 @@
 import type { Command, PlayerInput } from '../../shared/src';
 import { screenDirToWorld } from './iso';
 
+export const ACTIONS = ['up', 'down', 'left', 'right', 'attack', 'skill1', 'skill2', 'skill3', 'skill4', 'dodge', 'interact', 'potion', 'capture', 'menu'] as const;
 export type Action = 'up' | 'down' | 'left' | 'right' | 'attack' | 'skill1' | 'skill2' | 'skill3' | 'skill4' | 'dodge' | 'interact' | 'potion' | 'capture' | 'menu';
 
 /** 既定のキー割り当て（設定で変えられる） */
@@ -40,6 +41,8 @@ export class InputManager {
   /** メニューを開いている間などは false */
   enabled = true;
   onAction: ((a: Action) => void) | null = null;
+  /** 次に押したキーを受け取る（キー割り当ての変更用） */
+  private capture: ((code: string | null) => void) | null = null;
 
   constructor(canvasHost: HTMLElement) {
     window.addEventListener('keydown', (e) => this.onKey(e, true));
@@ -63,6 +66,11 @@ export class InputManager {
     this.bindings = { ...DEFAULT_KEYS, ...b };
   }
 
+  get currentBindings(): Record<Action, string[]> { return this.bindings; }
+
+  /** 次のキーを1つ待つ。Escape で取り消し（null） */
+  captureNext(cb: ((code: string | null) => void) | null) { this.capture = cb; }
+
   private is(a: Action, code: string) { return this.bindings[a].includes(code); }
   private held(a: Action) { return this.bindings[a].some((k) => this.keys.has(k)); }
 
@@ -70,6 +78,13 @@ export class InputManager {
     const t = e.target as HTMLElement | null;
     if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT')) return;
     const k = e.code;
+    if (down && this.capture) {
+      e.preventDefault();
+      const cb = this.capture;
+      this.capture = null;
+      cb(k === 'Escape' ? null : k);
+      return;
+    }
     if (down) {
       if (!this.keys.has(k)) {
         if (this.is('menu', k)) { e.preventDefault(); this.onAction?.('menu'); }

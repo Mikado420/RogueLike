@@ -9,7 +9,7 @@ import { createItem } from './systems/loot';
  * セーブデータの形。構造を変えたら SAVE_VERSION を上げ、MIGRATIONS に変換を足す。
  * 保存先（IndexedDB・サーバーのDB）は client 側の SaveStore が決める。
  */
-export const SAVE_VERSION = 6;
+export const SAVE_VERSION = 7;
 
 type Raw = Record<string, unknown>;
 
@@ -59,6 +59,11 @@ export const MIGRATIONS: Record<number, (d: Raw) => Raw> = {
     for (const ch of (d.characters as Raw[] | undefined) ?? []) { ch.pets = []; ch.activePet = null; }
     return d;
   },
+  /** 6 → 7：チュートリアル（もう遊んでいるキャラは済み扱い） */
+  6: (d) => {
+    for (const ch of (d.characters as Raw[] | undefined) ?? []) ch.tutorial = { step: 0, count: 0, done: true };
+    return d;
+  },
 };
 
 export function newSub() {
@@ -93,8 +98,8 @@ export function newCharacter(acc: AccountData, name: string, look: { body: numbe
   const equipment = Object.fromEntries(EQUIP_SLOTS.map((s) => [s, null])) as CharacterData['equipment'];
   for (const e of st.equipment) equipment[e.slot] = createItem(acc.nextUid++, e.base, 0, 1, 'common', rng, c);
   const inventory = st.inventory.map((e) => createItem(acc.nextUid++, e.base, 0, 1, 'common', rng, c));
-  const area = c.balance.world.startArea;
-  const sp = c.areas[area].playerSpawn ?? { x: 0, y: 0 };
+  const area = c.tutorial.area || c.balance.world.startArea;
+  const sp = c.areas[area]?.playerSpawn ?? { x: 0, y: 0 };
   const ch: CharacterData = {
     id: `c${acc.nextUid++}`,
     name: name.trim().slice(0, 12) || '冒険者',
@@ -128,6 +133,7 @@ export function newCharacter(acc: AccountData, name: string, look: { body: numbe
     sub: newSub(),
     pets: [],
     activePet: null,
+    tutorial: { step: 0, count: 0, done: false },
   };
   for (const it of [...inventory, ...Object.values(equipment)]) if (it && !ch.appearance.looks.includes(it.look)) ch.appearance.looks.push(it.look);
   acc.characters.push(ch);
@@ -169,6 +175,7 @@ export function normalizeCharacter(ch: CharacterData, c: Content = CONTENT): Cha
   ch.sub ??= newSub();
   ch.pets ??= [];
   ch.activePet ??= null;
+  ch.tutorial ??= { step: 0, count: 0, done: true };
   return ch;
 }
 

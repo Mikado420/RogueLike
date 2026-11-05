@@ -1,4 +1,4 @@
-import { CONTENT, newCharacter, txt, type AccountData, type SaveStore } from '../../../shared/src';
+import { CONTENT, deserializeAccount, newCharacter, txt, type AccountData, type SaveStore } from '../../../shared/src';
 import { BODY_COLORS, HAIR_COLORS } from '../colors';
 import { btn, h } from './dom';
 
@@ -32,7 +32,25 @@ export function showTitle(account: AccountData, store: SaveStore): Promise<strin
       const list = h('div', 'title-buttons');
       if (account.characters.length > 0) list.append(btn(txt('title.continue'), chars, 'btn primary big'));
       list.append(btn(txt('title.new'), create, account.characters.length ? 'btn big' : 'btn primary big'));
-      box.append(list);
+      const file = h('input');
+      file.type = 'file';
+      file.accept = 'application/json,.json';
+      file.style.display = 'none';
+      const err = h('div', 'title-err');
+      file.addEventListener('change', async () => {
+        const f = file.files?.[0];
+        if (!f) return;
+        let acc: AccountData;
+        try {
+          acc = deserializeAccount(await f.text());
+          if (!Array.isArray(acc.characters)) throw new Error('bad');
+        } catch { err.textContent = txt('err.importFailed'); return; }
+        const apply = async () => { await store.save(acc); location.reload(); };
+        if (account.characters.length === 0) { await apply(); return; }
+        err.replaceChildren(btn(txt('settings.overwrite'), () => void apply(), 'btn danger'));
+      });
+      list.append(btn(txt('title.import'), () => file.click(), 'btn'), file);
+      box.append(list, err);
     };
 
     const chars = () => {

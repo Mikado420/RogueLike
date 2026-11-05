@@ -526,6 +526,7 @@ export interface Content {
   subjobs: SubJobsDef;
   recipes: RecipesDef;
   pets: PetsDef;
+  tutorial: { area: string; steps: { id: string; type: string; n: number; text: string; keys: string[]; tab?: string; dir?: string; gift?: { base: string; rarity: Rarity } }[]; reward: { gold: number; items: Record<string, number> } };
   tiles: Record<string, { colors: [string, string]; shine?: string }>;
   text: Record<string, string>;
 }

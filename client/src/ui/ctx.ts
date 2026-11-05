@@ -3,6 +3,7 @@ import type { Settings } from '../settings';
 import type { Sfx } from '../audio';
 import type { Modal } from './modal';
 import type { Hud } from '../hud';
+import type { InputManager } from '../input';
 
 /** UI から使う共通の窓口 */
 export interface Ctx {
@@ -15,6 +16,11 @@ export interface Ctx {
   sfx: Sfx;
   modal: Modal;
   hud: Hud;
+  input: InputManager;
+  /** 設定を今のゲームに反映する */
+  applySettings(): void;
+  exportSave(): Promise<void>;
+  importSave(text: string): Promise<boolean>;
 }
 
 const PCT_KEYS = new Set<string>(['critRate', 'critDamage', 'lifestealPct', 'evasion', 'blockRate']);

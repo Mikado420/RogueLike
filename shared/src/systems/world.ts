@@ -20,6 +20,7 @@ import { updateInvasion } from './events';
 import { ensureMissions } from './quest';
 import { placeNodes, updateNodes } from './crafting';
 import { updatePets } from './pets';
+import { updateTutorial } from './tutorial';
 
 export interface WorldOptions {
   account: AccountData;
@@ -57,7 +58,7 @@ export function makePlayer(w: World, char: CharacterData): Player {
     mp: Math.min(char.mp ?? 0, stats.maxMp), st: stats.maxSt, stDelay: 0, attackCd: 0, chainIndex: 0, chainUntil: 0,
     skillCd: {}, skillCdMax: {}, lock: 0, dodgeTicks: 0, dodgeDir: { x: 0, y: 0 }, dashSpeed: 0, iframes: 0,
     respawnTicks: 0, prevAttack: false, charge: 0, ammo: -1, reloadTicks: 0, combo: 0, comboUntil: 0, rhythm: 0,
-    lastDodgeTick: -9999, lastCombatTick: -9999, regenAcc: 0, condKey: '', cheatDeathAt: -1e9,
+    lastDodgeTick: -9999, lastCombatTick: -9999, regenAcc: 0, condKey: '', cheatDeathAt: -1e9, tutPos: { x: 0, y: 0 },
   };
 }
 
@@ -240,7 +241,7 @@ export function step(w: World, inputs: Map<number, PlayerInput>, now?: number): 
   updateInvasion(w);
   updateNodes(w);
   for (const fn of areaUpdaters) fn(w);
-  for (const p of w.players) p.char.playTime += 1 / w.content.balance.tickRate;
+  for (const p of w.players) { p.char.playTime += 1 / w.content.balance.tickRate; updateTutorial(w, p); }
   return w.events;
 }
 

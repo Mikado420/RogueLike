@@ -1,6 +1,6 @@
 import type { Application, Ticker } from 'pixi.js';
 import {
-  CONTENT, createWorld, step, syncCharacters, type AccountData, type Command, type GameEvent, type SaveStore, type World,
+  CONTENT, createWorld, deserializeAccount, serializeAccount, step, syncCharacters, txt, type AccountData, type Command, type GameEvent, type SaveStore, type World,
 } from '../../shared/src';
 import { InputManager } from './input';
 import { WorldView } from './view';
@@ -15,6 +15,7 @@ import { NpcPanels } from './ui/npc';
 import { registerContentPanels } from './ui/content';
 import { registerCraftPanels } from './ui/crafting';
 import { registerPetTab } from './ui/pets';
+import { registerOnlineTab } from './ui/online';
 import type { Ctx } from './ui/ctx';
 
 const AUTOSAVE_MS = 15000;
@@ -33,6 +34,8 @@ export class Game {
   private lastSave = performance.now();
   private tickFn: (t: Ticker) => void;
   private saving = false;
+  /** 読み込み後は保存しない（再読み込みまで） */
+  private frozen = false;
   ambience = new Ambience();
   music = new Music(CONTENT.music.tracks);
   private musicTimer = 0;
@@ -47,11 +50,8 @@ export class Game {
     this.input.setBindings(settings.keys ?? {});
     this.view = new WorldView(app, this.world, myId, settings, sfx);
     app.stage.addChild(this.ambience.layer);
-    this.ambience.quality = settings.quality;
-    this.music.setVolume(settings.volume.bgm * settings.volume.master);
-    this.music.enabled = settings.sound;
-    sfx.volume = settings.volume.sfx * settings.volume.master;
     this.hud = new Hud(this.world, myId, this.input, sfx);
+    this.applySettings();
     this.modal = new Modal(document.getElementById('ui')!);
     const self = this;
     this.ctx = {
@@ -64,12 +64,17 @@ export class Game {
       sfx,
       modal: this.modal,
       hud: this.hud,
+      input: this.input,
+      applySettings: () => this.applySettings(),
+      exportSave: () => this.exportSave(),
+      importSave: (text: string) => this.importSave(text),
     };
     this.menu = new Menu(this.ctx);
     this.npc = new NpcPanels(this.ctx);
     registerContentPanels(this.npc, this.menu, this.ctx);
     registerCraftPanels(this.npc);
     registerPetTab(this.menu, this.ctx);
+    registerOnlineTab(this.menu);
     this.modal.onChange = () => { this.input.enabled = !this.modal.isOpen; };
     this.hud.onMenu = () => this.menu.toggle();
     this.hud.onPotion = () => this.usePotion();
@@ -86,6 +91,43 @@ export class Game {
     window.addEventListener('pagehide', this.onHide);
     document.addEventListener('visibilitychange', this.onHide);
     (window as unknown as { eg: unknown }).eg = { game: this, get world() { return self.world; }, get me() { return self.ctx.me(); } };
+  }
+
+  applySettings() {
+    const s = this.settings;
+    this.sfx.enabled = s.sound;
+    this.sfx.volume = s.volume.sfx * s.volume.master;
+    this.music.enabled = s.sound;
+    this.music.setVolume(s.volume.bgm * s.volume.master);
+    this.ambience.quality = s.quality;
+    this.input.setBindings(s.keys ?? {});
+    this.hud.refreshKeys();
+    const res = s.quality === 'high' ? Math.min(window.devicePixelRatio || 1, 2) : 1;
+    if (this.app.renderer.resolution !== res) {
+      this.app.renderer.resolution = res;
+      this.app.renderer.resize(this.app.screen.width, this.app.screen.height);
+    }
+  }
+
+  /** セーブをファイルに書き出す */
+  async exportSave() {
+    await this.save();
+    const blob = new Blob([serializeAccount(this.account)], { type: 'application/json' });
+    const d = new Date();
+    const stamp = `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}${String(d.getDate()).padStart(2, '0')}-${String(d.getHours()).padStart(2, '0')}${String(d.getMinutes()).padStart(2, '0')}`;
+    downloadBlob(blob, `endless-garden-${stamp}.json`);
+    this.hud.toast(txt('notice.exported'), '#9fe8ff');
+  }
+
+  /** ファイルから読み込んで置き換え、最初からやり直す */
+  async importSave(text: string): Promise<boolean> {
+    let acc: AccountData;
+    try { acc = deserializeAccount(text); } catch { return false; }
+    if (!Array.isArray(acc.characters)) return false;
+    this.frozen = true;
+    await this.store.save(acc);
+    location.reload();
+    return true;
   }
 
   private onHide = () => { if (document.visibilityState !== 'visible') void this.save(); };
@@ -144,7 +186,7 @@ export class Game {
   }
 
   async save() {
-    if (this.saving) return;
+    if (this.saving || this.frozen) return;
     this.saving = true;
     this.lastSave = performance.now();
     try {
@@ -164,4 +206,15 @@ export class Game {
     this.view.camera.destroy({ children: true });
     this.modal.close();
   }
+}
+
+export function downloadBlob(blob: Blob, name: string) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = name;
+  document.body.append(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
 }

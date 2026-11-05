@@ -1,0 +1,15 @@
+{
+  "area": "meadow",
+  "steps": [
+    { "id": "move",   "type": "move",  "n": 6, "text": "移動",       "keys": ["up", "left", "down", "right"] },
+    { "id": "attack", "type": "hit",   "n": 3, "text": "攻撃",       "keys": ["attack"] },
+    { "id": "dodge",  "type": "dodge", "n": 1, "text": "回避",       "keys": ["dodge"] },
+    { "id": "learn",  "type": "learn", "n": 1, "text": "スキルを覚える", "keys": ["menu"], "tab": "skills" },
+    { "id": "skill",  "type": "skill", "n": 1, "text": "スキル",     "keys": ["skill1"] },
+    { "id": "stats",  "type": "stats", "n": 1, "text": "ステ振り",   "keys": ["menu"], "tab": "status" },
+    { "id": "equip",  "type": "equip", "n": 1, "text": "装備",       "keys": ["menu"], "tab": "items",
+      "gift": { "base": "w_oneHandSword", "rarity": "rare" } },
+    { "id": "town",   "type": "town",  "n": 1, "text": "街へ",       "keys": [], "dir": "west" }
+  ],
+  "reward": { "gold": 500, "items": { "potion_s": 5, "seal_stone": 2 } }
+}

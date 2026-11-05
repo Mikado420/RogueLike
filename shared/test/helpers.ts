@@ -2,10 +2,20 @@ import { newAccount, newCharacter } from '../src/save';
 import { createWorld } from '../src/systems/world';
 import { emptyInput, type Player, type PlayerInput, type World } from '../src/state';
 import { step } from '../src/systems/world';
+import type { CharacterData } from '../src/state';
+
+/** チュートリアル済みにして街から始める */
+export function skipTutorial(ch: CharacterData) {
+  ch.tutorial.done = true;
+  const a = CONTENT.balance.world.startArea;
+  const sp = CONTENT.areas[a].playerSpawn!;
+  ch.location = { area: a, x: sp.x, y: sp.y };
+}
 
 export function makeWorld(seed = 1) {
   const acc = newAccount(1000, seed);
   const ch = newCharacter(acc, 'テスト', { body: 0, hair: 0 }, 1000);
+  skipTutorial(ch);
   const w = createWorld({ account: acc, characterId: ch.id, seed, now: 0 });
   return { w, acc, ch, p: w.players[0] };
 }
@@ -24,6 +34,7 @@ import type { WeaponType } from '../src/core';
 export function makeTraining(weapon: WeaponType, level = 30, dist = 1.0, seed = 3) {
   const acc = newAccount(1000, seed);
   const ch = newCharacter(acc, 'T', { body: 0, hair: 0 }, 1000);
+  ch.tutorial.done = true;
   ch.level = level;
   ch.location = { area: 'training', x: 8.5, y: 13.5 };
   const base = Object.keys(CONTENT.equipment.bases).find((id) => CONTENT.equipment.bases[id].kind === weapon)!;

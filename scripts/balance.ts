@@ -15,6 +15,7 @@ type Row = Record<string, string | number>;
 function setupWorld(weapon: WeaponType, level: number, targets: number): World {
   const acc = newAccount(1, 7);
   const ch = newCharacter(acc, 'bal', { body: 0, hair: 0 }, 1);
+  ch.tutorial.done = true;
   ch.level = level;
   ch.location = { area: 'training', x: 8.5, y: 13.5 };
   // ステ振り

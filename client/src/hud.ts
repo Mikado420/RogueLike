@@ -3,7 +3,8 @@ import {
   slotSkill, txt, weaponTypeOf, currentWeather, dayPhase, contribution, bagInfo, type GameEvent, type Item, type Player, type World,
 } from '../../shared/src';
 import { rarityColor, statusColor } from './colors';
-import type { InputManager } from './input';
+import type { Action, InputManager } from './input';
+import { keyLabel } from './keys';
 import type { Sfx } from './audio';
 import { h } from './ui/dom';
 
@@ -39,12 +40,17 @@ export class Hud {
   onPotion: (() => void) | null = null;
   onCapture: (() => void) | null = null;
   private captureBtn: HTMLButtonElement;
+  private keyChips: [HTMLElement, Action][] = [];
+  private tut: { root: HTMLDivElement; head: HTMLDivElement; name: HTMLDivElement; keys: HTMLDivElement; fill: HTMLDivElement };
+  private tutKey = '';
+  private touch = false;
 
   constructor(private world: World, private myId: number, private input: InputManager, private sfx: Sfx) {
     this.root = document.getElementById('ui')!;
     this.root.replaceChildren();
     const touch = 'ontouchstart' in window || matchMedia('(pointer: coarse)').matches;
     document.body.classList.toggle('touch', touch);
+    this.touch = touch;
 
     const bars = h('div', 'bars');
     const top = h('div', 'bar-top');
@@ -94,7 +100,7 @@ export class Hud {
 
     const actions = h('div', 'actions');
     const atk = h('button', 'act attack');
-    atk.append(h('span', 'act-name', txt('hud.attack')), h('span', 'key', 'J'));
+    atk.append(h('span', 'act-name', txt('hud.attack')), this.chip('attack'));
     const hold = (v: boolean) => (e: PointerEvent) => { e.preventDefault(); this.sfx.unlock(); this.input.setAttackHeld(v); };
     atk.addEventListener('pointerdown', (e) => { atk.setPointerCapture(e.pointerId); hold(true)(e); });
     atk.addEventListener('pointerup', hold(false));
@@ -105,13 +111,13 @@ export class Hud {
       const name = h('span', 'act-name');
       const cd = h('div', 'cd');
       const cdText = h('span', 'cd-text');
-      b.append(name, cd, cdText, h('span', 'key', String(i + 1)));
+      b.append(name, cd, cdText, this.chip(`skill${i + 1}` as Action));
       b.addEventListener('pointerdown', (e) => { e.preventDefault(); this.sfx.unlock(); this.input.triggerSkill(i); });
       actions.append(b);
       this.skillBtns.push({ btn: b, name, cd, cdText });
     }
     const dodge = h('button', 'act dodge');
-    dodge.append(h('span', 'act-name', txt('hud.dodge')), h('span', 'key', 'Space'));
+    dodge.append(h('span', 'act-name', txt('hud.dodge')), this.chip('dodge'));
     dodge.addEventListener('pointerdown', (e) => { e.preventDefault(); this.sfx.unlock(); this.input.triggerDodge(); });
     actions.append(dodge);
     this.res = h('div', 'weapon-res');
@@ -122,14 +128,14 @@ export class Hud {
     const side = h('div', 'side-actions');
     this.interactBtn = h('button', 'act2 interact');
     this.interactName = h('span', 'act-name');
-    this.interactBtn.append(this.interactName, h('span', 'key', 'E'));
+    this.interactBtn.append(this.interactName, this.chip('interact'));
     this.interactBtn.addEventListener('pointerdown', (e) => { e.preventDefault(); this.sfx.unlock(); this.input.triggerInteract(); });
     this.potionBtn = h('button', 'act2 potion');
     this.potionCount = h('span', 'count');
-    this.potionBtn.append(h('span', 'act-name', txt('hud.potion')), this.potionCount, h('span', 'key', 'Q'));
+    this.potionBtn.append(h('span', 'act-name', txt('hud.potion')), this.potionCount, this.chip('potion'));
     this.potionBtn.addEventListener('pointerdown', (e) => { e.preventDefault(); this.sfx.unlock(); this.onPotion?.(); });
     this.captureBtn = h('button', 'act2 capture');
-    this.captureBtn.append(h('span', 'act-name', txt('hud.capture')), h('span', 'key', 'C'));
+    this.captureBtn.append(h('span', 'act-name', txt('hud.capture')), this.chip('capture'));
     this.captureBtn.addEventListener('pointerdown', (e) => { e.preventDefault(); this.sfx.unlock(); this.onCapture?.(); });
     side.append(this.interactBtn, this.potionBtn, this.captureBtn);
     this.root.append(side);
@@ -153,6 +159,53 @@ export class Hud {
     this.leaveBtn = h('button', 'pill leave', txt('hud.leave'));
     this.leaveBtn.addEventListener('click', () => this.input.pushCommand({ type: 'leaveInstance' }));
     topBtns.prepend(this.leaveBtn);
+
+    const tut = h('div', 'tutorial');
+    const tHead = h('div', 'tut-head');
+    const tName = h('div', 'tut-name');
+    const tKeys = h('div', 'tut-keys');
+    const tTrack = h('div', 'tut-track');
+    const tFill = h('div', 'tut-fill');
+    tTrack.append(tFill);
+    const skip = h('button', 'tut-skip', txt('tut.skip'));
+    skip.addEventListener('click', () => this.input.pushCommand({ type: 'skipTutorial' }));
+    tut.append(tHead, tName, tKeys, tTrack, skip);
+    this.root.append(tut);
+    this.tut = { root: tut, head: tHead, name: tName, keys: tKeys, fill: tFill };
+  }
+
+  private chip(a: Action): HTMLElement {
+    const s = h('span', 'key', keyLabel(this.input.currentBindings[a][0] ?? ''));
+    this.keyChips.push([s, a]);
+    return s;
+  }
+
+  /** キー割り当てを変えたら呼ぶ */
+  refreshKeys() {
+    for (const [s, a] of this.keyChips) s.textContent = keyLabel(this.input.currentBindings[a][0] ?? '');
+    this.tutKey = '';
+  }
+
+  private updateTutorial(p: Player) {
+    const t = p.char.tutorial;
+    const steps = CONTENT.tutorial.steps;
+    const s = t && !t.done ? steps[t.step] : null;
+    this.tut.root.classList.toggle('show', !!s);
+    if (!s) return;
+    const key = `${t.step}`;
+    if (key !== this.tutKey) {
+      this.tutKey = key;
+      this.tut.head.textContent = `${txt('tut.title')}  ${t.step + 1} / ${steps.length}`;
+      this.tut.name.textContent = s.text;
+      const chips: string[] = [];
+      const b = this.input.currentBindings;
+      if (s.dir) chips.push(txt(`dir.${s.dir}`));
+      else if (s.keys.includes('menu')) chips.push(this.touch ? txt('hud.menu') : keyLabel(b.menu[0]), txt(`menu.${s.tab}`));
+      else if (!this.touch) for (const a of s.keys) chips.push(keyLabel(b[a as Action]?.[0] ?? ''));
+      this.tut.keys.replaceChildren(...chips.map((c, i) => h('span', i > 0 && s.keys.includes('menu') ? 'tk tk-tab' : 'tk', c)));
+    }
+    this.tut.fill.style.width = `${Math.min(1, t.count / s.n) * 100}%`;
+    this.tut.fill.parentElement!.classList.toggle('hide', s.n <= 1);
   }
 
   setWorld(w: World) { this.world = w; }
@@ -245,6 +298,7 @@ export class Hud {
         if (a) this.toast(`★ ${a.name}${a.title ? `  ${CONTENT.titles[a.title]?.name ?? ''}` : ''}`, '#ffe28a', 'r-legend');
       }
       if (e.type === 'areaChanged' && e.playerId === this.myId) this.showBanner(CONTENT.areas[e.area]?.name ?? '', false);
+      if (e.type === 'tutorial' && e.playerId === this.myId && e.done) this.showBanner(txt('tut.done'), true);
       if (e.type === 'autoSell' && e.playerId === this.myId) this.toast(txt('notice.autoSell', e.gold), '#ffd76a');
     }
   }
@@ -315,6 +369,7 @@ export class Hud {
       b.fill.style.width = `${Math.max(0, Math.min(1, v / max)) * 100}%`;
       b.text.textContent = `${Math.ceil(v)} / ${max}`;
     };
+    this.updateTutorial(p);
     set(this.bars.hp, p.hp, p.stats.maxHp);
     set(this.bars.mp, p.mp, p.stats.maxMp);
     set(this.bars.st, p.st, p.stats.maxSt);

@@ -90,6 +90,7 @@ export function applyCommand(w: World, p: Player, cmd: Command) {
     case 'cook': err = nearRole(w, p, 'kitchen') ? cook(w, p, cmd.recipe) : 'err.notNear'; break;
     case 'alchemy': err = nearRole(w, p, 'smith') ? alchemy(w, p, cmd.uid, cmd.mode, cmd.index) : 'err.notNear'; break;
     case 'capture': err = capture(w, p, cmd.item); break;
+    case 'skipTutorial': p.char.tutorial.done = true; w.events.push({ type: 'tutorial', playerId: p.id, step: p.char.tutorial.step, done: true }); break;
     case 'setActivePet': err = setActivePet(p, cmd.uid); break;
     case 'setPetRole': err = setPetRole(p, cmd.uid, cmd.role); break;
     case 'inheritPet': err = inheritPet(w, p, cmd.base, cmd.material, cmd.skill, cmd.slot); break;
