@@ -547,5 +547,8 @@
   "err.townOnly": "街の中だけ",
   "err.stallOpen": "開いています",
   "net.tooManyListings": "出品が多すぎます",
-  "net.claimFailed": "受け取れません"
+  "net.claimFailed": "受け取れません",
+  "notice.mythicDrop": "{0} がミシック「{1}」を手に入れた",
+  "mail.from.invasion": "侵攻の報酬",
+  "gate.ranking": "ランキング"
 }

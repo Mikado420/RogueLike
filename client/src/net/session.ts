@@ -183,7 +183,8 @@ export class NetSession {
         this.rtt = this.rtt * 0.7 + (performance.now() - m.at) * 0.3;
         break;
       case 'notice':
-        this.events.push({ type: 'notice', playerId: this.myId, key: m.key, args: m.args });
+        if (m.world) this.events.push({ type: 'worldNotice', key: m.key, args: m.args ?? [], rare: m.rare });
+        else this.events.push({ type: 'notice', playerId: this.myId, key: m.key, args: m.args });
         break;
     }
   }

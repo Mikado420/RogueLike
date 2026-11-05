@@ -89,7 +89,11 @@ export function updateFieldBoss(w: World) {
   const fb = def?.fieldBoss;
   if (!fb || !area.spots.boss) return;
   const slot = fieldBossSlot(w);
-  if (w.shared.fieldBoss[area.id] === slot) return;
+  if (w.shared.fieldBoss[area.id] === slot) {
+    // ほかのチャンネルで倒された：こちらのボスは去る
+    for (const m of area.monsters) if (m.fieldBoss && !m.dead && area.fieldBossSlot === slot) { m.dead = true; m.hp = 0; m.fieldBoss = false; w.events.push({ type: 'death', id: m.id, x: m.x, y: m.y, boss: true, player: false }); }
+    return;
+  }
   if (area.monsters.some((m) => m.fieldBoss && !m.dead)) return;
   const sp = area.spots.boss;
   const m = spawnMonster(w, { key: 'fieldBoss', monster: fb.id, x: sp.x, y: sp.y, level: [fb.level, fb.level], monsterId: -1, respawnAt: 0 }, { level: fb.level });

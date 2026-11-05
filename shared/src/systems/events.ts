@@ -63,6 +63,13 @@ function spawnWave(w: World) {
   }
 }
 
+/** 貢献度から報酬の段（届かなければ -1） */
+export function invasionTier(w: { content: World['content'] }, pts: number): number {
+  let tier = -1;
+  w.content.invasion.tiers.forEach((t, i) => { if (pts >= t.min) tier = i; });
+  return tier;
+}
+
 function finish(w: World) {
   const inv = w.content.invasion;
   const area = w.area;
@@ -72,11 +79,11 @@ function finish(w: World) {
   for (const p of w.players) {
     if (st.rewarded.includes(p.char.id)) continue;
     const pts = st.contribution[p.char.id] ?? 0;
-    let tier = -1;
-    inv.tiers.forEach((t, i) => { if (pts >= t.min) tier = i; });
+    const tier = invasionTier(w, pts);
     st.rewarded.push(p.char.id);
     w.events.push({ type: 'invasion', what: 'end', tier });
-    if (tier < 0) continue;
+    // オンラインでは、ワールド全体の貢献度で WorldDO が郵便受けに報酬を送る
+    if (tier < 0 || w.online) continue;
     const t = inv.tiers[tier];
     p.char.gold += t.gold;
     w.events.push({ type: 'gold', playerId: p.id, amount: t.gold });

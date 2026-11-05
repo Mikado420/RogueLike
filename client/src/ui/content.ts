@@ -1,3 +1,9 @@
+import { api } from '../net/api';
+
+/** タイムアタックのランキング（開くたびに読み込む） */
+const rankings = new Map<string, { time: number; names: string }[]>();
+setInterval(() => rankings.clear(), 60_000);
+
 import {
   CONTENT, DIFFICULTIES, canStartTower, codexPct, codexTotals, contribution, facilityCost, facilityLevel, invasionWindow,
   missionProgress, nextInvasionAt, txt, upkeepCost, baseActive, baseOf, dayIndex, ensureMissions, type ModKey,
@@ -35,6 +41,16 @@ export function registerContentPanels(npc: NpcPanels, menu: Menu, ctx: Ctx) {
     body.append(kv(txt('gate.level'), String(def.level + dd.levelBonus)));
     const rec = c.me().account.records.timeAttack[`${id}:${d}`];
     if (rec?.length) body.append(kv(txt('gate.best'), `${fmtTime(rec[0].time)}  ${rec[0].char}`));
+    // サーバーのランキング（全員の記録）
+    const course = `${id}:${d}`;
+    const rk = rankings.get(course);
+    if (!rk) {
+      rankings.set(course, []);
+      void api.get<{ list: { time: number; names: string }[] }>(`/api/ranking?course=${encodeURIComponent(course)}`).then((r) => { rankings.set(course, r.list); c.modal.refresh(); }).catch(() => {});
+    } else if (rk.length) {
+      body.append(h('div', 'sub-title', txt('gate.ranking')));
+      rk.slice(0, 5).forEach((r, i) => body.append(kv(`${i + 1}`, `${fmtTime(r.time)}  ${r.names}`)));
+    }
     const acts = h('div', 'set-actions');
     acts.append(btn(txt('gate.enter'), () => c.send({ type: 'enterDungeon', dungeon: id, difficulty: d }), 'btn primary'));
     acts.append(btn(txt('gate.match'), () => c.send({ type: 'matchDungeon', dungeon: id, difficulty: d }), 'btn'));

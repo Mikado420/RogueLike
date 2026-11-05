@@ -65,7 +65,7 @@ export class AreaDO {
       kick: async (b: { sid: string; reason: string }) => { await this.drop(b.sid, b.reason, true); return { ok: true }; },
       tick: async (b: { n?: number; dt?: number }) => { for (let i = 0; i < (b.n ?? 1); i++) await this.tick(b.dt); return { tick: this.host?.world.tick ?? 0 }; },
       stats: async () => ({ key: this.key, players: this.conns.size, tick: this.host?.world.tick ?? 0, running: !!this.timer }),
-      notice: async (b: { key: string; args?: (string | number)[] }) => { this.broadcast({ t: 'notice', key: b.key, args: b.args }); return { ok: true }; },
+      notice: async (b: { key: string; args?: (string | number)[]; world?: boolean; rare?: boolean }) => { this.broadcast({ t: 'notice', key: b.key, args: b.args, world: b.world, rare: b.rare }); return { ok: true }; },
       mailArrived: async (b: { sid: string }) => { const c = this.conns.get(b.sid); if (c) c.mail = true; return { ok: true }; },
       stallSold: async (b: { sid: string; uid: number }) => {
         const p = this.host?.player(b.sid);
@@ -254,7 +254,8 @@ export class AreaDO {
       if (!c.joined) continue;
       const p = host.player(sid);
       if (p) {
-        const mine = eventsFor(r.events, p.id);
+        // ワールド通知は WorldDO から全員に届くので、ここでは送らない
+        const mine = eventsFor(r.events, p.id).filter((e) => e.type !== 'worldNotice');
         c.events.push(...mine);
         if (mine.some((e) => IMPORTANT.has(e.type) && 'playerId' in e)) c.dirty = true;
         const b = before.get(sid);
@@ -262,6 +263,8 @@ export class AreaDO {
       }
     }
     await this.social(r.events);
+    this.world(r.events);
+    if (this.tickCount % 100 === 1) void this.sync();
     this.trades(r.events, sidOf, r.transfers);
     for (const c of this.conns.values()) if (c.joined && c.mail && !c.awaySince) this.claim(c);
     for (const t of r.transfers) await this.transfer(t);
@@ -480,9 +483,71 @@ export class AreaDO {
   }
 
   private reportPopulation() {
-    if (this.isInstance || !this.host) return;
+    if (!this.host) return;
     const w = this.env.WORLD.get(this.env.WORLD.idFromName('world'));
     void call(w, 'population', { key: this.key, n: this.host.population }).catch(() => {});
+  }
+
+  /** 侵攻の貢献度で、最後に WorldDO へ送った値 */
+  private reported: Record<string, number> = {};
+  private syncing = false;
+
+  /** WorldDO と、侵攻の貢献度とフィールドボスを合わせる */
+  async sync() {
+    const host = this.host;
+    if (!host || this.syncing) return;
+    this.syncing = true;
+    try {
+      const w = host.world;
+      const local = { ...w.shared.invasion.contribution };
+      const contrib: Record<string, { a: string; name: string; level: number; pts: number }> = {};
+      for (const p of w.players) {
+        const d = (local[p.char.id] ?? 0) - (this.reported[p.char.id] ?? 0);
+        if (d > 0) contrib[p.char.id] = { a: p.account.id, name: p.char.name, level: p.char.level, pts: d };
+      }
+      const r = await call<{ fieldBoss: Record<string, number>; invasion: { slot: number; contribution: Record<string, number> } }>(this.env.WORLD.get(this.env.WORLD.idFromName('world')), 'sync', {
+        key: this.key, area: w.area.id, fieldBoss: w.shared.fieldBoss[w.area.id] ?? null, contrib, slot: w.shared.invasion.slot, n: host.population,
+      });
+      w.shared.fieldBoss = { ...w.shared.fieldBoss, ...r.fieldBoss };
+      if (r.invasion.slot >= w.shared.invasion.slot) {
+        // 送ったあとに増えた分は残す
+        const now = w.shared.invasion.contribution;
+        const merged: Record<string, number> = { ...r.invasion.contribution };
+        for (const [k, v] of Object.entries(now)) merged[k] = (merged[k] ?? 0) + Math.max(0, v - (local[k] ?? 0));
+        if (r.invasion.slot > w.shared.invasion.slot) { w.shared.invasion.slot = r.invasion.slot; w.shared.invasion.rewarded = []; }
+        w.shared.invasion.contribution = merged;
+        this.reported = { ...r.invasion.contribution };
+      }
+    } catch (e) {
+      console.warn('sync failed', e);
+    } finally {
+      this.syncing = false;
+    }
+  }
+
+  /** ワールド通知・ミシックのドロップ・タイムアタックの記録を WorldDO へ */
+  private world(events: GameEvent[]) {
+    const host = this.host!;
+    const wd = this.env.WORLD.get(this.env.WORLD.idFromName('world'));
+    const slot = Math.floor(host.world.clock / 600_000);
+    for (const e of events) {
+      if (e.type === 'worldNotice') {
+        void call(wd, 'announce', { key: e.key, args: e.args, rare: e.rare, dedupe: `${e.key}:${JSON.stringify(e.args)}:${slot}` }).catch(() => {});
+      }
+      if (e.type === 'drop' && e.rarity === 'mythic') {
+        const d = host.world.area.drops.find((x) => x.id === e.id);
+        const owner = host.world.players.find((p) => p.id === d?.ownerId);
+        if (owner && d?.item) void call(wd, 'announce', { key: 'notice.mythicDrop', args: [owner.char.name, d.item.name], rare: true, dedupe: `mythic:${d.item.uid}` }).catch(() => {});
+      }
+      if (e.type === 'instance' && e.what === 'cleared' && e.time !== undefined) {
+        const inst = host.world.area.instance;
+        const p = host.world.players.find((x) => x.id === e.playerId);
+        // パーティの記録は1回だけ（最初の人の分）
+        if (inst?.kind === 'dungeon' && p && p === host.world.players[0]) {
+          void call(wd, 'taRecord', { course: `${inst.id}:${inst.difficulty}`, time: e.time, names: host.world.players.map((x) => x.char.name).join('・'), accounts: host.world.players.map((x) => x.account.id) }).catch(() => {});
+        }
+      }
+    }
   }
 }
 

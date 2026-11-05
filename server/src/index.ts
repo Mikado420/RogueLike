@@ -302,6 +302,13 @@ routes.push(
     const id = await authed(req, env);
     return json(await call(accountStub(env, id), 'mail'));
   }],
+  // ── タイムアタックのランキング（D1） ──
+  ['GET', /^\/api\/ranking$/, async (req, env) => {
+    await authed(req, env);
+    const course = (new URL(req.url).searchParams.get('course') ?? '').slice(0, 40);
+    const rows = await env.DB.prepare('SELECT time, names, at FROM time_attack WHERE course = ? ORDER BY time ASC LIMIT ?').bind(course, CONTENT.dungeons.timeAttackTop).all();
+    return json({ list: rows.results });
+  }],
   // ── 通報 ──
   ['POST', /^\/api\/report$/, async (req, env) => {
     const id = await authed(req, env);

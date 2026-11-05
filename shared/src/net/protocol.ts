@@ -80,7 +80,7 @@ export type ServerMsg =
   | { t: 'move'; key: string; ticket: string }
   | { t: 'kick'; reason: string }
   | { t: 'pong'; at: number; server: number }
-  | { t: 'notice'; key: string; args?: (string | number)[] };
+  | { t: 'notice'; key: string; args?: (string | number)[]; world?: boolean; rare?: boolean };
 
 /** HTTP API で返すキャラの要約 */
 export interface CharSummary { id: string; name: string; level: number; rebirths: number; area: string; look: { body: number; hair: number } }
