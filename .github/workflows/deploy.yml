@@ -1,0 +1,93 @@
+# main に push するたび、テスト → フロント（GitHub Pages）とサーバー（Cloudflare Workers）を両方デプロイする
+# サーバーの準備（Cloudflare のアカウント・API トークン・D1）は docs/SETUP.md
+name: deploy
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+concurrency:
+  group: deploy
+  cancel-in-progress: true
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm test
+      - run: npm run typecheck
+
+  # サーバー：Secrets に CLOUDFLARE_API_TOKEN があるときだけ
+  workers:
+    needs: test
+    runs-on: ubuntu-latest
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      D1_DATABASE_ID: ${{ secrets.D1_DATABASE_ID }}
+      SESSION_SECRET: ${{ secrets.SESSION_SECRET }}
+      ADMIN_TOKEN: ${{ secrets.ADMIN_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: 準備ができているか
+        id: check
+        run: |
+          if [ -n "$CLOUDFLARE_API_TOKEN" ] && [ -n "$D1_DATABASE_ID" ]; then echo "ready=true" >> "$GITHUB_OUTPUT"; else echo "ready=false" >> "$GITHUB_OUTPUT"; echo "::notice::Cloudflare の Secrets がないので、サーバーのデプロイを飛ばします（docs/SETUP.md）"; fi
+      - if: steps.check.outputs.ready == 'true'
+        run: npm ci
+      - if: steps.check.outputs.ready == 'true'
+        name: D1 の id を入れる
+        run: sed -i "s/00000000-0000-0000-0000-000000000000/$D1_DATABASE_ID/" server/wrangler.jsonc
+      - if: steps.check.outputs.ready == 'true'
+        name: D1 のマイグレーション
+        run: npx wrangler d1 migrations apply DB --remote --config server/wrangler.jsonc
+      - if: steps.check.outputs.ready == 'true'
+        name: Workers にデプロイ
+        run: npx wrangler deploy --config server/wrangler.jsonc
+      - if: steps.check.outputs.ready == 'true' && env.SESSION_SECRET != ''
+        name: 秘密の値を入れる
+        run: |
+          printf '{"SESSION_SECRET":"%s","ADMIN_TOKEN":"%s"}' "$SESSION_SECRET" "$ADMIN_TOKEN" > /tmp/secrets.json
+          npx wrangler secret bulk /tmp/secrets.json --config server/wrangler.jsonc
+          rm /tmp/secrets.json
+
+  pages:
+    needs: test
+    runs-on: ubuntu-latest
+    env:
+      # 接続先（例：https://endless-garden.<サブドメイン>.workers.dev）。リポジトリの Variables の SERVER_URL
+      VITE_SERVER_URL: ${{ vars.SERVER_URL }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  pages-deploy:
+    needs: pages
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - id: deploy
+        uses: actions/deploy-pages@v4

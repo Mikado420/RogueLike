@@ -1,0 +1,15 @@
+{
+  "tickRate": 20,
+  "snapshotRate": 10,
+  "inputRate": 15,
+  "channelCap": 30,
+  "instanceCap": 4,
+  "interestRadius": 18,
+  "saveIntervalSec": 60,
+  "idleSleepSec": 30,
+  "ticketTtlSec": 120,
+  "transferCodeTtlHours": 24,
+  "maxCharacters": 4,
+  "d1FlushSec": 30,
+  "rate": { "inputsPerSec": 40, "commandsPerSec": 10, "httpPerMin": 120, "chatPerMin": 20 }
+}

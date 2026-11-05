@@ -12,11 +12,12 @@
 - [x] 既存のテストがすべて通る（ひとり用は `stepSolo`・`moveSolo`）
 
 ## O2：Cloudflare の土台とログイン
-- [ ] wrangler 設定・Worker・各 Durable Object の雛形・D1 スキーマとマイグレーション、`npm run dev:server`
-- [ ] 匿名ゲストログイン（秘密トークン）・名前と ID の登録（重複不可）・引き継ぎコード
-- [ ] 二重ログイン防止（新しい接続が古い接続を切る）
-- [ ] GitHub Actions で Pages と Workers をデプロイ、接続先 URL は環境変数
-- [ ] docs/SETUP.md
+- [x] wrangler 設定（`server/wrangler.jsonc`）・Worker（`server/src/index.ts`）・各 Durable Object（SQLite）・D1 スキーマ（`server/migrations`）、`npm run dev:server` で workerd 上で動く
+- [x] 匿名ゲストログイン（`アカウントid.秘密`、サーバーはハッシュだけ）・名前と ID の登録（D1・重複不可）・引き継ぎコード（1回だけ・前の端末は無効）
+- [x] 二重ログイン防止（AccountDO が古いセッションをエリアに保存させてから切り、世代を上げる。古い世代の保存は断る）
+- [x] GitHub Actions（`deploy.yml`）で Pages と Workers をデプロイ、接続先は Variables の `SERVER_URL`
+- [x] docs/SETUP.md
+- [x] サーバーの結合テスト：Node の中の疑似 Cloudflare（`server/test/runtime.ts`：DO・D1(node:sqlite)・WebSocket）
 
 ## O3：通信（ネットコード）
 - [ ] 入力とコマンドに連番、WebSocket
@@ -65,3 +66,6 @@
 - `shared/src/systems/world.ts`：`createAreaWorld`（空のエリア）・`addPlayer`/`placePlayer`・`removePlayer`・`step`。ひとり用は `createWorld`・`stepSolo`・`moveSolo`・`flushSolo`
 - `step` は移動しない。`p.transition` が立ったプレイヤーは止まり、ホスト（`AreaHost.step` が返す `transfers`）が取り出して行き先へ入れる
 - `shared/src/host/`：`AreaHost`（AreaDO の中身になる）・`LocalServer`・`Bot`・`audience`
+- `shared/src/net/`：通信の型（`protocol.ts`）と差分スナップショット（`snapshot.ts`：`buildFrame`・`Viewer.diff`・`applySnapshot`）
+- サーバー：`server/src/do/*`。DO どうしは `call(stub, op, body)`（POST /op に JSON）。テストは `server/test/client.ts` の `TestClient` と `tickAll`
+- AccountDO が正。エリアは `checkout`（写しをもらう）→ `save`（世代つきで書き戻す）。チケットは HMAC 署名（`util/auth.ts`）

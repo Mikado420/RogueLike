@@ -1,0 +1,33 @@
+// エンドレスガーデンのサーバー（Cloudflare Workers ＋ Durable Objects ＋ D1）
+// database_id はデプロイ時に GitHub Actions が Secrets の D1_DATABASE_ID で置き換える（docs/SETUP.md）
+{
+  "$schema": "../node_modules/wrangler/config-schema.json",
+  "name": "endless-garden",
+  "main": "src/index.ts",
+  "compatibility_date": "2025-09-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "observability": { "enabled": true },
+  "durable_objects": {
+    "bindings": [
+      { "name": "AREA", "class_name": "AreaDO" },
+      { "name": "INSTANCE", "class_name": "InstanceDO" },
+      { "name": "ACCOUNT", "class_name": "AccountDO" },
+      { "name": "WORLD", "class_name": "WorldDO" },
+      { "name": "CHAT", "class_name": "ChatDO" },
+      { "name": "PARTY", "class_name": "PartyDO" },
+      { "name": "GUILD", "class_name": "GuildDO" },
+      { "name": "MARKET", "class_name": "MarketDO" }
+    ]
+  },
+  "migrations": [
+    { "tag": "v1", "new_sqlite_classes": ["AreaDO", "InstanceDO", "AccountDO", "WorldDO", "ChatDO", "PartyDO", "GuildDO", "MarketDO"] }
+  ],
+  "d1_databases": [
+    { "binding": "DB", "database_name": "endless-garden", "database_id": "00000000-0000-0000-0000-000000000000", "migrations_dir": "migrations" }
+  ],
+  "vars": {
+    "ALLOWED_ORIGINS": "https://mikado420.github.io,http://localhost:5173,http://localhost:4173",
+    "ENVIRONMENT": "production"
+  }
+  // 秘密の値（wrangler secret put で入れる）：SESSION_SECRET（チケットの署名）、ADMIN_TOKEN（管理用 API）
+}

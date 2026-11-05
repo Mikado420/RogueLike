@@ -40,3 +40,5 @@ export * from './host/audience';
 export * from './host/area';
 export * from './host/local';
 export * from './host/bot';
+export * from './net/protocol';
+export * from './net/snapshot';
