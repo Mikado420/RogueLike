@@ -185,6 +185,33 @@ const DRAWERS: Record<string, Drawer> = {
     for (let i = 0; i < 4; i++) g.rect(-16 + i * 3, -6 - i * 8, 32 - i * 6, 8).fill(0xb0a890 - i * 0x080808).stroke({ width: 1, color: 0x4a4438 });
     g.ellipse(0, -34, 10, 4).fill({ color: 0xffe28a, alpha: 0.6 });
   }),
+  node_ore: () => gfx((g) => {
+    shadow(g, 16);
+    g.poly([-16, 0, -12, -16, 0, -22, 12, -16, 16, 0]).fill(0x6a6a72).stroke({ width: 2, color: 0x2a2a30 });
+    for (const [x, y] of [[-6, -10], [4, -14], [8, -6]]) g.circle(x, y, 2.5).fill(0xffd76a);
+  }),
+  node_herb: () => gfx((g) => {
+    for (const a of [-0.9, -0.4, 0, 0.4, 0.9]) g.moveTo(0, 0).quadraticCurveTo(Math.sin(a) * 10, -10, Math.sin(a) * 14, -18).stroke({ width: 3, color: 0x5ad06a });
+    g.circle(0, -20, 4).fill(0xffe0f0);
+  }),
+  node_wood: () => gfx((g) => {
+    shadow(g, 14);
+    g.ellipse(0, -8, 12, 6).fill(0x8a6a44).stroke({ width: 2, color: 0x4a3a22 });
+    g.rect(-12, -8, 24, 8).fill(0x7a5a34);
+    g.ellipse(0, 0, 12, 6).fill(0xc8a070).stroke({ width: 1.5, color: 0x4a3a22 });
+  }),
+  node_fish: () => gfx((g) => {
+    g.ellipse(0, 0, 16, 8).stroke({ width: 2, color: 0xdff4ff, alpha: 0.8 });
+    g.ellipse(0, 0, 9, 4).stroke({ width: 2, color: 0xdff4ff, alpha: 0.6 });
+    g.poly([10, -14, 16, -10, 10, -6]).fill(0x9fd8ff);
+  }),
+  npc_cook: () => gfx((g) => {
+    shadow(g, 14);
+    g.roundRect(-10, -33, 20, 27, 7).fill(0xf0f0f0).stroke({ width: 2, color: 0x8a8a8a });
+    g.circle(0, -40, 8).fill(0xf2c9a0).stroke({ width: 2, color: 0x7a5236 });
+    g.roundRect(-8, -56, 16, 10, 4).fill(0xffffff).stroke({ width: 1.5, color: 0xaaaaaa });
+    g.ellipse(14, -18, 8, 4).fill(0x6a6a72);
+  }),
   npc_board: () => gfx((g) => {
     shadow(g, 16);
     g.rect(-12, -10, 3, 10).fill(0x5a3a22); g.rect(9, -10, 3, 10).fill(0x5a3a22);

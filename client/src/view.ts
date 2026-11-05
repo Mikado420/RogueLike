@@ -55,6 +55,7 @@ export class WorldView {
   private projectiles = new Map<number, ProjView>();
   private drops = new Map<number, DropView>();
   private npcs = new Map<number, Container>();
+  private nodes = new Map<number, Container>();
   private camPos = { x: 0, y: 0 };
   private time = 0;
   private areaId = '';
@@ -74,7 +75,7 @@ export class WorldView {
   setArea() {
     this.areaId = this.world.area.id;
     for (const c of [...this.entities.children]) c.destroy({ children: true });
-    this.actors.clear(); this.projectiles.clear(); this.drops.clear(); this.npcs.clear();
+    this.actors.clear(); this.projectiles.clear(); this.drops.clear(); this.npcs.clear(); this.nodes.clear();
     this.ground.clear();
     const m = this.world.area.map;
     const g = this.ground;
@@ -115,23 +116,35 @@ export class WorldView {
       this.entities.addChild(label);
     }
     // NPC
-    for (const n of this.world.area.npcs) {
-      const def = CONTENT.npcs[n.npc];
-      const root = new Container();
-      root.addChild(makeSprite(def.sprite));
-      const label = new Text({ text: def.name, style: { fontFamily: FONT, fontSize: 12, fontWeight: '800', fill: hex(def.color), stroke: { color: 0x000000, width: 3 } } });
-      label.anchor.set(0.5, 1);
-      label.y = -62;
-      root.addChild(label);
+    for (const n of this.world.area.npcs) this.addNpc(n);
+    for (const n of this.world.area.nodes) {
+      const def = CONTENT.gathering.nodeTypes[n.type];
+      const root = makeSprite(def.sprite);
       const s = toScreen(n.x, n.y);
       root.x = s.x; root.y = s.y;
       root.zIndex = depth(n.x, n.y);
       this.entities.addChild(root);
-      this.npcs.set(n.id, root);
+      this.nodes.set(n.id, root);
     }
     const me = this.me();
     const s = toScreen(me.x, me.y);
     this.camPos = { x: s.x, y: s.y };
+  }
+
+  private addNpc(n: { id: number; npc: string; x: number; y: number }) {
+    const def = CONTENT.npcs[n.npc];
+    if (!def) return;
+    const root = new Container();
+    root.addChild(makeSprite(def.sprite));
+    const label = new Text({ text: def.name, style: { fontFamily: FONT, fontSize: 12, fontWeight: '800', fill: hex(def.color), stroke: { color: 0x000000, width: 3 } } });
+    label.anchor.set(0.5, 1);
+    label.y = -62;
+    root.addChild(label);
+    const s = toScreen(n.x, n.y);
+    root.x = s.x; root.y = s.y;
+    root.zIndex = depth(n.x, n.y);
+    this.entities.addChild(root);
+    this.npcs.set(n.id, root);
   }
 
   /** step の前に呼ぶ。補間用に今の位置を覚える */
@@ -448,6 +461,14 @@ export class WorldView {
       drawIsoShape(this.telegraphs, s.x, s.y, inner, s.dir);
       this.telegraphs.fill({ color: 0xff2a1a, alpha: 0.32 });
     }
+
+    // 採集ポイント
+    for (const n of w.area.nodes) {
+      const v = this.nodes.get(n.id);
+      if (v) v.alpha = n.charges > 0 ? 0.85 + Math.sin(this.time * 3 + n.id) * 0.15 : 0.2;
+    }
+    // 途中で増えた NPC（出口・階段）
+    for (const n of w.area.npcs) if (!this.npcs.has(n.id)) this.addNpc(n);
 
     // レイドの安全地帯
     for (const z of w.area.safeZones) {

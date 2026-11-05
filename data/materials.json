@@ -218,5 +218,292 @@
   "icon": "mat",
   "color": "#c0e0ff",
   "price": 300
+ },
+ "copper_ore": {
+  "name": "銅鉱石",
+  "kind": "material",
+  "icon": "mat",
+  "color": "#c87a4a",
+  "price": 12
+ },
+ "iron_ore": {
+  "name": "鉄鉱石",
+  "kind": "material",
+  "icon": "mat",
+  "color": "#9aa0b0",
+  "price": 30
+ },
+ "mithril_ore": {
+  "name": "ミスリル鉱石",
+  "kind": "material",
+  "icon": "mat",
+  "color": "#8fe0ff",
+  "price": 70
+ },
+ "star_ore": {
+  "name": "星鉄鉱",
+  "kind": "material",
+  "icon": "mat",
+  "color": "#ffe28a",
+  "price": 160
+ },
+ "storm_crystal": {
+  "name": "嵐晶",
+  "kind": "material",
+  "icon": "mat",
+  "color": "#b0a0ff",
+  "price": 220
+ },
+ "herb_green": {
+  "name": "薬草",
+  "kind": "material",
+  "icon": "mat",
+  "color": "#6fd06a",
+  "price": 8
+ },
+ "moon_herb": {
+  "name": "月光草",
+  "kind": "material",
+  "icon": "mat",
+  "color": "#c0d0ff",
+  "price": 40
+ },
+ "fire_herb": {
+  "name": "火炎草",
+  "kind": "material",
+  "icon": "mat",
+  "color": "#ff7a3a",
+  "price": 35
+ },
+ "shade_herb": {
+  "name": "影草",
+  "kind": "material",
+  "icon": "mat",
+  "color": "#7a6aa0",
+  "price": 55
+ },
+ "snow_lotus": {
+  "name": "雪蓮",
+  "kind": "material",
+  "icon": "mat",
+  "color": "#e8f4ff",
+  "price": 90
+ },
+ "oak_wood": {
+  "name": "樫の木材",
+  "kind": "material",
+  "icon": "mat",
+  "color": "#a07a4a",
+  "price": 10
+ },
+ "marsh_wood": {
+  "name": "湿地の木材",
+  "kind": "material",
+  "icon": "mat",
+  "color": "#6a7a4a",
+  "price": 25
+ },
+ "ash_wood": {
+  "name": "灰木",
+  "kind": "material",
+  "icon": "mat",
+  "color": "#6a5a50",
+  "price": 45
+ },
+ "elder_wood": {
+  "name": "古樹の木材",
+  "kind": "material",
+  "icon": "mat",
+  "color": "#5a7a3a",
+  "price": 80
+ },
+ "frost_wood": {
+  "name": "霜木",
+  "kind": "material",
+  "icon": "mat",
+  "color": "#a0c0d8",
+  "price": 120
+ },
+ "river_fish": {
+  "name": "川魚",
+  "kind": "material",
+  "icon": "mat",
+  "color": "#7ab0e0",
+  "price": 14
+ },
+ "rain_trout": {
+  "name": "雨鱒",
+  "kind": "material",
+  "icon": "mat",
+  "color": "#5a8ac0",
+  "price": 45
+ },
+ "swamp_eel": {
+  "name": "沼うなぎ",
+  "kind": "material",
+  "icon": "mat",
+  "color": "#5a6a4a",
+  "price": 40
+ },
+ "lava_crab": {
+  "name": "溶岩蟹",
+  "kind": "material",
+  "icon": "mat",
+  "color": "#ff6a3a",
+  "price": 70
+ },
+ "ice_fish": {
+  "name": "氷魚",
+  "kind": "material",
+  "icon": "mat",
+  "color": "#c0e8ff",
+  "price": 100
+ },
+ "golden_fish": {
+  "name": "黄金魚",
+  "kind": "material",
+  "icon": "mat",
+  "color": "#ffd23a",
+  "price": 400
+ },
+ "catalyst": {
+  "name": "錬成触媒",
+  "kind": "material",
+  "icon": "mat",
+  "color": "#c0a0ff",
+  "price": 120
+ },
+ "grilled_fish": {
+  "name": "焼き魚",
+  "kind": "food",
+  "icon": "food",
+  "color": "#e0a060",
+  "price": 60,
+  "use": {
+   "food": {
+    "mods": {
+     "atkPct": 5,
+     "matkPct": 5
+    },
+    "duration": 15
+   }
+  }
+ },
+ "herb_soup": {
+  "name": "薬草スープ",
+  "kind": "food",
+  "icon": "food",
+  "color": "#7ad070",
+  "price": 50,
+  "use": {
+   "food": {
+    "mods": {
+     "hpRegen": 15,
+     "maxHpPct": 5
+    },
+    "duration": 15
+   }
+  }
+ },
+ "spicy_stew": {
+  "name": "激辛シチュー",
+  "kind": "food",
+  "icon": "food",
+  "color": "#ff5a3a",
+  "price": 150,
+  "use": {
+   "food": {
+    "mods": {
+     "atkPct": 8,
+     "critRate": 3
+    },
+    "duration": 20
+   }
+  }
+ },
+ "moon_tea": {
+  "name": "月光茶",
+  "kind": "food",
+  "icon": "food",
+  "color": "#c0d0ff",
+  "price": 140,
+  "use": {
+   "food": {
+    "mods": {
+     "cspdPct": 8,
+     "mpRegen": 1,
+     "matkPct": 6
+    },
+    "duration": 20
+   }
+  }
+ },
+ "eel_kabayaki": {
+  "name": "うなぎの蒲焼き",
+  "kind": "food",
+  "icon": "food",
+  "color": "#a06a3a",
+  "price": 180,
+  "use": {
+   "food": {
+    "mods": {
+     "aspdPct": 8,
+     "moveSpeedPct": 5
+    },
+    "duration": 20
+   }
+  }
+ },
+ "lava_crab_pot": {
+  "name": "溶岩蟹鍋",
+  "kind": "food",
+  "icon": "food",
+  "color": "#ff7a4a",
+  "price": 280,
+  "use": {
+   "food": {
+    "mods": {
+     "atkPct": 10,
+     "matkPct": 10,
+     "fireResPct": 15
+    },
+    "duration": 25
+   }
+  }
+ },
+ "lotus_salad": {
+  "name": "雪蓮サラダ",
+  "kind": "food",
+  "icon": "food",
+  "color": "#e8f4ff",
+  "price": 300,
+  "use": {
+   "food": {
+    "mods": {
+     "defPct": 12,
+     "mdefPct": 12,
+     "statusResistPct": 10
+    },
+    "duration": 25
+   }
+  }
+ },
+ "golden_feast": {
+  "name": "黄金のごちそう",
+  "kind": "food",
+  "icon": "food",
+  "color": "#ffd23a",
+  "price": 1500,
+  "use": {
+   "food": {
+    "mods": {
+     "expPct": 20,
+     "dropRatePct": 15,
+     "atkPct": 6,
+     "matkPct": 6
+    },
+    "duration": 30
+   }
+  }
  }
 }

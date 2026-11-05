@@ -1,0 +1,33 @@
+{
+ "jobs": {
+  "gather": {
+   "name": "採集"
+  },
+  "smith": {
+   "name": "鍛冶"
+  },
+  "cook": {
+   "name": "料理"
+  },
+  "alchemy": {
+   "name": "錬成"
+  }
+ },
+ "maxLevel": 50,
+ "expBase": 40,
+ "expPerLevel": 25,
+ "gain": {
+  "gather": 6,
+  "smith": 30,
+  "cook": 15,
+  "alchemy": 20
+ },
+ "effects": {
+  "gatherYieldPct": 2,
+  "gatherRarePct": 1,
+  "smithRarePct": 3,
+  "cookDoublePct": 1,
+  "alchemyCostPct": -1,
+  "alchemyRollMin": 0.01
+ }
+}

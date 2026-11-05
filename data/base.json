@@ -1,5 +1,5 @@
 {
- "upkeepPerLevel": 150,
+ "upkeepPerLevel": 600,
  "facilities": {
   "training": {
    "name": "訓練所",
@@ -10,7 +10,7 @@
    },
    "cost": {
     "gold": [
-     1500,
+     3000,
      1.8
     ],
     "mats": {
@@ -34,7 +34,7 @@
    },
    "cost": {
     "gold": [
-     1500,
+     3000,
      1.8
     ],
     "mats": {
@@ -57,7 +57,7 @@
    },
    "cost": {
     "gold": [
-     2000,
+     4000,
      1.8
     ],
     "mats": {
@@ -81,7 +81,7 @@
    "storage": 20,
    "cost": {
     "gold": [
-     2500,
+     5000,
      1.8
     ],
     "mats": {
@@ -103,7 +103,7 @@
    "craftBonus": 1,
    "cost": {
     "gold": [
-     2500,
+     5000,
      1.8
     ],
     "mats": {
@@ -124,7 +124,7 @@
    "foodDuration": 15,
    "cost": {
     "gold": [
-     1500,
+     3000,
      1.8
     ],
     "mats": {

@@ -117,8 +117,8 @@
     ]
   },
   "respec": {
-    "costBase": 100,
-    "costPerLevel": 25
+    "costBase": 300,
+    "costPerLevel": 40
   },
   "rebirth": {
     "statPoints": 15,
@@ -212,8 +212,8 @@
     "scatter": 0.8
   },
   "sell": {
-    "base": 10,
-    "perLevel": 3,
+    "base": 5,
+    "perLevel": 1.5,
     "perRefine": 0.1,
     "materialMul": 0.5
   },
@@ -277,5 +277,16 @@
     "preciseCrit": 0.3,
     "chargeMinMove": 0.2,
     "knockbackMaxRadius": 0.9
+  },
+  "economy": {
+    "killsPerHour": 360,
+    "levels": [
+      20,
+      50,
+      80,
+      100
+    ],
+    "refineTarget": 10,
+    "craftsPerDay": 5
   }
 }

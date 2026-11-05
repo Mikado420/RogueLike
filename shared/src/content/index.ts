@@ -37,6 +37,9 @@ import titles from '../../../data/titles.json';
 import achievements from '../../../data/achievements.json';
 import codex from '../../../data/codex.json';
 import base from '../../../data/base.json';
+import gathering from '../../../data/gathering.json';
+import subjobs from '../../../data/subjobs.json';
+import recipes from '../../../data/recipes.json';
 import arena from '../../../data/maps/arena.json';
 import type { Content } from './types';
 
@@ -48,7 +51,7 @@ export const CONTENT = {
   drops, materials, areas, npcs, shops, tiles, text, uniques, mythics, sets, crystals, refine, storage, looks, time,
   maps: { lumina, ember, arena },
   palettes, weather, ambience, music,
-  difficulties, dungeons, tower, raids: raid.raids, invasion, missions, titles, achievements, codex, base,
+  difficulties, dungeons, tower, raids: raid.raids, invasion, missions, titles, achievements, codex, base, gathering, subjobs, recipes,
 } as unknown as Content;
 
 /** 袋に入るもの（素材・消耗品・結晶）の名前と色 */

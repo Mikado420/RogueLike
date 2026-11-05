@@ -9,7 +9,7 @@ import { createItem } from './systems/loot';
  * セーブデータの形。構造を変えたら SAVE_VERSION を上げ、MIGRATIONS に変換を足す。
  * 保存先（IndexedDB・サーバーのDB）は client 側の SaveStore が決める。
  */
-export const SAVE_VERSION = 4;
+export const SAVE_VERSION = 5;
 
 type Raw = Record<string, unknown>;
 
@@ -49,7 +49,16 @@ export const MIGRATIONS: Record<number, (d: Raw) => Raw> = {
     d.records = { timeAttack: {} };
     return d;
   },
+  /** 4 → 5：サブ職 */
+  4: (d) => {
+    for (const ch of (d.characters as Raw[] | undefined) ?? []) ch.sub = newSub();
+    return d;
+  },
 };
+
+export function newSub() {
+  return { gather: { level: 1, exp: 0 }, smith: { level: 1, exp: 0 }, cook: { level: 1, exp: 0 }, alchemy: { level: 1, exp: 0 } };
+}
 
 /** 保存先のインターフェース。後でサーバーの DB に置き換える */
 export interface SaveStore {
@@ -111,6 +120,7 @@ export function newCharacter(acc: AccountData, name: string, look: { body: numbe
     missions: { day: -1, daily: [], week: -1, weekly: [] },
     achievements: {},
     tower: { best: 0 },
+    sub: newSub(),
   };
   for (const it of [...inventory, ...Object.values(equipment)]) if (it && !ch.appearance.looks.includes(it.look)) ch.appearance.looks.push(it.look);
   acc.characters.push(ch);
@@ -149,6 +159,7 @@ export function normalizeCharacter(ch: CharacterData, c: Content = CONTENT): Cha
   ch.missions ??= { day: -1, daily: [], week: -1, weekly: [] };
   ch.achievements ??= {};
   ch.tower ??= { best: 0 };
+  ch.sub ??= newSub();
   return ch;
 }
 

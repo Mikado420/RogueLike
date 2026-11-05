@@ -13,6 +13,7 @@ import { Modal } from './ui/modal';
 import { Menu } from './ui/menu';
 import { NpcPanels } from './ui/npc';
 import { registerContentPanels } from './ui/content';
+import { registerCraftPanels } from './ui/crafting';
 import type { Ctx } from './ui/ctx';
 
 const AUTOSAVE_MS = 15000;
@@ -66,6 +67,7 @@ export class Game {
     this.menu = new Menu(this.ctx);
     this.npc = new NpcPanels(this.ctx);
     registerContentPanels(this.npc, this.menu, this.ctx);
+    registerCraftPanels(this.npc);
     this.modal.onChange = () => { this.input.enabled = !this.modal.isOpen; };
     this.hud.onMenu = () => this.menu.toggle();
     this.hud.onPotion = () => this.usePotion();

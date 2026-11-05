@@ -12,6 +12,7 @@ import { setCounterMax } from './counters';
 import { enterDungeon, enterRaid, enterTower, leaveInstance } from './instance';
 import { claimMission, equipTitle } from './quest';
 import { buildFacility, payUpkeep } from './base';
+import { alchemy, cook, craftItem } from './crafting';
 
 /**
  * プレイヤーのコマンド（装備・ステ振り・スキル習得など）を処理する。
@@ -84,6 +85,9 @@ export function applyCommand(w: World, p: Player, cmd: Command) {
     case 'equipTitle': err = equipTitle(ch, cmd.title); break;
     case 'buildFacility': err = nearRole(w, p, 'base') ? buildFacility(w, p, cmd.facility) : 'err.notNear'; break;
     case 'payUpkeep': err = nearRole(w, p, 'base') ? payUpkeep(w, p) : 'err.notNear'; break;
+    case 'craft': err = nearRole(w, p, 'smith') ? craftItem(w, p, cmd.tier, cmd.base) : 'err.notNear'; break;
+    case 'cook': err = nearRole(w, p, 'kitchen') ? cook(w, p, cmd.recipe) : 'err.notNear'; break;
+    case 'alchemy': err = nearRole(w, p, 'smith') ? alchemy(w, p, cmd.uid, cmd.mode, cmd.index) : 'err.notNear'; break;
     case 'lock': {
       const it = ch.inventory.find((x) => x.uid === cmd.uid) ?? Object.values(ch.equipment).find((x) => x?.uid === cmd.uid);
       if (it) it.locked = cmd.locked; else err = 'err.invalid';

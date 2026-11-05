@@ -300,7 +300,7 @@ export interface MaterialDef {
   price: number;
   rarity?: Rarity;
   /** 使ったときの効果 */
-  use?: { heal?: number; healPct?: number; mpPct?: number; buff?: string; capture?: number };
+  use?: { heal?: number; healPct?: number; mpPct?: number; buff?: string; capture?: number; food?: { mods: Mods; duration: number } };
   stack?: number;
 }
 
@@ -416,6 +416,7 @@ export interface Balance {
   sell: { base: number; perLevel: number; perRefine: number; materialMul: number };
   world: { startArea: string; startTown: string; fieldBossInterval: number; exitCooldown: number; spawnMinDist: number; spawnInterval: number; eliteChance: number; levelSpread: number };
   combat: { backAngle: number; preciseCrit: number; chargeMinMove: number; knockbackMaxRadius: number };
+  economy: { killsPerHour: number; levels: number[]; refineTarget: number; craftsPerDay: number };
   start: { gold: number; bag: Record<string, number>; equipment: { base: string; slot: EquipSlot }[]; inventory: { base: string }[] };
 }
 
@@ -435,6 +436,23 @@ export interface InvasionDef {
 export interface MissionTemplate { id: string; counter: string; n: [number, number]; reward: { gold?: number; exp?: number; items?: Record<string, number> } }
 export interface AchievementDef { id: string; name: string; counter: string; n: number; title?: string }
 export interface FacilityDef { name: string; max: number; mods?: Mods; storage?: number; refineRate?: number; craftBonus?: number; foodDuration?: number; cost: { gold: [number, number]; mats: Record<string, [number, number]> } }
+
+export type SubJob = 'gather' | 'smith' | 'cook' | 'alchemy';
+export interface GatherEntry { id: string; w: number; weather?: string; night?: boolean }
+export interface GatheringDef {
+  nodeTypes: Record<string, { name: string; sprite: string; charges: number; respawn: number }>;
+  lock: number; yield: [number, number];
+  areas: Record<string, { count: Record<string, number>; tables: Record<string, GatherEntry[]> }>;
+}
+export interface SubJobsDef {
+  jobs: Record<SubJob, { name: string }>; maxLevel: number; expBase: number; expPerLevel: number; gain: Record<SubJob, number>;
+  effects: { gatherYieldPct: number; gatherRarePct: number; smithRarePct: number; cookDoublePct: number; alchemyCostPct: number; alchemyRollMin: number };
+}
+export interface RecipesDef {
+  smithing: { tiers: { tier: number; level: number; gold: number; ore: [string, number]; wood: [string, number]; extra: [string, number] }[]; rarity: Partial<Record<Rarity, number>> };
+  cooking: Record<string, { level: number; mats: Record<string, number>; gold: number }>;
+  alchemy: { rerollOne: { gold: [number, number]; catalyst: number }; rerollValues: { gold: [number, number]; catalyst: number }; catalyst: string };
+}
 
 export interface Content {
   balance: Balance;
@@ -493,6 +511,9 @@ export interface Content {
   achievements: AchievementDef[];
   codex: { thresholds: { pct: number; mods: Mods }[] };
   base: { upkeepPerLevel: number; facilities: Record<string, FacilityDef> };
+  gathering: GatheringDef;
+  subjobs: SubJobsDef;
+  recipes: RecipesDef;
   tiles: Record<string, { colors: [string, string]; shine?: string }>;
   text: Record<string, string>;
 }

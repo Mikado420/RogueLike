@@ -2,6 +2,7 @@ import { EQUIP_SLOTS, RARITIES, rarityRank, type EquipSlot, type Rarity, type We
 import type { AccountData, CharacterData, Item, Player, World } from '../state';
 import type { Content } from '../content/types';
 import { recordCodex } from './quest';
+import { applyStatus } from './status';
 import { baseBonus } from './base';
 import { addCounter, setCounterMax } from './counters';
 import { heal } from './combat';
@@ -71,6 +72,13 @@ export function useItem(w: World, p: Player, id: string): string | null {
   if (p.dead) return 'err.invalid';
   if ((p.char.bag[id] ?? 0) <= 0) return 'err.none';
   const u = d.use;
+  if (u.food) {
+    const k = 1 + baseBonus(w.account, w.content, w.clock, 'foodDuration') / 100;
+    applyStatus(w, p, p.id, 'food', u.food.duration * 60 * k, { mods: { ...u.food.mods } });
+    p.statsDirty = true;
+    takeFromBag(p.char, id, 1);
+    return null;
+  }
   if (u.healPct || u.heal) {
     if (p.hp >= p.stats.maxHp && !u.mpPct) return 'err.full';
     heal(w, p, (u.heal ?? 0) + (p.stats.maxHp * (u.healPct ?? 0)) / 100);

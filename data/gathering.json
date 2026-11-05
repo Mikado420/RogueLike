@@ -1,0 +1,300 @@
+{
+ "nodeTypes": {
+  "ore": {
+   "name": "採掘ポイント",
+   "sprite": "node_ore",
+   "charges": 3,
+   "respawn": 90
+  },
+  "herb": {
+   "name": "採取ポイント",
+   "sprite": "node_herb",
+   "charges": 3,
+   "respawn": 60
+  },
+  "wood": {
+   "name": "伐採ポイント",
+   "sprite": "node_wood",
+   "charges": 3,
+   "respawn": 75
+  },
+  "fish": {
+   "name": "釣り場",
+   "sprite": "node_fish",
+   "charges": 4,
+   "respawn": 60
+  }
+ },
+ "lock": 0.6,
+ "yield": [
+  1,
+  2
+ ],
+ "areas": {
+  "meadow": {
+   "count": {
+    "ore": 3,
+    "herb": 6,
+    "wood": 4,
+    "fish": 3
+   },
+   "tables": {
+    "ore": [
+     {
+      "id": "copper_ore",
+      "w": 10
+     },
+     {
+      "id": "iron_ore",
+      "w": 2
+     },
+     {
+      "id": "storm_crystal",
+      "w": 2,
+      "weather": "storm"
+     }
+    ],
+    "herb": [
+     {
+      "id": "herb_green",
+      "w": 10
+     },
+     {
+      "id": "moon_herb",
+      "w": 6,
+      "night": true
+     }
+    ],
+    "wood": [
+     {
+      "id": "oak_wood",
+      "w": 10
+     }
+    ],
+    "fish": [
+     {
+      "id": "river_fish",
+      "w": 10
+     },
+     {
+      "id": "rain_trout",
+      "w": 8,
+      "weather": "rain"
+     },
+     {
+      "id": "golden_fish",
+      "w": 2,
+      "weather": "aurora"
+     }
+    ]
+   }
+  },
+  "marsh": {
+   "count": {
+    "ore": 3,
+    "herb": 5,
+    "wood": 4,
+    "fish": 5
+   },
+   "tables": {
+    "ore": [
+     {
+      "id": "iron_ore",
+      "w": 10
+     },
+     {
+      "id": "copper_ore",
+      "w": 4
+     },
+     {
+      "id": "storm_crystal",
+      "w": 2,
+      "weather": "storm"
+     }
+    ],
+    "herb": [
+     {
+      "id": "herb_green",
+      "w": 6
+     },
+     {
+      "id": "moon_herb",
+      "w": 8,
+      "night": true
+     },
+     {
+      "id": "shade_herb",
+      "w": 2
+     }
+    ],
+    "wood": [
+     {
+      "id": "marsh_wood",
+      "w": 10
+     }
+    ],
+    "fish": [
+     {
+      "id": "swamp_eel",
+      "w": 10
+     },
+     {
+      "id": "rain_trout",
+      "w": 10,
+      "weather": "rain"
+     },
+     {
+      "id": "golden_fish",
+      "w": 2,
+      "weather": "aurora"
+     }
+    ]
+   }
+  },
+  "volcano": {
+   "count": {
+    "ore": 6,
+    "herb": 3,
+    "wood": 3,
+    "fish": 3
+   },
+   "tables": {
+    "ore": [
+     {
+      "id": "mithril_ore",
+      "w": 8
+     },
+     {
+      "id": "iron_ore",
+      "w": 6
+     },
+     {
+      "id": "storm_crystal",
+      "w": 3,
+      "weather": "storm"
+     }
+    ],
+    "herb": [
+     {
+      "id": "fire_herb",
+      "w": 10
+     }
+    ],
+    "wood": [
+     {
+      "id": "ash_wood",
+      "w": 10
+     }
+    ],
+    "fish": [
+     {
+      "id": "lava_crab",
+      "w": 10
+     },
+     {
+      "id": "golden_fish",
+      "w": 1,
+      "weather": "aurora"
+     }
+    ]
+   }
+  },
+  "forest": {
+   "count": {
+    "ore": 3,
+    "herb": 6,
+    "wood": 6,
+    "fish": 2
+   },
+   "tables": {
+    "ore": [
+     {
+      "id": "mithril_ore",
+      "w": 10
+     },
+     {
+      "id": "star_ore",
+      "w": 2,
+      "night": true
+     }
+    ],
+    "herb": [
+     {
+      "id": "shade_herb",
+      "w": 10
+     },
+     {
+      "id": "moon_herb",
+      "w": 6,
+      "night": true
+     }
+    ],
+    "wood": [
+     {
+      "id": "elder_wood",
+      "w": 10
+     }
+    ],
+    "fish": [
+     {
+      "id": "river_fish",
+      "w": 6
+     },
+     {
+      "id": "golden_fish",
+      "w": 1,
+      "weather": "aurora"
+     }
+    ]
+   }
+  },
+  "snow": {
+   "count": {
+    "ore": 5,
+    "herb": 3,
+    "wood": 4,
+    "fish": 4
+   },
+   "tables": {
+    "ore": [
+     {
+      "id": "star_ore",
+      "w": 8
+     },
+     {
+      "id": "mithril_ore",
+      "w": 4
+     },
+     {
+      "id": "storm_crystal",
+      "w": 3,
+      "weather": "storm"
+     }
+    ],
+    "herb": [
+     {
+      "id": "snow_lotus",
+      "w": 10
+     }
+    ],
+    "wood": [
+     {
+      "id": "frost_wood",
+      "w": 10
+     }
+    ],
+    "fish": [
+     {
+      "id": "ice_fish",
+      "w": 10
+     },
+     {
+      "id": "golden_fish",
+      "w": 3,
+      "weather": "aurora"
+     }
+    ]
+   }
+  }
+ }
+}

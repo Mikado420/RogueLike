@@ -18,6 +18,7 @@ import { spawnFieldMonster, updateField, updateFieldBoss, updateWeatherNotices }
 import { updateInstance } from './instance';
 import { updateInvasion } from './events';
 import { ensureMissions } from './quest';
+import { placeNodes, updateNodes } from './crafting';
 
 export interface WorldOptions {
   account: AccountData;
@@ -119,6 +120,7 @@ export function buildArea(w: World, areaId: string): AreaInstance {
     safeZonePower: 0,
     safeZoneOwner: -1,
     invasion: null,
+    nodes: placeNodes(w, areaId, map),
   };
   return area;
 }
@@ -156,7 +158,7 @@ export function makeArea(w: World, type: AreaInstance['type'], name: string, map
   return {
     id: 'instance', type, name, map, level, monsters: [], strikes: [], projectiles: [], drops: [], npcs: [], spawns: [],
     playerSpawn: { ...spawn }, safeRadius: 0, exits: [], spawnPoints: {}, spots: {}, spawnTimer: 0, fieldBossSlot: -1,
-    instance: null, safeZones: [], safeZoneAt: 0, safeZonePower: 0, safeZoneOwner: -1, invasion: null,
+    instance: null, safeZones: [], safeZoneAt: 0, safeZonePower: 0, safeZoneOwner: -1, invasion: null, nodes: [],
   };
 }
 
@@ -234,6 +236,7 @@ export function step(w: World, inputs: Map<number, PlayerInput>, now?: number): 
   updateField(w);
   updateInstance(w);
   updateInvasion(w);
+  updateNodes(w);
   for (const fn of areaUpdaters) fn(w);
   for (const p of w.players) p.char.playTime += 1 / w.content.balance.tickRate;
   return w.events;

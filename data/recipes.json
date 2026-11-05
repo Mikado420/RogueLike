@@ -1,0 +1,247 @@
+{
+ "smithing": {
+  "tiers": [
+   {
+    "tier": 0,
+    "level": 1,
+    "gold": 100,
+    "ore": [
+     "copper_ore",
+     3
+    ],
+    "wood": [
+     "oak_wood",
+     2
+    ],
+    "extra": [
+     "slime_gel",
+     2
+    ]
+   },
+   {
+    "tier": 1,
+    "level": 3,
+    "gold": 250,
+    "ore": [
+     "copper_ore",
+     5
+    ],
+    "wood": [
+     "oak_wood",
+     3
+    ],
+    "extra": [
+     "boar_hide",
+     3
+    ]
+   },
+   {
+    "tier": 2,
+    "level": 8,
+    "gold": 600,
+    "ore": [
+     "iron_ore",
+     4
+    ],
+    "wood": [
+     "marsh_wood",
+     3
+    ],
+    "extra": [
+     "crab_shell",
+     2
+    ]
+   },
+   {
+    "tier": 3,
+    "level": 14,
+    "gold": 1200,
+    "ore": [
+     "iron_ore",
+     7
+    ],
+    "wood": [
+     "marsh_wood",
+     4
+    ],
+    "extra": [
+     "lizard_scale",
+     3
+    ]
+   },
+   {
+    "tier": 4,
+    "level": 20,
+    "gold": 2500,
+    "ore": [
+     "mithril_ore",
+     4
+    ],
+    "wood": [
+     "ash_wood",
+     3
+    ],
+    "extra": [
+     "fire_scale",
+     3
+    ]
+   },
+   {
+    "tier": 5,
+    "level": 26,
+    "gold": 4500,
+    "ore": [
+     "mithril_ore",
+     7
+    ],
+    "wood": [
+     "ash_wood",
+     4
+    ],
+    "extra": [
+     "magma_core",
+     2
+    ]
+   },
+   {
+    "tier": 6,
+    "level": 32,
+    "gold": 7000,
+    "ore": [
+     "mithril_ore",
+     8
+    ],
+    "wood": [
+     "elder_wood",
+     4
+    ],
+    "extra": [
+     "dark_silk",
+     3
+    ]
+   },
+   {
+    "tier": 7,
+    "level": 38,
+    "gold": 11000,
+    "ore": [
+     "star_ore",
+     5
+    ],
+    "wood": [
+     "elder_wood",
+     5
+    ],
+    "extra": [
+     "wolf_fang",
+     4
+    ]
+   },
+   {
+    "tier": 8,
+    "level": 45,
+    "gold": 16000,
+    "ore": [
+     "star_ore",
+     8
+    ],
+    "wood": [
+     "frost_wood",
+     5
+    ],
+    "extra": [
+     "wyvern_scale",
+     4
+    ]
+   }
+  ],
+  "rarity": {
+   "common": 45,
+   "rare": 38,
+   "epic": 13,
+   "legend": 3.5,
+   "mythic": 0.5
+  }
+ },
+ "cooking": {
+  "grilled_fish": {
+   "level": 1,
+   "mats": {
+    "river_fish": 2
+   },
+   "gold": 10
+  },
+  "herb_soup": {
+   "level": 1,
+   "mats": {
+    "herb_green": 3
+   },
+   "gold": 10
+  },
+  "spicy_stew": {
+   "level": 8,
+   "mats": {
+    "fire_herb": 2,
+    "boar_hide": 2
+   },
+   "gold": 40
+  },
+  "moon_tea": {
+   "level": 8,
+   "mats": {
+    "moon_herb": 3
+   },
+   "gold": 40
+  },
+  "eel_kabayaki": {
+   "level": 12,
+   "mats": {
+    "swamp_eel": 2,
+    "herb_green": 1
+   },
+   "gold": 60
+  },
+  "lava_crab_pot": {
+   "level": 20,
+   "mats": {
+    "lava_crab": 2,
+    "fire_herb": 2
+   },
+   "gold": 120
+  },
+  "lotus_salad": {
+   "level": 28,
+   "mats": {
+    "snow_lotus": 2,
+    "moon_herb": 1
+   },
+   "gold": 150
+  },
+  "golden_feast": {
+   "level": 35,
+   "mats": {
+    "golden_fish": 1,
+    "snow_lotus": 1,
+    "fire_herb": 1
+   },
+   "gold": 500
+  }
+ },
+ "alchemy": {
+  "rerollOne": {
+   "gold": [
+    300,
+    0.6
+   ],
+   "catalyst": 1
+  },
+  "rerollValues": {
+   "gold": [
+    200,
+    0.6
+   ],
+   "catalyst": 2
+  },
+  "catalyst": "catalyst"
+ }
+}

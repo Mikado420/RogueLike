@@ -32,3 +32,4 @@ export * from './systems/events';
 export * from './systems/quest';
 export * from './systems/base';
 export * from './systems/boss';
+export * from './systems/crafting';

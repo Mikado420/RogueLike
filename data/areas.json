@@ -74,6 +74,11 @@
     "npc": "base_keeper",
     "x": 9.5,
     "y": 21.5
+   },
+   {
+    "npc": "cook",
+    "x": 30.5,
+    "y": 21.5
    }
   ],
   "travelCost": 100,
@@ -178,6 +183,11 @@
     "npc": "raid_gate",
     "x": 16.5,
     "y": 6.5
+   },
+   {
+    "npc": "cook",
+    "x": 22.5,
+    "y": 23.5
    }
   ],
   "travelCost": 300,

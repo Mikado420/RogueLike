@@ -79,6 +79,8 @@ export interface CharacterData {
   missions: { day: number; daily: MissionState[]; week: number; weekly: MissionState[] };
   achievements: Record<string, number>;
   tower: { best: number };
+  /** サブ職（採集・鍛冶・料理・錬成） */
+  sub: Record<'gather' | 'smith' | 'cook' | 'alchemy', { level: number; exp: number }>;
 }
 
 export interface MissionState { id: string; counter: string; n: number; base: number; claimed: boolean }
@@ -153,7 +155,10 @@ export type Command =
   | { type: 'claimMission'; kind: 'daily' | 'weekly'; index: number }
   | { type: 'equipTitle'; title: string | null }
   | { type: 'buildFacility'; facility: string }
-  | { type: 'payUpkeep' };
+  | { type: 'payUpkeep' }
+  | { type: 'craft'; tier: number; base: string }
+  | { type: 'cook'; recipe: string }
+  | { type: 'alchemy'; uid: number; mode: 'one' | 'values'; index: number };
 
 export const emptyInput = (): PlayerInput => ({
   move: { x: 0, y: 0 }, aim: null, attack: false, skill: -1, dodge: false, interact: false, commands: [],
@@ -381,7 +386,10 @@ export interface AreaInstance {
   safeZonePower: number;
   safeZoneOwner: number;
   invasion: InvasionState | null;
+  nodes: GatherNode[];
 }
+
+export interface GatherNode { id: number; type: string; x: number; y: number; charges: number; respawnAt: number }
 
 export interface InstanceState {
   kind: 'dungeon' | 'tower' | 'raid';
@@ -452,4 +460,7 @@ export type GameEvent =
   | { type: 'worldNotice'; key: string; args: (string | number)[]; rare?: boolean }
   | { type: 'instance'; playerId: number; what: 'cleared' | 'failed' | 'floor'; time?: number; best?: boolean; floor?: number }
   | { type: 'achievement'; playerId: number; id: string }
-  | { type: 'invasion'; what: 'start' | 'wave' | 'end'; wave?: number; tier?: number };
+  | { type: 'invasion'; what: 'start' | 'wave' | 'end'; wave?: number; tier?: number }
+  | { type: 'gather'; playerId: number; node: number; id: string; n: number; x: number; y: number }
+  | { type: 'crafted'; playerId: number; kind: 'smith' | 'cook' | 'alchemy'; uid?: number; id?: string }
+  | { type: 'subLevel'; playerId: number; job: string; level: number };

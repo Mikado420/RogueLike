@@ -4,7 +4,10 @@
    "potion_s",
    "potion_m",
    "ether",
-   "refine_stone"
+   "refine_stone",
+   "catalyst",
+   "herb_green",
+   "river_fish"
   ]
  }
 }

@@ -77,5 +77,11 @@
   "sprite": "npc_stairs",
   "role": "stairs",
   "color": "#ffe28a"
+ },
+ "cook": {
+  "name": "料理人",
+  "sprite": "npc_cook",
+  "role": "kitchen",
+  "color": "#ffcf8a"
  }
 }

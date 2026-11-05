@@ -1,6 +1,6 @@
 import {
   CONTENT, beatTicks, chargeLevel, comboMax, expToNext, freeSkillPoints, freeStatPoints, interactTarget, magazineSize,
-  slotSkill, txt, weaponTypeOf, currentWeather, dayPhase, contribution, type GameEvent, type Item, type Player, type World,
+  slotSkill, txt, weaponTypeOf, currentWeather, dayPhase, contribution, bagInfo, type GameEvent, type Item, type Player, type World,
 } from '../../shared/src';
 import { rarityColor, statusColor } from './colors';
 import type { InputManager } from './input';
@@ -220,6 +220,12 @@ export class Hud {
       if (e.type === 'levelUp' && e.playerId === this.myId) this.toast(txt('notice.levelUp', e.level), '#ffe14a');
       if (e.type === 'refine' && e.playerId === this.myId) this.toast(txt(e.success ? 'smith.success' : 'smith.failed', e.level), e.success ? '#ffe14a' : '#ff8a7a');
       if (e.type === 'worldNotice') this.showBanner(txt(e.key, ...e.args), !!e.rare);
+      if (e.type === 'gather' && e.playerId === this.myId) this.toast(txt('notice.gather', bagInfo(e.id).name, e.n), bagInfo(e.id).color);
+      if (e.type === 'subLevel' && e.playerId === this.myId) this.toast(txt('notice.subLevel', txt(`sub.${e.job}`), e.level), '#9be04a');
+      if (e.type === 'crafted' && e.playerId === this.myId && e.kind === 'smith') {
+        const it = this.world.players.find((x) => x.id === this.myId)?.char.inventory.find((x) => x.uid === e.uid);
+        if (it) this.itemToast(it);
+      }
       if (e.type === 'instance' && e.playerId === this.myId) {
         if (e.what === 'cleared') this.showBanner(`${txt('inst.cleared')}${e.time !== undefined ? `  ${fmtTime(e.time)}` : ''}${e.best ? `  ${txt('inst.best')}` : ''}`, true);
         if (e.what === 'failed') this.showBanner(txt('inst.failed'), false);
@@ -349,7 +355,7 @@ export class Hud {
     // 話す
     const it = interactTarget(this.world, p);
     this.interactBtn.classList.toggle('show', !!it && !p.dead);
-    if (it) this.interactName.textContent = it.kind === 'npc' ? CONTENT.npcs[it.npc]?.name ?? '' : txt('hud.talk');
+    if (it) this.interactName.textContent = it.kind === 'npc' ? CONTENT.npcs[it.npc]?.name ?? '' : txt(`node.${it.node}`);
     const potions = (ch.bag.potion_s ?? 0) + (ch.bag.potion_m ?? 0);
     this.potionCount.textContent = String(potions);
     this.potionBtn.classList.toggle('none', potions === 0);

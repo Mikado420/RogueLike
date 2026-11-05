@@ -5,6 +5,7 @@ import {
 } from '../../../shared/src';
 import { lookInfo } from '../colors';
 import { itemCell, itemInfo } from './itemview';
+import { subJobsBox } from './crafting';
 import { btn, h, kv } from './dom';
 import { elName, modLabel, modText, type Ctx } from './ctx';
 import type { DamageDisplay } from '../settings';
@@ -140,6 +141,7 @@ export class Menu {
     ];
     for (const [k, v] of items) d.append(kv(k, v));
     el.append(d);
+    el.append(subJobsBox(this.ctx));
   }
 
   // ───────── スキル ─────────
