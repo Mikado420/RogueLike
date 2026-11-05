@@ -169,6 +169,22 @@ const DRAWERS: Record<string, Drawer> = {
   }),
   lamp: () => gfx((g) => { shadow(g, 6); g.rect(-2, -40, 4, 40).fill(0x3a3a40); g.roundRect(-6, -50, 12, 12, 3).fill(0xffe08a).stroke({ width: 1.5, color: 0x3a3a40 }); g.circle(0, -44, 16).fill({ color: 0xffe08a, alpha: 0.15 }); }),
   pillar: () => gfx((g) => { shadow(g, 14); g.rect(-9, -52, 18, 52).fill(0x5a5a68).stroke({ width: 2, color: 0x2a2a34 }); g.rect(-12, -56, 24, 6).fill(0x6a6a78); }),
+  npc_gate: () => gfx((g) => {
+    shadow(g, 24);
+    g.rect(-20, -54, 7, 54).fill(0x6a6a86); g.rect(13, -54, 7, 54).fill(0x6a6a86);
+    g.rect(-24, -60, 48, 8).fill(0x8a8aa6).stroke({ width: 1.5, color: 0x3a3a4a });
+    g.ellipse(0, -28, 12, 24).fill({ color: 0x9fa8ff, alpha: 0.35 });
+  }),
+  npc_cave: () => gfx((g) => {
+    shadow(g, 28);
+    g.poly([-28, 0, -22, -26, -8, -38, 10, -36, 24, -22, 28, 0]).fill(0x5a5048).stroke({ width: 2, color: 0x2a2420 });
+    g.ellipse(0, -10, 14, 16).fill(0x0a0808);
+    g.ellipse(0, -10, 10, 12).fill({ color: 0xffd76a, alpha: 0.12 });
+  }),
+  npc_stairs: () => gfx((g) => {
+    for (let i = 0; i < 4; i++) g.rect(-16 + i * 3, -6 - i * 8, 32 - i * 6, 8).fill(0xb0a890 - i * 0x080808).stroke({ width: 1, color: 0x4a4438 });
+    g.ellipse(0, -34, 10, 4).fill({ color: 0xffe28a, alpha: 0.6 });
+  }),
   npc_board: () => gfx((g) => {
     shadow(g, 16);
     g.rect(-12, -10, 3, 10).fill(0x5a3a22); g.rect(9, -10, 3, 10).fill(0x5a3a22);

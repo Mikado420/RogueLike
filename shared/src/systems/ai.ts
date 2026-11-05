@@ -81,7 +81,7 @@ export function updateMonster(w: World, m: Monster) {
 
   if (m.ai === 'chase') {
     const target = targetOf(w, m);
-    if (!target || distHome > def.leashRange) { m.ai = 'return'; m.targetId = -1; return; }
+    if (!target || (!m.invader && !m.summonedBy && distHome > def.leashRange) || (m.summonedBy > 0 && distHome > def.leashRange * 3)) { m.ai = 'return'; m.targetId = -1; return; }
     const d = Math.hypot(target.x - m.x, target.y - m.y);
     const dir = Math.atan2(target.y - m.y, target.x - m.x);
     m.facing = dir;

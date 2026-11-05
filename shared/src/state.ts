@@ -74,7 +74,14 @@ export interface CharacterData {
   lootFilter: { hideBelow: Rarity | null; sellBelow: Rarity | null };
   /** 訪れた街（ファストトラベル先） */
   visitedTowns: string[];
+  /** 図鑑：倒した数・手に入れた装備の土台・素材 */
+  codex: { monsters: Record<string, number>; items: Record<string, number>; materials: Record<string, number> };
+  missions: { day: number; daily: MissionState[]; week: number; weekly: MissionState[] };
+  achievements: Record<string, number>;
+  tower: { best: number };
 }
+
+export interface MissionState { id: string; counter: string; n: number; base: number; claimed: boolean }
 
 export interface StorageData { items: Item[]; bag: Record<string, number>; capacity: number }
 
@@ -88,7 +95,11 @@ export interface AccountData {
   /** 倉庫はアカウントで共有 */
   storage: StorageData;
   /** 世界の状態（オフライン用。オンライン化したらサーバー側に移す） */
-  world: { fieldBoss: Record<string, number> };
+  world: { fieldBoss: Record<string, number>; invasion: { slot: number; contribution: Record<string, number>; rewarded: string[] } };
+  /** 拠点（段階3でギルド共有にする） */
+  base: { levels: Record<string, number>; paidDay: number };
+  /** タイムアタックの記録（段階3でサーバーのランキングに移す） */
+  records: { timeAttack: Record<string, { time: number; char: string; at: number }[]> };
 }
 
 // ═════════════ 入力とコマンド ═════════════
@@ -134,7 +145,15 @@ export type Command =
   | { type: 'sortInventory'; key: string }
   | { type: 'setAppearance'; slot: 'weapon' | 'body' | 'head'; look: string | null }
   | { type: 'setLootFilter'; hideBelow: Rarity | null; sellBelow: Rarity | null }
-  | { type: 'fastTravel'; town: string };
+  | { type: 'fastTravel'; town: string }
+  | { type: 'enterDungeon'; dungeon: string; difficulty: Difficulty }
+  | { type: 'enterTower'; floor: number }
+  | { type: 'enterRaid'; raid: string; difficulty: Difficulty }
+  | { type: 'leaveInstance' }
+  | { type: 'claimMission'; kind: 'daily' | 'weekly'; index: number }
+  | { type: 'equipTitle'; title: string | null }
+  | { type: 'buildFacility'; facility: string }
+  | { type: 'payUpkeep' };
 
 export const emptyInput = (): PlayerInput => ({
   move: { x: 0, y: 0 }, aim: null, attack: false, skill: -1, dodge: false, interact: false, commands: [],
@@ -245,6 +264,9 @@ export interface Monster extends ActorBase {
   /** 奇襲型：近づくまで見えない */
   hidden: boolean;
   fieldBoss: boolean;
+  /** 呼び出したボス（シールドの判定用） */
+  summonedBy: number;
+  invader: boolean;
   /** 誰がどれだけ削ったか（経験値の分配用） */
   damageBy: Record<number, number>;
 }
@@ -321,7 +343,7 @@ export interface Drop {
   ownerId: number;
 }
 
-export interface NpcInstance { id: number; npc: string; x: number; y: number }
+export interface NpcInstance { id: number; npc: string; x: number; y: number; data?: string }
 
 export interface SpawnState {
   key: string;
@@ -352,7 +374,31 @@ export interface AreaInstance {
   /** フィールドの湧き */
   spawnTimer: number;
   fieldBossSlot: number;
+  instance: InstanceState | null;
+  /** レイドの安全地帯（この円の外にいると大ダメージ） */
+  safeZones: { x: number; y: number; r: number }[];
+  safeZoneAt: number;
+  safeZonePower: number;
+  safeZoneOwner: number;
+  invasion: InvasionState | null;
 }
+
+export interface InstanceState {
+  kind: 'dungeon' | 'tower' | 'raid';
+  id: string;
+  difficulty: Difficulty;
+  floor: number;
+  level: number;
+  startTick: number;
+  endTick: number;
+  bossId: number;
+  cleared: boolean;
+  failed: boolean;
+  returnTo: { area: string; spawn: string | null; x: number; y: number };
+  timeLimitTick: number;
+}
+
+export interface InvasionState { slot: number; wave: number; nextWaveTick: number; endClock: number; finished: boolean }
 
 export interface World {
   seed: number;
@@ -367,7 +413,7 @@ export interface World {
   events: GameEvent[];
   /** 区切り（天候の切り替わり）を見張る */
   lastWeatherSlot: number;
-  pendingTransition: { to: string; spawn: string } | null;
+  pendingTransition: { to: string; spawn: string; pos?: { x: number; y: number } } | null;
 }
 
 // ═════════════ イベント（描画・効果音・通知用） ═════════════
@@ -403,4 +449,7 @@ export type GameEvent =
   | { type: 'proc'; playerId: number; name: string; x: number; y: number }
   | { type: 'autoSell'; playerId: number; gold: number; rarity: Rarity }
   | { type: 'areaChanged'; playerId: number; area: string }
-  | { type: 'worldNotice'; key: string; args: (string | number)[]; rare?: boolean };
+  | { type: 'worldNotice'; key: string; args: (string | number)[]; rare?: boolean }
+  | { type: 'instance'; playerId: number; what: 'cleared' | 'failed' | 'floor'; time?: number; best?: boolean; floor?: number }
+  | { type: 'achievement'; playerId: number; id: string }
+  | { type: 'invasion'; what: 'start' | 'wave' | 'end'; wave?: number; tier?: number };

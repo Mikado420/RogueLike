@@ -9,6 +9,8 @@ import { heal } from './combat';
 import { interact } from './interact';
 import { exitAt } from './world';
 import { conditionalMods, procOnDodge } from './effects';
+import { baseMods } from './base';
+import { addMods } from '../core';
 import { DT, nearestMonster, sec } from './util';
 
 export function refreshPlayerStats(w: World, p: Player) {
@@ -16,7 +18,9 @@ export function refreshPlayerStats(w: World, p: Player) {
   const oldMax = p.stats.maxHp;
   const cond = conditionalMods(w, p);
   p.condKey = cond.key;
-  p.stats = derivePlayerStats(p.char, p.statuses, w.content, cond.mods);
+  const extra = { ...cond.mods };
+  addMods(extra, baseMods(w.account, w.content, w.clock));
+  p.stats = derivePlayerStats(p.char, p.statuses, w.content, extra);
   if (p.stats.maxHp !== oldMax && oldMax > 0) p.hp = Math.min(p.stats.maxHp, Math.max(1, Math.round(p.stats.maxHp * ratioHp)));
   p.hp = Math.min(p.hp, p.stats.maxHp);
   p.mp = Math.min(p.mp, p.stats.maxMp);

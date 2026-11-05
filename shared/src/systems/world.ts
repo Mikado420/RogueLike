@@ -1,7 +1,7 @@
 import type { Content } from '../content/types';
 import { CONTENT } from '../content';
 import { Rng } from '../rng';
-import { buildMap, circleHitsMap } from '../map';
+import { buildMap, circleHitsMap, type GameMap } from '../map';
 import type { AccountData, AreaInstance, CharacterData, GameEvent, Monster, Player, PlayerInput, SpawnState, World } from '../state';
 import { emptyInput } from '../state';
 import { derivePlayerStats, difficultyScale, monsterStats, type MonsterScale } from './stats';
@@ -15,6 +15,9 @@ import type { Difficulty } from '../core';
 import type { AreaDef } from '../content/types';
 import { generateField, type GeneratedField } from '../mapgen';
 import { spawnFieldMonster, updateField, updateFieldBoss, updateWeatherNotices } from './spawner';
+import { updateInstance } from './instance';
+import { updateInvasion } from './events';
+import { ensureMissions } from './quest';
 
 export interface WorldOptions {
   account: AccountData;
@@ -96,7 +99,10 @@ export function buildArea(w: World, areaId: string): AreaInstance {
   const area: AreaInstance = {
     id: areaId, type: def.type, name: def.name, map, level: def.level,
     monsters: [], strikes: [], projectiles: [], drops: [],
-    npcs: (def.npcs ?? []).map((n) => ({ id: newId(w), npc: n.npc, x: n.x, y: n.y })),
+    npcs: [
+      ...(def.npcs ?? []).map((n) => ({ id: newId(w), npc: n.npc, x: n.x, y: n.y })),
+      ...(def.gate && gen?.spots.gate ? [{ id: newId(w), npc: 'dungeon_gate', x: gen.spots.gate.x, y: gen.spots.gate.y, data: def.gate.dungeon }] : []),
+    ],
     spawns: (def.spawns ?? []).map((s, i): SpawnState => ({
       key: `${areaId}:${i}`, monster: s.monster, x: s.x, y: s.y, level: s.level, monsterId: -1, respawnAt: 0,
     })),
@@ -107,6 +113,12 @@ export function buildArea(w: World, areaId: string): AreaInstance {
     spots: { ...(gen?.spots ?? {}) },
     spawnTimer: 0,
     fieldBossSlot: -1,
+    instance: null,
+    safeZones: [],
+    safeZoneAt: 0,
+    safeZonePower: 0,
+    safeZoneOwner: -1,
+    invasion: null,
   };
   return area;
 }
@@ -137,6 +149,15 @@ export function enterArea(w: World, areaId: string, pos: { x: number; y: number 
     for (let i = 0; i < (def.density ?? 0); i++) spawnFieldMonster(w);
     updateFieldBoss(w);
   }
+}
+
+/** ダンジョン・塔・レイド用の空のエリアを作る */
+export function makeArea(w: World, type: AreaInstance['type'], name: string, map: GameMap, spawn: { x: number; y: number }, level: [number, number]): AreaInstance {
+  return {
+    id: 'instance', type, name, map, level, monsters: [], strikes: [], projectiles: [], drops: [], npcs: [], spawns: [],
+    playerSpawn: { ...spawn }, safeRadius: 0, exits: [], spawnPoints: {}, spots: {}, spawnTimer: 0, fieldBossSlot: -1,
+    instance: null, safeZones: [], safeZoneAt: 0, safeZonePower: 0, safeZoneOwner: -1, invasion: null,
+  };
 }
 
 /** 出口に入ったか */
@@ -170,7 +191,7 @@ export function spawnMonster(w: World, sp: SpawnState, opts: SpawnOpts = {}): Mo
     ai: 'wander', targetId: -1, homeX: sp.x, homeY: sp.y, wanderX: sp.x, wanderY: sp.y,
     timer: w.rng.int(0, 40), busy: 0, globalCd: 0, cds: {}, pending: null, spawnKey: sp.key,
     enraged: false, poise: poiseMax, poiseMax, breaks: 0, lastHitTick: 0, phase: 0, shielded: false,
-    brokenUntil: 0, scale, damageBy: {}, hidden: false, fieldBoss: false,
+    brokenUntil: 0, scale, damageBy: {}, hidden: false, fieldBoss: false, summonedBy: -1, invader: false,
   };
   sp.monsterId = m.id;
   w.area.monsters.push(m);
@@ -196,7 +217,7 @@ export function step(w: World, inputs: Map<number, PlayerInput>, now?: number): 
   if (w.pendingTransition) {
     const t = w.pendingTransition;
     w.pendingTransition = null;
-    enterArea(w, t.to, t.spawn || null);
+    enterArea(w, t.to, t.pos ?? (t.spawn || null));
     return w.events;
   }
   for (const m of area.monsters) updateMonster(w, m);
@@ -209,7 +230,10 @@ export function step(w: World, inputs: Map<number, PlayerInput>, now?: number): 
   for (const sp of area.spawns) {
     if (sp.monsterId === -1 && w.tick >= sp.respawnAt) spawnMonster(w, sp);
   }
+  if (w.tick % 20 === 0) for (const p of w.players) ensureMissions(w, p);
   updateField(w);
+  updateInstance(w);
+  updateInvasion(w);
   for (const fn of areaUpdaters) fn(w);
   for (const p of w.players) p.char.playTime += 1 / w.content.balance.tickRate;
   return w.events;

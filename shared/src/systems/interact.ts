@@ -1,10 +1,15 @@
 import type { Player, World } from '../state';
+import { leaveInstance, nextTowerFloor } from './instance';
 
 /** 近くの NPC（あとで採集ポイント・入口も）に話しかける */
 export function interact(w: World, p: Player) {
   const t = interactTarget(w, p);
   if (!t) return;
-  if (t.kind === 'npc') w.events.push({ type: 'npc', playerId: p.id, npc: t.npc, npcId: t.id });
+  if (t.kind !== 'npc') return;
+  const role = w.content.npcs[t.npc]?.role;
+  if (role === 'leave') { leaveInstance(w, p); return; }
+  if (role === 'stairs') { nextTowerFloor(w, p); return; }
+  w.events.push({ type: 'npc', playerId: p.id, npc: t.npc, npcId: t.id });
 }
 
 export type InteractTarget = { kind: 'npc'; id: number; npc: string; x: number; y: number };

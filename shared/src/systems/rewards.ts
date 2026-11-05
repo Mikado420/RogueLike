@@ -3,7 +3,10 @@ import { circleHitsMap } from '../map';
 import { gainExp, levelDiffMul, monsterExp } from './progression';
 import { rollEquipDrops, sellPrice } from './loot';
 import { procOnKill } from './effects';
-import { weatherDef } from './weather';
+import { currentWeather, weatherDef } from './weather';
+import { isNight } from './time';
+import { addContribution } from './events';
+import { recordCodex } from './quest';
 import { rarityRank } from '../core';
 import { findPlayer, isBoss, newId, sec } from './util';
 import { addCounter } from './counters';
@@ -36,7 +39,14 @@ export function onMonsterKilled(w: World, m: Monster, by: Actor | null) {
     w.events.push({ type: 'gold', playerId: p.id, amount: gold });
     addCounter(w, p, 'kills', 1);
     addCounter(w, p, `kill.${m.defId}`, 1);
+    const wt = currentWeather(w);
+    addCounter(w, p, `kills.w.${wt}`, 1);
+    if (isNight(w)) addCounter(w, p, 'kills.night', 1);
+    if (m.elite) { addCounter(w, p, 'kills.elite', 1); addCounter(w, p, `kills.w.${wt}.elite`, 1); }
     if (isBoss(w, m)) addCounter(w, p, 'bossKills', 1);
+    if (m.fieldBoss) addCounter(w, p, 'fieldBossKills', 1);
+    if (m.invader) addContribution(w, p, c.invasion.contribution.kill);
+    recordCodex(w, p, 'monsters', m.defId);
   }
 
   // ドロップは最も削った人のもの

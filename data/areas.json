@@ -64,6 +64,16 @@
     "npc": "portal",
     "x": 23.5,
     "y": 21.5
+   },
+   {
+    "npc": "tower_gate",
+    "x": 20.5,
+    "y": 7.5
+   },
+   {
+    "npc": "base_keeper",
+    "x": 9.5,
+    "y": 21.5
    }
   ],
   "travelCost": 100,
@@ -163,6 +173,11 @@
     "npc": "portal",
     "x": 19.5,
     "y": 16.5
+   },
+   {
+    "npc": "raid_gate",
+    "x": 16.5,
+    "y": 6.5
    }
   ],
   "travelCost": 300,
@@ -580,5 +595,13 @@
   "safeRadius": 0,
   "spawns": [],
   "npcs": []
+ },
+ "instance": {
+  "name": "",
+  "type": "dungeon",
+  "level": [
+   1,
+   1
+  ]
  }
 }

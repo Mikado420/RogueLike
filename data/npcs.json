@@ -41,5 +41,41 @@
   "sprite": "npc_portal",
   "role": "travel",
   "color": "#9fa8ff"
+ },
+ "tower_gate": {
+  "name": "塔の門番",
+  "sprite": "npc_gate",
+  "role": "tower",
+  "color": "#9fa8ff"
+ },
+ "raid_gate": {
+  "name": "巨神の門",
+  "sprite": "npc_gate",
+  "role": "raid",
+  "color": "#ff7ab0"
+ },
+ "dungeon_gate": {
+  "name": "ダンジョンの入口",
+  "sprite": "npc_cave",
+  "role": "dungeon",
+  "color": "#ffd76a"
+ },
+ "base_keeper": {
+  "name": "拠点の管理人",
+  "sprite": "npc_keeper",
+  "role": "base",
+  "color": "#9be04a"
+ },
+ "exit_portal": {
+  "name": "出口",
+  "sprite": "npc_portal",
+  "role": "leave",
+  "color": "#9fe8ff"
+ },
+ "stairs": {
+  "name": "次の階",
+  "sprite": "npc_stairs",
+  "role": "stairs",
+  "color": "#ffe28a"
  }
 }

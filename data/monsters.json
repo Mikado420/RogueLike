@@ -2508,5 +2508,756 @@
    "id": "cr_hunter",
    "chance": 0.5
   }
+ },
+ "slime_queen": {
+  "name": "スライムクイーン",
+  "sprite": "blob",
+  "colors": [
+   "#b46aff",
+   "#4a1a99"
+  ],
+  "element": "water",
+  "boss": true,
+  "radius": 1.1,
+  "speed": 1.8,
+  "aggroRange": 12,
+  "leashRange": 30,
+  "attackInterval": 0.9,
+  "hp": 22,
+  "atk": 1.5,
+  "matk": 1.4,
+  "def": 1.3,
+  "mdef": 1.2,
+  "poise": 14,
+  "exp": 18,
+  "gold": 14,
+  "drops": "dungeon_boss",
+  "ccResist": 0.65,
+  "scale": 2.0,
+  "attacks": [
+   {
+    "id": "press",
+    "delivery": "strike",
+    "anchor": "self",
+    "shape": {
+     "type": "circle",
+     "radius": 3.2
+    },
+    "telegraph": true,
+    "windup": 1.1,
+    "cooldown": 5,
+    "power": 1.9,
+    "range": 3.0,
+    "weight": 2
+   },
+   {
+    "id": "splash",
+    "delivery": "strike",
+    "anchor": "target",
+    "shape": {
+     "type": "circle",
+     "radius": 1.5
+    },
+    "telegraph": true,
+    "windup": 1.0,
+    "cooldown": 4,
+    "power": 1.4,
+    "range": 10,
+    "weight": 2,
+    "count": 3,
+    "scatter": 2.2,
+    "damageType": "magic",
+    "element": "water"
+   },
+   {
+    "id": "tackle",
+    "delivery": "strike",
+    "anchor": "self",
+    "shape": {
+     "type": "arc",
+     "range": 2.4,
+     "arc": 140
+    },
+    "telegraph": true,
+    "windup": 0.7,
+    "cooldown": 2.2,
+    "power": 1.3,
+    "range": 2.2,
+    "weight": 3
+   },
+   {
+    "id": "rain",
+    "delivery": "strike",
+    "anchor": "target",
+    "shape": {
+     "type": "circle",
+     "radius": 1.3
+    },
+    "telegraph": true,
+    "windup": 1.0,
+    "cooldown": 7,
+    "power": 1.3,
+    "range": 12,
+    "weight": 2,
+    "count": 6,
+    "scatter": 3.5,
+    "damageType": "magic",
+    "minDifficulty": "hard"
+   }
+  ],
+  "phases": [
+   {
+    "hp": 0.5,
+    "summon": {
+     "monster": "slime",
+     "count": 3
+    }
+   }
+  ]
+ },
+ "giant_crab": {
+  "name": "大鋏のジャイアントクラブ",
+  "sprite": "crab",
+  "colors": [
+   "#e04a2a",
+   "#ffd0a0"
+  ],
+  "element": "water",
+  "boss": true,
+  "radius": 1.1,
+  "speed": 1.8,
+  "aggroRange": 12,
+  "leashRange": 30,
+  "attackInterval": 0.9,
+  "hp": 24,
+  "atk": 1.5,
+  "matk": 1.4,
+  "def": 2.0,
+  "mdef": 1.2,
+  "poise": 14,
+  "exp": 18,
+  "gold": 14,
+  "drops": "dungeon_boss",
+  "ccResist": 0.65,
+  "scale": 2.0,
+  "attacks": [
+   {
+    "id": "pinch",
+    "delivery": "strike",
+    "anchor": "self",
+    "shape": {
+     "type": "arc",
+     "range": 2.8,
+     "arc": 120
+    },
+    "telegraph": true,
+    "windup": 0.7,
+    "cooldown": 2.2,
+    "power": 1.5,
+    "range": 2.6,
+    "weight": 3
+   },
+   {
+    "id": "bubble",
+    "delivery": "strike",
+    "anchor": "self",
+    "shape": {
+     "type": "line",
+     "range": 9,
+     "width": 2.0
+    },
+    "telegraph": true,
+    "windup": 1.1,
+    "cooldown": 6,
+    "power": 1.8,
+    "range": 9,
+    "weight": 2,
+    "damageType": "magic",
+    "element": "water"
+   },
+   {
+    "id": "shell_spin",
+    "delivery": "strike",
+    "anchor": "self",
+    "shape": {
+     "type": "circle",
+     "radius": 3.6
+    },
+    "telegraph": true,
+    "windup": 1.2,
+    "cooldown": 6,
+    "power": 2.0,
+    "range": 3.4,
+    "weight": 2,
+    "breakPower": 4
+   },
+   {
+    "id": "tidal",
+    "delivery": "strike",
+    "anchor": "self",
+    "shape": {
+     "type": "ring",
+     "inner": 2,
+     "outer": 6
+    },
+    "telegraph": true,
+    "windup": 1.4,
+    "cooldown": 8,
+    "power": 2.2,
+    "range": 6,
+    "weight": 2,
+    "minDifficulty": "nightmare",
+    "element": "water"
+   }
+  ]
+ },
+ "magma_titan": {
+  "name": "溶岩巨人マグマタイタン",
+  "sprite": "golem",
+  "colors": [
+   "#5a2a1a",
+   "#ffb04a"
+  ],
+  "element": "fire",
+  "boss": true,
+  "radius": 1.1,
+  "speed": 1.8,
+  "aggroRange": 12,
+  "leashRange": 30,
+  "attackInterval": 0.9,
+  "hp": 26,
+  "atk": 1.5,
+  "matk": 1.4,
+  "def": 1.3,
+  "mdef": 1.2,
+  "poise": 14,
+  "exp": 18,
+  "gold": 14,
+  "drops": "dungeon_boss",
+  "ccResist": 0.65,
+  "scale": 2.2,
+  "attacks": [
+   {
+    "id": "smash",
+    "delivery": "strike",
+    "anchor": "self",
+    "shape": {
+     "type": "circle",
+     "radius": 3.0
+    },
+    "telegraph": true,
+    "windup": 1.0,
+    "cooldown": 3,
+    "power": 1.7,
+    "range": 2.8,
+    "weight": 2,
+    "status": [
+     {
+      "id": "burn",
+      "chance": 50,
+      "duration": 4,
+      "power": 0.1
+     }
+    ]
+   },
+   {
+    "id": "eruption",
+    "delivery": "strike",
+    "anchor": "target",
+    "shape": {
+     "type": "circle",
+     "radius": 1.6
+    },
+    "telegraph": true,
+    "windup": 1.1,
+    "cooldown": 6,
+    "power": 1.6,
+    "range": 12,
+    "weight": 2,
+    "count": 4,
+    "scatter": 3.0,
+    "damageType": "magic",
+    "element": "fire"
+   },
+   {
+    "id": "magma_wave",
+    "delivery": "strike",
+    "anchor": "self",
+    "shape": {
+     "type": "line",
+     "range": 10,
+     "width": 2.4
+    },
+    "telegraph": true,
+    "windup": 1.3,
+    "cooldown": 7,
+    "power": 2.2,
+    "range": 10,
+    "weight": 2,
+    "element": "fire",
+    "damageType": "magic"
+   },
+   {
+    "id": "meltdown",
+    "delivery": "strike",
+    "anchor": "self",
+    "shape": {
+     "type": "ring",
+     "inner": 1.5,
+     "outer": 5.5
+    },
+    "telegraph": true,
+    "windup": 1.4,
+    "cooldown": 9,
+    "power": 2.5,
+    "range": 5,
+    "weight": 2,
+    "minDifficulty": "hard",
+    "element": "fire"
+   }
+  ],
+  "phases": [
+   {
+    "hp": 0.4,
+    "speedMul": 1.3
+   }
+  ]
+ },
+ "shadow_queen": {
+  "name": "影の女王アラクネ",
+  "sprite": "spider",
+  "colors": [
+   "#2a1a3a",
+   "#ff4a8a"
+  ],
+  "element": "dark",
+  "boss": true,
+  "radius": 1.1,
+  "speed": 1.8,
+  "aggroRange": 12,
+  "leashRange": 30,
+  "attackInterval": 0.9,
+  "hp": 24,
+  "atk": 1.5,
+  "matk": 1.4,
+  "def": 1.3,
+  "mdef": 1.2,
+  "poise": 14,
+  "exp": 18,
+  "gold": 14,
+  "drops": "dungeon_boss",
+  "ccResist": 0.65,
+  "scale": 2.0,
+  "attacks": [
+   {
+    "id": "fang",
+    "delivery": "strike",
+    "anchor": "self",
+    "shape": {
+     "type": "arc",
+     "range": 2.6,
+     "arc": 120
+    },
+    "telegraph": true,
+    "windup": 0.6,
+    "cooldown": 2.0,
+    "power": 1.5,
+    "range": 2.4,
+    "weight": 3,
+    "status": [
+     {
+      "id": "poison",
+      "chance": 60,
+      "duration": 6,
+      "power": 0.1
+     }
+    ]
+   },
+   {
+    "id": "web",
+    "delivery": "strike",
+    "anchor": "target",
+    "shape": {
+     "type": "circle",
+     "radius": 1.8
+    },
+    "telegraph": true,
+    "windup": 0.9,
+    "cooldown": 5,
+    "power": 1.0,
+    "range": 12,
+    "weight": 2,
+    "count": 3,
+    "scatter": 2.5,
+    "status": [
+     {
+      "id": "slow",
+      "chance": 90,
+      "duration": 4
+     }
+    ]
+   },
+   {
+    "id": "shadow_burst",
+    "delivery": "strike",
+    "anchor": "self",
+    "shape": {
+     "type": "circle",
+     "radius": 4.0
+    },
+    "telegraph": true,
+    "windup": 1.3,
+    "cooldown": 7,
+    "power": 2.2,
+    "range": 3.8,
+    "weight": 2,
+    "element": "dark",
+    "damageType": "magic",
+    "status": [
+     {
+      "id": "blind",
+      "chance": 60,
+      "duration": 4
+     }
+    ]
+   },
+   {
+    "id": "eclipse",
+    "delivery": "strike",
+    "anchor": "self",
+    "shape": {
+     "type": "line",
+     "range": 12,
+     "width": 3.0
+    },
+    "telegraph": true,
+    "windup": 1.5,
+    "cooldown": 9,
+    "power": 2.6,
+    "range": 12,
+    "weight": 2,
+    "minDifficulty": "nightmare",
+    "element": "dark",
+    "damageType": "magic"
+   }
+  ],
+  "phases": [
+   {
+    "hp": 0.6,
+    "summon": {
+     "monster": "shadow_spider",
+     "count": 3
+    }
+   }
+  ]
+ },
+ "ice_lich": {
+  "name": "氷晶の王リッチ",
+  "sprite": "ghost",
+  "colors": [
+   "#a0c8ff",
+   "#e0ffff"
+  ],
+  "element": "water",
+  "boss": true,
+  "radius": 1.1,
+  "speed": 1.6,
+  "aggroRange": 12,
+  "leashRange": 30,
+  "attackInterval": 0.9,
+  "hp": 26,
+  "atk": 1.5,
+  "matk": 1.4,
+  "def": 1.3,
+  "mdef": 1.2,
+  "poise": 14,
+  "exp": 18,
+  "gold": 14,
+  "drops": "dungeon_boss",
+  "ccResist": 0.65,
+  "scale": 1.8,
+  "attacks": [
+   {
+    "id": "frost_nova",
+    "delivery": "strike",
+    "anchor": "self",
+    "shape": {
+     "type": "circle",
+     "radius": 3.5
+    },
+    "telegraph": true,
+    "windup": 1.1,
+    "cooldown": 5,
+    "power": 1.8,
+    "range": 3.2,
+    "weight": 2,
+    "element": "water",
+    "damageType": "magic",
+    "status": [
+     {
+      "id": "freeze",
+      "chance": 35,
+      "duration": 1.2
+     }
+    ]
+   },
+   {
+    "id": "ice_spear",
+    "delivery": "strike",
+    "anchor": "self",
+    "shape": {
+     "type": "line",
+     "range": 11,
+     "width": 1.4
+    },
+    "telegraph": true,
+    "windup": 1.0,
+    "cooldown": 4,
+    "power": 1.8,
+    "range": 11,
+    "weight": 2,
+    "element": "water",
+    "damageType": "magic"
+   },
+   {
+    "id": "blizzard",
+    "delivery": "strike",
+    "anchor": "target",
+    "shape": {
+     "type": "circle",
+     "radius": 1.7
+    },
+    "telegraph": true,
+    "windup": 1.2,
+    "cooldown": 7,
+    "power": 1.5,
+    "range": 14,
+    "weight": 2,
+    "count": 6,
+    "scatter": 3.5,
+    "element": "water",
+    "damageType": "magic"
+   },
+   {
+    "id": "absolute_zero",
+    "delivery": "strike",
+    "anchor": "self",
+    "shape": {
+     "type": "ring",
+     "inner": 2.5,
+     "outer": 7
+    },
+    "telegraph": true,
+    "windup": 1.6,
+    "cooldown": 10,
+    "power": 2.8,
+    "range": 7,
+    "weight": 2,
+    "minDifficulty": "hard",
+    "element": "water",
+    "damageType": "magic"
+   }
+  ],
+  "phases": [
+   {
+    "hp": 0.5,
+    "summon": {
+     "monster": "ice_wraith",
+     "count": 2
+    },
+    "shield": true
+   }
+  ]
+ },
+ "crystal_shard": {
+  "name": "結晶の欠片",
+  "sprite": "golem",
+  "colors": [
+   "#9fe8ff",
+   "#ffffff"
+  ],
+  "element": "light",
+  "radius": 0.5,
+  "speed": 1.6,
+  "aggroRange": 30,
+  "leashRange": 60,
+  "attackInterval": 0.8,
+  "hp": 2.0,
+  "atk": 1.0,
+  "matk": 1.0,
+  "def": 1.2,
+  "mdef": 1.2,
+  "poise": 2,
+  "exp": 0.5,
+  "gold": 0.5,
+  "drops": "none",
+  "scale": 0.8,
+  "attacks": [
+   {
+    "id": "shard_slam",
+    "delivery": "strike",
+    "anchor": "self",
+    "shape": {
+     "type": "circle",
+     "radius": 1.5
+    },
+    "windup": 0.8,
+    "cooldown": 2.5,
+    "power": 1.2,
+    "range": 1.4,
+    "weight": 1
+   }
+  ]
+ },
+ "crystal_colossus": {
+  "name": "結晶の巨神クリスタロス",
+  "sprite": "golem",
+  "colors": [
+   "#7fd8ff",
+   "#ffffff"
+  ],
+  "element": "light",
+  "boss": true,
+  "radius": 1.6,
+  "speed": 1.8,
+  "aggroRange": 12,
+  "leashRange": 30,
+  "attackInterval": 0.9,
+  "hp": 90,
+  "atk": 1.7,
+  "matk": 1.4,
+  "def": 1.3,
+  "mdef": 1.2,
+  "poise": 30,
+  "exp": 60,
+  "gold": 50,
+  "drops": "raid",
+  "ccResist": 0.65,
+  "scale": 3.0,
+  "attacks": [
+   {
+    "id": "crush",
+    "delivery": "strike",
+    "anchor": "self",
+    "shape": {
+     "type": "arc",
+     "range": 3.6,
+     "arc": 140
+    },
+    "telegraph": true,
+    "windup": 0.8,
+    "cooldown": 2.4,
+    "power": 1.6,
+    "range": 3.4,
+    "weight": 3
+   },
+   {
+    "id": "prism_beam",
+    "delivery": "strike",
+    "anchor": "self",
+    "shape": {
+     "type": "line",
+     "range": 16,
+     "width": 2.2
+    },
+    "telegraph": true,
+    "windup": 1.3,
+    "cooldown": 6,
+    "power": 2.3,
+    "range": 16,
+    "weight": 2,
+    "element": "light",
+    "damageType": "magic"
+   },
+   {
+    "id": "shard_rain",
+    "delivery": "strike",
+    "anchor": "target",
+    "shape": {
+     "type": "circle",
+     "radius": 1.6
+    },
+    "telegraph": true,
+    "windup": 1.1,
+    "cooldown": 6,
+    "power": 1.6,
+    "range": 16,
+    "weight": 2,
+    "count": 6,
+    "scatter": 4.0,
+    "element": "light",
+    "damageType": "magic"
+   },
+   {
+    "id": "quake",
+    "delivery": "strike",
+    "anchor": "self",
+    "shape": {
+     "type": "ring",
+     "inner": 2.5,
+     "outer": 8
+    },
+    "telegraph": true,
+    "windup": 1.5,
+    "cooldown": 9,
+    "power": 2.4,
+    "range": 8,
+    "weight": 2,
+    "breakPower": 4
+   },
+   {
+    "id": "cataclysm",
+    "delivery": "strike",
+    "anchor": "self",
+    "shape": {
+     "type": "circle",
+     "radius": 5.0
+    },
+    "telegraph": true,
+    "windup": 1.4,
+    "cooldown": 8,
+    "power": 2.6,
+    "range": 4.8,
+    "weight": 2,
+    "phase": 3,
+    "element": "light",
+    "damageType": "magic"
+   }
+  ],
+  "enrageTime": 420,
+  "phases": [
+   {
+    "hp": 0.75,
+    "summon": {
+     "monster": "crystal_shard",
+     "count": 4
+    },
+    "shield": true
+   },
+   {
+    "hp": 0.5,
+    "safeZones": {
+     "count": 3,
+     "radius": 2.2,
+     "delay": 4.0,
+     "power": 6.0
+    }
+   },
+   {
+    "hp": 0.25,
+    "speedMul": 1.4,
+    "summon": {
+     "monster": "crystal_shard",
+     "count": 3
+    },
+    "safeZones": {
+     "count": 2,
+     "radius": 2.0,
+     "delay": 3.5,
+     "power": 7.0
+    }
+   }
+  ],
+  "raid": true
  }
 }

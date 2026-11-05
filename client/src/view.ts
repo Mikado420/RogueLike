@@ -449,6 +449,22 @@ export class WorldView {
       this.telegraphs.fill({ color: 0xff2a1a, alpha: 0.32 });
     }
 
+    // レイドの安全地帯
+    for (const z of w.area.safeZones) {
+      const s = toScreen(z.x, z.y);
+      const { rx, ry } = isoRadii(z.r);
+      this.telegraphs.ellipse(s.x, s.y, rx, ry).fill({ color: 0x7fd8ff, alpha: 0.18 + 0.1 * Math.sin(this.time * 6) }).stroke({ width: 3, color: 0xbff0ff, alpha: 0.9 });
+    }
+    // ボスのシールド
+    for (const m of w.area.monsters) {
+      if (!m.shielded) continue;
+      const v = this.actors.get(m.id);
+      if (!v) continue;
+      const s = toScreen(v.cur.x, v.cur.y);
+      const { rx } = isoRadii(m.r + 0.6);
+      this.telegraphs.circle(s.x, s.y - rx * 0.6, rx).stroke({ width: 3, color: 0x9fe8ff, alpha: 0.7 + 0.2 * Math.sin(this.time * 8) });
+    }
+
     // 自分の足元
     const me = this.me();
     const mv = this.actors.get(me.id);

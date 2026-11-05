@@ -2,6 +2,7 @@ import { PRIMARY_STATS, WEAPON_TYPES, type EquipSlot, type PersonalStat, type Pr
 import type { Content, MonsterDef } from '../content/types';
 import type { BuildSnapshot, CharacterData, Player, World } from '../state';
 import { weaponTypeOf } from './stats';
+import { setCounterMax } from './counters';
 
 // ───────── 経験値とレベル ─────────
 
@@ -46,6 +47,7 @@ export function gainExp(w: World, p: Player, amount: number): number {
   }
   if (ch.level >= max) ch.exp = 0;
   if (ups > 0) {
+    setCounterMax(w, p, 'level', ch.level);
     p.statsDirty = true;
     w.events.push({ type: 'levelUp', playerId: p.id, level: ch.level });
     w.events.push({ type: 'charChanged', playerId: p.id });

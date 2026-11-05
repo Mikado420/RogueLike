@@ -419,6 +419,23 @@ export interface Balance {
   start: { gold: number; bag: Record<string, number>; equipment: { base: string; slot: EquipSlot }[]; inventory: { base: string }[] };
 }
 
+export interface DifficultyDef { name: string; hp: number; atk: number; def: number; exp: number; gold: number; rareRatePct: number; extraRolls: number; levelBonus: number }
+export interface DungeonDef { name: string; field: string; level: number; rooms: [number, number]; tint: string; monsters: string[]; boss: string; set: string; crystal: string }
+export interface TowerDef {
+  name: string; baseLevel: number; levelPerFloor: number; maxLevel: number; monstersBase: number; monstersPerFloor: number; monstersMax: number;
+  bossEvery: number; checkpointEvery: number; rareRatePerFloor: number; arena: [number, number]; pool: string[]; bosses: string[]; bossDrops: string;
+  untradableFrom: number; crystal: { id: string; chance: number };
+}
+export interface RaidDef { name: string; boss: string; level: number; arena: number; timeLimit: number; minLevel: number; party: { hpPerPlayer: number; atkPerPlayer: number; maxPlayers: number }; drops: string; crystal: { id: string; chance: number } }
+export interface InvasionDef {
+  town: string; every: number; duration: number; waves: number; waveEvery: number; perWave: [number, number]; levelOffset: [number, number];
+  spawnEdges: string[]; pool: string[]; contribution: { damage: number; kill: number };
+  tiers: { min: number; gold: number; exp: number; mats: number; epicChance: number }[]; matPool: string[];
+}
+export interface MissionTemplate { id: string; counter: string; n: [number, number]; reward: { gold?: number; exp?: number; items?: Record<string, number> } }
+export interface AchievementDef { id: string; name: string; counter: string; n: number; title?: string }
+export interface FacilityDef { name: string; max: number; mods?: Mods; storage?: number; refineRate?: number; craftBonus?: number; foodDuration?: number; cost: { gold: [number, number]; mats: Record<string, [number, number]> } }
+
 export interface Content {
   balance: Balance;
   weapons: Record<WeaponType, WeaponDef>;
@@ -466,6 +483,16 @@ export interface Content {
   maps: Record<string, { legend: Record<string, { tile: string; solid: boolean; sprite?: string }>; rows: string[] }>;
   npcs: Record<string, NpcDef>;
   shops: Record<string, { items: string[] }>;
+  difficulties: Record<Difficulty, DifficultyDef>;
+  dungeons: { dungeons: Record<string, DungeonDef>; packs: [number, number]; bossRoomRadius: number; chestRolls: number; timeAttackTop: number };
+  tower: TowerDef;
+  raids: Record<string, RaidDef>;
+  invasion: InvasionDef;
+  missions: { dailyCount: number; weeklyCount: number; daily: MissionTemplate[]; weekly: MissionTemplate[] };
+  titles: Record<string, { name: string; mods: Mods }>;
+  achievements: AchievementDef[];
+  codex: { thresholds: { pct: number; mods: Mods }[] };
+  base: { upkeepPerLevel: number; facilities: Record<string, FacilityDef> };
   tiles: Record<string, { colors: [string, string]; shine?: string }>;
   text: Record<string, string>;
 }

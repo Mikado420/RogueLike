@@ -183,3 +183,89 @@ export function reachable(m: GameMap, sx: number, sy: number): Uint8Array {
   }
   return seen;
 }
+
+export interface Room { x: number; y: number; w: number; h: number; cx: number; cy: number }
+export interface GeneratedDungeon { map: GameMap; rooms: Room[]; start: Room; boss: Room }
+
+function finishWalls(m: GameMap, wallTile: string, wallSprite: string) {
+  const W = m.width, H = m.height;
+  const floor = (i: number, j: number) => i >= 0 && j >= 0 && i < W && j < H && !m.solid[j * W + i];
+  for (let j = 0; j < H; j++) for (let i = 0; i < W; i++) {
+    const k = j * W + i;
+    if (!m.solid[k]) continue;
+    let near = false;
+    for (let dj = -1; dj <= 1 && !near; dj++) for (let di = -1; di <= 1; di++) if (floor(i + di, j + dj)) { near = true; break; }
+    if (near) { m.tiles[k] = wallTile; m.sprites[k] = wallSprite; }
+  }
+}
+
+/** 部屋と通路のダンジョン。最初の部屋が入口、いちばん遠い大部屋がボス */
+export function generateDungeon(id: string, seed: number, roomCount: number, floors: [string, string] = ['dungeon', 'dungeon2']): GeneratedDungeon {
+  const rng = new Rng(seed);
+  const W = 70, H = 70;
+  const m = emptyMap(id, W, H, 'void');
+  m.solid.fill(true);
+  const rooms: Room[] = [];
+  const overlaps = (r: Room) => rooms.some((o) => r.x - 3 < o.x + o.w && r.x + r.w + 3 > o.x && r.y - 3 < o.y + o.h && r.y + r.h + 3 > o.y);
+  const mk = (x: number, y: number, w: number, h: number): Room => ({ x, y, w, h, cx: x + Math.floor(w / 2) + 0.5, cy: y + Math.floor(h / 2) + 0.5 });
+  // 入口（左上寄り）とボス部屋（右下寄り）
+  rooms.push(mk(rng.int(3, 10), rng.int(3, 10), 9, 9));
+  const boss = mk(rng.int(W - 22, W - 17), rng.int(H - 22, H - 17), 15, 15);
+  rooms.push(boss);
+  let tries = 0;
+  while (rooms.length < roomCount + 2 && tries++ < 400) {
+    const w = rng.int(7, 12), h = rng.int(7, 11);
+    const r = mk(rng.int(2, W - w - 3), rng.int(2, H - h - 3), w, h);
+    if (!overlaps(r)) rooms.push(r);
+  }
+  const carve = (i: number, j: number) => {
+    if (i < 1 || j < 1 || i >= W - 1 || j >= H - 1) return;
+    const k = j * W + i;
+    m.solid[k] = false; m.sprites[k] = null; m.tiles[k] = floors[(i * 7 + j * 3) % 5 === 0 ? 1 : 0];
+  };
+  for (const r of rooms) for (let j = r.y; j < r.y + r.h; j++) for (let i = r.x; i < r.x + r.w; i++) carve(i, j);
+  // 通路：ボス部屋以外を順につなぎ、最後にボス部屋へ
+  const order = [rooms[0], ...rooms.slice(2).sort((a, b) => (a.cx + a.cy) - (b.cx + b.cy)), boss];
+  for (let n = 1; n < order.length; n++) {
+    const a = order[n - 1], b = order[n];
+    let x = Math.floor(a.cx), y = Math.floor(a.cy);
+    const tx = Math.floor(b.cx), ty = Math.floor(b.cy);
+    const horizFirst = rng.next() < 0.5;
+    const stepX = () => { while (x !== tx) { for (let d = -1; d <= 1; d++) carve(x, y + d); x += Math.sign(tx - x); } };
+    const stepY = () => { while (y !== ty) { for (let d = -1; d <= 1; d++) carve(x + d, y); y += Math.sign(ty - y); } };
+    if (horizFirst) { stepX(); stepY(); } else { stepY(); stepX(); }
+    for (let d = -1; d <= 1; d++) for (let e = -1; e <= 1; e++) carve(x + d, y + e);
+  }
+  // 大部屋の柱
+  for (const r of rooms.slice(2)) {
+    if (r.w >= 10 && r.h >= 9 && rng.next() < 0.5) {
+      for (const [px, py] of [[r.x + 2, r.y + 2], [r.x + r.w - 3, r.y + 2], [r.x + 2, r.y + r.h - 3], [r.x + r.w - 3, r.y + r.h - 3]]) {
+        const k = py * W + px;
+        m.solid[k] = true; m.sprites[k] = 'pillar';
+      }
+    }
+  }
+  finishWalls(m, 'wall', 'wall');
+  return { map: m, rooms, start: rooms[0], boss };
+}
+
+/** 円い闘技場（塔の階・レイド） */
+export function generateArena(id: string, seed: number, size: number, floor: [string, string], pillars: number): GameMap {
+  const rng = new Rng(seed);
+  const W = size + 4, H = size + 4;
+  const m = emptyMap(id, W, H, 'void');
+  m.solid.fill(true);
+  const c = W / 2, r = size / 2;
+  for (let j = 0; j < H; j++) for (let i = 0; i < W; i++) {
+    const d = Math.hypot(i + 0.5 - c, j + 0.5 - c);
+    if (d <= r) { const k = j * W + i; m.solid[k] = false; m.tiles[k] = floor[(i + j) % 7 === 0 ? 1 : 0]; }
+  }
+  for (let n = 0; n < pillars; n++) {
+    const a = rng.range(0, Math.PI * 2), rr = rng.range(r * 0.35, r * 0.75);
+    const i = Math.floor(c + Math.cos(a) * rr), j = Math.floor(c + Math.sin(a) * rr);
+    const k = j * W + i;
+    m.solid[k] = true; m.sprites[k] = 'pillar';
+  }
+  finishWalls(m, 'wall', 'wall');
+  return m;
+}

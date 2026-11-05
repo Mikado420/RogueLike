@@ -27,6 +27,16 @@ import palettes from '../../../data/palettes.json';
 import weather from '../../../data/weather.json';
 import ambience from '../../../data/ambience.json';
 import music from '../../../data/music.json';
+import difficulties from '../../../data/difficulties.json';
+import dungeons from '../../../data/dungeons.json';
+import tower from '../../../data/tower.json';
+import raid from '../../../data/raid.json';
+import invasion from '../../../data/invasion.json';
+import missions from '../../../data/missions.json';
+import titles from '../../../data/titles.json';
+import achievements from '../../../data/achievements.json';
+import codex from '../../../data/codex.json';
+import base from '../../../data/base.json';
 import arena from '../../../data/maps/arena.json';
 import type { Content } from './types';
 
@@ -38,6 +48,7 @@ export const CONTENT = {
   drops, materials, areas, npcs, shops, tiles, text, uniques, mythics, sets, crystals, refine, storage, looks, time,
   maps: { lumina, ember, arena },
   palettes, weather, ambience, music,
+  difficulties, dungeons, tower, raids: raid.raids, invasion, missions, titles, achievements, codex, base,
 } as unknown as Content;
 
 /** 袋に入るもの（素材・消耗品・結晶）の名前と色 */

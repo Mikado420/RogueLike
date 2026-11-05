@@ -9,7 +9,7 @@ import { createItem } from './systems/loot';
  * セーブデータの形。構造を変えたら SAVE_VERSION を上げ、MIGRATIONS に変換を足す。
  * 保存先（IndexedDB・サーバーのDB）は client 側の SaveStore が決める。
  */
-export const SAVE_VERSION = 3;
+export const SAVE_VERSION = 4;
 
 type Raw = Record<string, unknown>;
 
@@ -34,6 +34,21 @@ export const MIGRATIONS: Record<number, (d: Raw) => Raw> = {
     d.world = { fieldBoss: {} };
     return d;
   },
+  /** 3 → 4：図鑑・ミッション・実績・塔の記録・拠点・タイムアタック・侵攻 */
+  3: (d) => {
+    for (const ch of (d.characters as Raw[] | undefined) ?? []) {
+      ch.codex = { monsters: {}, items: {}, materials: {} };
+      ch.missions = { day: -1, daily: [], week: -1, weekly: [] };
+      ch.achievements = {};
+      ch.tower = { best: 0 };
+    }
+    const world = (d.world as Raw | undefined) ?? { fieldBoss: {} };
+    world.invasion = { slot: -1, contribution: {}, rewarded: [] };
+    d.world = world;
+    d.base = { levels: {}, paidDay: -1 };
+    d.records = { timeAttack: {} };
+    return d;
+  },
 };
 
 /** 保存先のインターフェース。後でサーバーの DB に置き換える */
@@ -52,7 +67,9 @@ export function newAccount(now: number, seed: number): AccountData {
     characters: [],
     lastCharacterId: null,
     storage: { items: [], bag: {}, capacity: CONTENT.storage.base },
-    world: { fieldBoss: {} },
+    world: { fieldBoss: {}, invasion: { slot: -1, contribution: {}, rewarded: [] } },
+    base: { levels: {}, paidDay: -1 },
+    records: { timeAttack: {} },
   };
 }
 
@@ -90,6 +107,10 @@ export function newCharacter(acc: AccountData, name: string, look: { body: numbe
     appearance: { looks: [], selected: {} },
     lootFilter: { hideBelow: null, sellBelow: null },
     visitedTowns: [c.balance.world.startTown],
+    codex: { monsters: {}, items: {}, materials: {} },
+    missions: { day: -1, daily: [], week: -1, weekly: [] },
+    achievements: {},
+    tower: { best: 0 },
   };
   for (const it of [...inventory, ...Object.values(equipment)]) if (it && !ch.appearance.looks.includes(it.look)) ch.appearance.looks.push(it.look);
   acc.characters.push(ch);
@@ -124,6 +145,10 @@ export function normalizeCharacter(ch: CharacterData, c: Content = CONTENT): Cha
   ch.appearance.selected ??= {};
   ch.lootFilter ??= { hideBelow: null, sellBelow: null };
   ch.visitedTowns ??= [c.balance.world.startTown];
+  ch.codex ??= { monsters: {}, items: {}, materials: {} };
+  ch.missions ??= { day: -1, daily: [], week: -1, weekly: [] };
+  ch.achievements ??= {};
+  ch.tower ??= { best: 0 };
   return ch;
 }
 
@@ -150,8 +175,11 @@ export function migrateAccount(raw: unknown, c: Content = CONTENT): AccountData 
   acc.storage.items ??= [];
   acc.storage.bag ??= {};
   acc.storage.capacity ??= c.storage.base;
-  acc.world ??= { fieldBoss: {} };
+  acc.world ??= { fieldBoss: {}, invasion: { slot: -1, contribution: {}, rewarded: [] } };
   acc.world.fieldBoss ??= {};
+  acc.world.invasion ??= { slot: -1, contribution: {}, rewarded: [] };
+  acc.base ??= { levels: {}, paidDay: -1 };
+  acc.records ??= { timeAttack: {} };
   // uid が重ならないように
   let maxUid = acc.nextUid;
   for (const ch of acc.characters) {

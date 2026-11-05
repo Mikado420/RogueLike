@@ -1,0 +1,112 @@
+{
+ "dungeons": {
+  "dg_meadow": {
+   "name": "翠風の洞穴",
+   "field": "meadow",
+   "level": 10,
+   "rooms": [
+    6,
+    8
+   ],
+   "tint": "#2a4a2a",
+   "monsters": [
+    "slime",
+    "boar",
+    "shroom",
+    "grass_snake"
+   ],
+   "boss": "slime_queen",
+   "set": "set_meadow",
+   "crystal": "cr_gale"
+  },
+  "dg_marsh": {
+   "name": "水底の遺跡",
+   "field": "marsh",
+   "level": 28,
+   "rooms": [
+    7,
+    9
+   ],
+   "tint": "#1a3a4a",
+   "monsters": [
+    "toad",
+    "crab",
+    "lizardman",
+    "drowned",
+    "mud_eel"
+   ],
+   "boss": "giant_crab",
+   "set": "set_marsh",
+   "crystal": "cr_tidal"
+  },
+  "dg_volcano": {
+   "name": "灼熱の坑道",
+   "field": "volcano",
+   "level": 50,
+   "rooms": [
+    7,
+    10
+   ],
+   "tint": "#4a1a10",
+   "monsters": [
+    "fire_lizard",
+    "magma_golem",
+    "flame_bat",
+    "salamander",
+    "lava_worm"
+   ],
+   "boss": "magma_titan",
+   "set": "set_ember",
+   "crystal": "cr_ember"
+  },
+  "dg_forest": {
+   "name": "影の大樹洞",
+   "field": "forest",
+   "level": 70,
+   "rooms": [
+    8,
+    10
+   ],
+   "tint": "#1a1a2a",
+   "monsters": [
+    "treant",
+    "fairy",
+    "dark_elf",
+    "werewolf",
+    "shadow_spider",
+    "phantom"
+   ],
+   "boss": "shadow_queen",
+   "set": "set_twilight",
+   "crystal": "cr_dusk"
+  },
+  "dg_snow": {
+   "name": "氷晶の霊廟",
+   "field": "snow",
+   "level": 92,
+   "rooms": [
+    8,
+    11
+   ],
+   "tint": "#1a2a4a",
+   "monsters": [
+    "ice_golem",
+    "snow_wolf",
+    "frost_wyvern",
+    "yeti",
+    "ice_wraith",
+    "crystal_spider"
+   ],
+   "boss": "ice_lich",
+   "set": "set_frost",
+   "crystal": "cr_dawn"
+  }
+ },
+ "packs": [
+  2,
+  4
+ ],
+ "bossRoomRadius": 7,
+ "chestRolls": 2,
+ "timeAttackTop": 10
+}

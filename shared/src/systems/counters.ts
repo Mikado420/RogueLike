@@ -10,3 +10,12 @@ export function addCounter(w: World, p: Player, key: string, n: number) {
   c[key] = (c[key] ?? 0) + n;
   for (const h of hooks) h(w, p, key, c[key], n);
 }
+
+/** 最大値の記録（塔の最高階・精錬の最高値など） */
+export function setCounterMax(w: World, p: Player, key: string, value: number) {
+  const c = p.char.counters;
+  if ((c[key] ?? 0) >= value) return;
+  const add = value - (c[key] ?? 0);
+  c[key] = value;
+  for (const h of hooks) h(w, p, key, value, add);
+}

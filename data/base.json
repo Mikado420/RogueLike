@@ -1,0 +1,143 @@
+{
+ "upkeepPerLevel": 150,
+ "facilities": {
+  "training": {
+   "name": "訓練所",
+   "max": 5,
+   "mods": {
+    "atkPct": 1.5,
+    "matkPct": 1.5
+   },
+   "cost": {
+    "gold": [
+     1500,
+     1.8
+    ],
+    "mats": {
+     "boar_hide": [
+      5,
+      1.6
+     ],
+     "refine_stone": [
+      3,
+      1.6
+     ]
+    }
+   }
+  },
+  "infirmary": {
+   "name": "医務室",
+   "max": 5,
+   "mods": {
+    "maxHpPct": 2,
+    "hpRegen": 3
+   },
+   "cost": {
+    "gold": [
+     1500,
+     1.8
+    ],
+    "mats": {
+     "spore": [
+      5,
+      1.6
+     ],
+     "toad_oil": [
+      3,
+      1.6
+     ]
+    }
+   }
+  },
+  "library": {
+   "name": "書庫",
+   "max": 5,
+   "mods": {
+    "expPct": 3
+   },
+   "cost": {
+    "gold": [
+     2000,
+     1.8
+    ],
+    "mats": {
+     "fairy_dust": [
+      3,
+      1.6
+     ],
+     "ectoplasm": [
+      3,
+      1.6
+     ]
+    }
+   }
+  },
+  "vault": {
+   "name": "金庫",
+   "max": 5,
+   "mods": {
+    "goldPct": 4
+   },
+   "storage": 20,
+   "cost": {
+    "gold": [
+     2500,
+     1.8
+    ],
+    "mats": {
+     "crab_shell": [
+      4,
+      1.6
+     ],
+     "magma_core": [
+      2,
+      1.6
+     ]
+    }
+   }
+  },
+  "forge": {
+   "name": "工房",
+   "max": 5,
+   "refineRate": 2,
+   "craftBonus": 1,
+   "cost": {
+    "gold": [
+     2500,
+     1.8
+    ],
+    "mats": {
+     "golem_core": [
+      4,
+      1.6
+     ],
+     "fire_scale": [
+      3,
+      1.6
+     ]
+    }
+   }
+  },
+  "kitchen": {
+   "name": "厨房",
+   "max": 5,
+   "foodDuration": 15,
+   "cost": {
+    "gold": [
+     1500,
+     1.8
+    ],
+    "mats": {
+     "boar_hide": [
+      3,
+      1.6
+     ],
+     "spore": [
+      3,
+      1.6
+     ]
+    }
+   }
+  }
+ }
+}

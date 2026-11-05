@@ -1,0 +1,22 @@
+{
+ "raids": {
+  "colossus": {
+   "name": "結晶の巨神",
+   "boss": "crystal_colossus",
+   "level": 95,
+   "arena": 36,
+   "timeLimit": 480,
+   "minLevel": 60,
+   "party": {
+    "hpPerPlayer": 0.85,
+    "atkPerPlayer": 0.05,
+    "maxPlayers": 8
+   },
+   "drops": "raid",
+   "crystal": {
+    "id": "cr_titan",
+    "chance": 0.6
+   }
+  }
+ }
+}

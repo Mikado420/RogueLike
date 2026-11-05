@@ -1,0 +1,52 @@
+{
+ "thresholds": [
+  {
+   "pct": 10,
+   "mods": {
+    "maxHp": 30
+   }
+  },
+  {
+   "pct": 25,
+   "mods": {
+    "atkPct": 1,
+    "matkPct": 1
+   }
+  },
+  {
+   "pct": 40,
+   "mods": {
+    "str": 2,
+    "int": 2,
+    "vit": 2,
+    "agi": 2,
+    "dex": 2
+   }
+  },
+  {
+   "pct": 60,
+   "mods": {
+    "critRate": 2,
+    "defPct": 2
+   }
+  },
+  {
+   "pct": 80,
+   "mods": {
+    "str": 4,
+    "int": 4,
+    "vit": 4,
+    "agi": 4,
+    "dex": 4
+   }
+  },
+  {
+   "pct": 100,
+   "mods": {
+    "atkPct": 3,
+    "matkPct": 3,
+    "maxHpPct": 3
+   }
+  }
+ ]
+}

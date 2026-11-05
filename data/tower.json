@@ -1,0 +1,57 @@
+{
+ "name": "無限の塔",
+ "baseLevel": 5,
+ "levelPerFloor": 1.2,
+ "maxLevel": 130,
+ "monstersBase": 5,
+ "monstersPerFloor": 0.25,
+ "monstersMax": 14,
+ "bossEvery": 10,
+ "checkpointEvery": 10,
+ "rareRatePerFloor": 3,
+ "arena": [
+  22,
+  30
+ ],
+ "pool": [
+  "slime",
+  "hornet",
+  "boar",
+  "shroom",
+  "toad",
+  "crab",
+  "lizardman",
+  "fire_lizard",
+  "magma_golem",
+  "flame_bat",
+  "salamander",
+  "treant",
+  "fairy",
+  "dark_elf",
+  "werewolf",
+  "ice_golem",
+  "snow_wolf",
+  "frost_wyvern",
+  "yeti",
+  "golem",
+  "wisp"
+ ],
+ "bosses": [
+  "king_slime",
+  "slime_queen",
+  "hydra",
+  "giant_crab",
+  "ignaros",
+  "magma_titan",
+  "elder_treant",
+  "shadow_queen",
+  "frost_dragon",
+  "ice_lich"
+ ],
+ "bossDrops": "tower_boss",
+ "untradableFrom": 50,
+ "crystal": {
+  "id": "cr_tower",
+  "chance": 0.3
+ }
+}

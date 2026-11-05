@@ -9,7 +9,7 @@ import { itemCell, itemInfo } from './itemview';
 
 /** NPC の役割ごとの画面。後のマイルストーンで役割を足す */
 export type NpcRenderer = (ctx: Ctx, body: HTMLElement, npc: string, state: NpcState) => void;
-export interface NpcState { tab: string; sel: number | string | null; refresh: () => void }
+export interface NpcState { tab: string; sel: number | string | null; refresh: () => void; npcId: number }
 
 export class NpcPanels {
   private renderers: Record<string, NpcRenderer> = {
@@ -25,20 +25,21 @@ export class NpcPanels {
   npc: string | null = null;
 
   constructor(private ctx: Ctx) {
-    this.state = { tab: '', sel: null, refresh: () => this.refresh() };
+    this.state = { tab: '', sel: null, refresh: () => this.refresh(), npcId: -1 };
   }
 
   register(role: string, r: NpcRenderer) { this.renderers[role] = r; }
 
   get isOpen() { return this.ctx.modal.kind === 'npc'; }
 
-  open(npc: string) {
+  open(npc: string, npcId = -1) {
     const def = CONTENT.npcs[npc];
     const r = def && this.renderers[def.role];
     if (!r) return;
     this.npc = npc;
     this.state.tab = '';
     this.state.sel = null;
+    this.state.npcId = npcId;
     this.ctx.modal.open('npc', def.name, (body) => r(this.ctx, body, npc, this.state));
   }
 

@@ -1,0 +1,147 @@
+[
+ {
+  "id": "kills100",
+  "name": "百の狩り",
+  "counter": "kills",
+  "n": 100,
+  "title": "hunter1"
+ },
+ {
+  "id": "kills1000",
+  "name": "千の狩り",
+  "counter": "kills",
+  "n": 1000,
+  "title": "hunter2"
+ },
+ {
+  "id": "kills5000",
+  "name": "五千の狩り",
+  "counter": "kills",
+  "n": 5000,
+  "title": "hunter3"
+ },
+ {
+  "id": "boss10",
+  "name": "ボス討伐10",
+  "counter": "bossKills",
+  "n": 10,
+  "title": "boss1"
+ },
+ {
+  "id": "boss100",
+  "name": "ボス討伐100",
+  "counter": "bossKills",
+  "n": 100,
+  "title": "boss2"
+ },
+ {
+  "id": "dungeon10",
+  "name": "迷宮踏破10",
+  "counter": "dungeonClears",
+  "n": 10,
+  "title": "delver"
+ },
+ {
+  "id": "tower10",
+  "name": "塔10階",
+  "counter": "towerBest",
+  "n": 10,
+  "title": "climber1"
+ },
+ {
+  "id": "tower30",
+  "name": "塔30階",
+  "counter": "towerBest",
+  "n": 30,
+  "title": "climber2"
+ },
+ {
+  "id": "tower60",
+  "name": "塔60階",
+  "counter": "towerBest",
+  "n": 60,
+  "title": "climber3"
+ },
+ {
+  "id": "refine10",
+  "name": "精錬+10",
+  "counter": "refineMax",
+  "n": 10,
+  "title": "smith1"
+ },
+ {
+  "id": "refine15",
+  "name": "精錬+15",
+  "counter": "refineMax",
+  "n": 15,
+  "title": "smith2"
+ },
+ {
+  "id": "codex30",
+  "name": "図鑑30%",
+  "counter": "codexPct",
+  "n": 30,
+  "title": "scholar1"
+ },
+ {
+  "id": "codex80",
+  "name": "図鑑80%",
+  "counter": "codexPct",
+  "n": 80,
+  "title": "scholar2"
+ },
+ {
+  "id": "invasion3",
+  "name": "侵攻防衛3",
+  "counter": "invasions",
+  "n": 3,
+  "title": "defender"
+ },
+ {
+  "id": "raid1",
+  "name": "巨神討伐",
+  "counter": "raidClears",
+  "n": 1,
+  "title": "raider"
+ },
+ {
+  "id": "storm10",
+  "name": "嵐の狩人",
+  "counter": "kills.w.storm",
+  "n": 30,
+  "title": "storm"
+ },
+ {
+  "id": "capture10",
+  "name": "仲間10体",
+  "counter": "captures",
+  "n": 10,
+  "title": "tamer"
+ },
+ {
+  "id": "craft30",
+  "name": "生産30回",
+  "counter": "crafts",
+  "n": 30,
+  "title": "artisan"
+ },
+ {
+  "id": "rebirth1",
+  "name": "初めての転生",
+  "counter": "rebirths",
+  "n": 1,
+  "title": "rebirth1"
+ },
+ {
+  "id": "level50",
+  "name": "Lv50",
+  "counter": "level",
+  "n": 50
+ },
+ {
+  "id": "level100",
+  "name": "Lv100",
+  "counter": "level",
+  "n": 100
+ }
+]

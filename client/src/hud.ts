@@ -1,6 +1,6 @@
 import {
   CONTENT, beatTicks, chargeLevel, comboMax, expToNext, freeSkillPoints, freeStatPoints, interactTarget, magazineSize,
-  slotSkill, txt, weaponTypeOf, currentWeather, dayPhase, type GameEvent, type Item, type Player, type World,
+  slotSkill, txt, weaponTypeOf, currentWeather, dayPhase, contribution, type GameEvent, type Item, type Player, type World,
 } from '../../shared/src';
 import { rarityColor, statusColor } from './colors';
 import type { InputManager } from './input';
@@ -8,6 +8,8 @@ import type { Sfx } from './audio';
 import { h } from './ui/dom';
 
 interface Bar { fill: HTMLDivElement; text: HTMLSpanElement }
+
+const fmtTime = (s: number) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
 
 /** 画面に常に出ているもの（バー・ボタン・通知） */
 export class Hud {
@@ -30,6 +32,8 @@ export class Hud {
   private res: HTMLDivElement;
   private resKey = '';
   private areaInfo: HTMLDivElement;
+  private instInfo: HTMLDivElement;
+  private leaveBtn: HTMLButtonElement;
   private banner: HTMLDivElement;
   onMenu: (() => void) | null = null;
   onPotion: (() => void) | null = null;
@@ -139,6 +143,11 @@ export class Hud {
     this.root.append(this.areaInfo);
     this.banner = h('div', 'banner');
     this.root.append(this.banner);
+    this.instInfo = h('div', 'inst-info');
+    this.root.append(this.instInfo);
+    this.leaveBtn = h('button', 'pill leave', txt('hud.leave'));
+    this.leaveBtn.addEventListener('click', () => this.input.pushCommand({ type: 'leaveInstance' }));
+    topBtns.prepend(this.leaveBtn);
   }
 
   setWorld(w: World) { this.world = w; }
@@ -211,6 +220,15 @@ export class Hud {
       if (e.type === 'levelUp' && e.playerId === this.myId) this.toast(txt('notice.levelUp', e.level), '#ffe14a');
       if (e.type === 'refine' && e.playerId === this.myId) this.toast(txt(e.success ? 'smith.success' : 'smith.failed', e.level), e.success ? '#ffe14a' : '#ff8a7a');
       if (e.type === 'worldNotice') this.showBanner(txt(e.key, ...e.args), !!e.rare);
+      if (e.type === 'instance' && e.playerId === this.myId) {
+        if (e.what === 'cleared') this.showBanner(`${txt('inst.cleared')}${e.time !== undefined ? `  ${fmtTime(e.time)}` : ''}${e.best ? `  ${txt('inst.best')}` : ''}`, true);
+        if (e.what === 'failed') this.showBanner(txt('inst.failed'), false);
+        if (e.what === 'floor') this.showBanner(txt('inst.floor', e.floor ?? 0), false);
+      }
+      if (e.type === 'achievement' && e.playerId === this.myId) {
+        const a = CONTENT.achievements.find((x) => x.id === e.id);
+        if (a) this.toast(`★ ${a.name}${a.title ? `  ${CONTENT.titles[a.title]?.name ?? ''}` : ''}`, '#ffe28a', 'r-legend');
+      }
       if (e.type === 'areaChanged' && e.playerId === this.myId) this.showBanner(CONTENT.areas[e.area]?.name ?? '', false);
       if (e.type === 'autoSell' && e.playerId === this.myId) this.toast(txt('notice.autoSell', e.gold), '#ffd76a');
     }
@@ -355,8 +373,22 @@ export class Hud {
     this.updateWeaponRes(p);
     const a = this.world.area;
     const lv = a.type === 'field' ? `  Lv${a.level[0]}-${a.level[1]}` : '';
+    const inst = a.instance;
+    this.leaveBtn.style.display = inst ? '' : 'none';
+    let ii = '';
+    if (inst) {
+      const tr = CONTENT.balance.tickRate;
+      const el = ((inst.cleared || inst.failed ? inst.endTick : this.world.tick) - inst.startTick) / tr;
+      if (inst.kind === 'tower') ii = `${txt('inst.floor', inst.floor)}  ${a.monsters.filter((m) => !m.dead).length}`;
+      else if (inst.kind === 'raid') ii = `${CONTENT.difficulties[inst.difficulty].name}  ${fmtTime(Math.max(0, (inst.timeLimitTick - this.world.tick) / tr))}`;
+      else ii = `${CONTENT.difficulties[inst.difficulty].name}  ${fmtTime(el)}`;
+    } else if (a.invasion && !a.invasion.finished) {
+      ii = `${txt('invasion.wave')} ${a.invasion.wave}/${CONTENT.invasion.waves}  ${fmtTime(Math.max(0, (a.invasion.endClock - this.world.clock) / 1000))}  ${txt('invasion.points')} ${contribution(this.world, p).toLocaleString()}`;
+    }
+    if (this.instInfo.textContent !== ii) this.instInfo.textContent = ii;
+    this.instInfo.style.display = ii ? '' : 'none';
     const wt = CONTENT.weather.types[currentWeather(this.world)]?.name ?? '';
-    const info = `${a.name}${lv}  ${txt(`phase.${dayPhase(this.world)}`)}  ${wt}`;
+    const info = a.instance ? a.name : `${a.name}${lv}  ${txt(`phase.${dayPhase(this.world)}`)}  ${wt}`;
     if (this.areaInfo.textContent !== info) this.areaInfo.textContent = info;
 
     this.death.root.classList.toggle('show', p.dead);

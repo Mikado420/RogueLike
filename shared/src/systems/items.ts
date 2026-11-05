@@ -1,6 +1,9 @@
 import { EQUIP_SLOTS, RARITIES, rarityRank, type EquipSlot, type Rarity, type WeaponType } from '../core';
 import type { AccountData, CharacterData, Item, Player, World } from '../state';
 import type { Content } from '../content/types';
+import { recordCodex } from './quest';
+import { baseBonus } from './base';
+import { addCounter, setCounterMax } from './counters';
 import { heal } from './combat';
 import { sellPrice } from './loot';
 import { nearRole } from './interact';
@@ -133,8 +136,10 @@ export function updateDrops(w: World) {
         if (p.char.inventory.length >= max) { if (w.tick % 40 === 0) notice(w, p.id, 'err.full'); continue; }
         p.char.inventory.push(d.item);
         registerLook(p.char, d.item);
+        recordCodex(w, p, 'items', d.item.base);
       } else if (d.bag) {
         addToBag(p.char, d.bag.id, d.bag.n);
+        if (w.content.materials[d.bag.id]) recordCodex(w, p, 'materials', d.bag.id);
       }
       w.events.push({ type: 'pickup', playerId: p.id, item: d.item, bag: d.bag });
       return false;
@@ -195,14 +200,14 @@ export function sortItems(items: Item[], key: string): Item[] {
 
 // ───────── 精錬 ─────────
 
-export function refineCost(it: Item, c: Content): { gold: number; stones: number; rate: number } | null {
+export function refineCost(it: Item, c: Content, bonus = 0): { gold: number; stones: number; rate: number } | null {
   const r = c.refine;
   if (it.refine >= r.max) return null;
   const lv = r.levels[it.refine];
   return {
     gold: Math.round(lv.gold * (1 + it.tier * r.goldTierMul)),
     stones: lv.stones,
-    rate: Math.min(100, lv.rate + it.refinePity),
+    rate: Math.min(100, lv.rate + it.refinePity + bonus),
   };
 }
 
@@ -215,7 +220,7 @@ export function refineItem(w: World, p: Player, uid: number): string | null {
   const ch = p.char;
   const it = findOwnedItem(ch, uid);
   if (!it) return 'err.invalid';
-  const cost = refineCost(it, c);
+  const cost = refineCost(it, c, baseBonus(w.account, c, w.clock, 'refineRate'));
   if (!cost) return 'err.refineMax';
   if (ch.gold < cost.gold) return 'err.gold';
   if ((ch.bag[c.refine.stone] ?? 0) < cost.stones) return 'err.noStone';
@@ -225,6 +230,8 @@ export function refineItem(w: World, p: Player, uid: number): string | null {
   if (ok) {
     it.refine++;
     it.refinePity = 0;
+    addCounter(w, p, 'refineSuccess', 1);
+    setCounterMax(w, p, 'refineMax', it.refine);
   } else {
     it.refine = Math.max(0, it.refine - c.refine.levels[it.refine].drop);
     it.refinePity += c.refine.pityPerFail;
@@ -275,6 +282,11 @@ export function removeCrystal(ch: CharacterData, uid: number, socket: number, re
 
 // ───────── 倉庫（アカウントで共有） ─────────
 
+/** 倉庫の容量（拠点の金庫で増える） */
+export function storageCap(w: World): number {
+  return w.account.storage.capacity + baseBonus(w.account, w.content, w.clock, 'storage');
+}
+
 export function storageExpandCost(acc: AccountData, c: Content): number | null {
   const s = c.storage;
   if (acc.storage.capacity >= s.max) return null;
@@ -286,7 +298,7 @@ export function deposit(w: World, ch: CharacterData, uid: number): string | null
   const st = w.account.storage;
   const i = ch.inventory.findIndex((x) => x.uid === uid);
   if (i < 0) return 'err.invalid';
-  if (st.items.length >= st.capacity) return 'err.storageFull';
+  if (st.items.length >= storageCap(w)) return 'err.storageFull';
   st.items.push(ch.inventory.splice(i, 1)[0]);
   return null;
 }

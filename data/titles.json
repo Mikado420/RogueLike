@@ -1,0 +1,146 @@
+{
+ "rebirth1": {
+  "name": "転生者",
+  "mods": {
+   "expPct": 2
+  }
+ },
+ "rebirth2": {
+  "name": "二度目の旅人",
+  "mods": {
+   "expPct": 3
+  }
+ },
+ "rebirth3": {
+  "name": "輪廻の探求者",
+  "mods": {
+   "atkPct": 2,
+   "matkPct": 2
+  }
+ },
+ "rebirth5": {
+  "name": "星を巡る者",
+  "mods": {
+   "atkPct": 3,
+   "matkPct": 3
+  }
+ },
+ "rebirth10": {
+  "name": "終わりなき庭の主",
+  "mods": {
+   "atkPct": 5,
+   "matkPct": 5,
+   "maxHpPct": 5
+  }
+ },
+ "hunter1": {
+  "name": "見習い狩人",
+  "mods": {
+   "atk": 5
+  }
+ },
+ "hunter2": {
+  "name": "熟練の狩人",
+  "mods": {
+   "atkPct": 2
+  }
+ },
+ "hunter3": {
+  "name": "千体斬り",
+  "mods": {
+   "critRate": 2
+  }
+ },
+ "boss1": {
+  "name": "ボスハンター",
+  "mods": {
+   "bossDmgPct": 3
+  }
+ },
+ "boss2": {
+  "name": "巨獣殺し",
+  "mods": {
+   "bossDmgPct": 5
+  }
+ },
+ "delver": {
+  "name": "迷宮の踏破者",
+  "mods": {
+   "maxHpPct": 2
+  }
+ },
+ "climber1": {
+  "name": "塔の挑戦者",
+  "mods": {
+   "defPct": 2
+  }
+ },
+ "climber2": {
+  "name": "天を仰ぐ者",
+  "mods": {
+   "defPct": 4
+  }
+ },
+ "climber3": {
+  "name": "天穹に届く者",
+  "mods": {
+   "atkPct": 3,
+   "defPct": 3
+  }
+ },
+ "smith1": {
+  "name": "鍛えし者",
+  "mods": {
+   "critDamage": 3
+  }
+ },
+ "smith2": {
+  "name": "極めし鍛冶",
+  "mods": {
+   "critDamage": 6
+  }
+ },
+ "scholar1": {
+  "name": "図鑑の見習い",
+  "mods": {
+   "expPct": 2
+  }
+ },
+ "scholar2": {
+  "name": "博物学者",
+  "mods": {
+   "dropRatePct": 5
+  }
+ },
+ "defender": {
+  "name": "街の守り手",
+  "mods": {
+   "dmgReductionPct": 2
+  }
+ },
+ "raider": {
+  "name": "巨神を砕く者",
+  "mods": {
+   "bossDmgPct": 5,
+   "atkPct": 2
+  }
+ },
+ "storm": {
+  "name": "嵐を呼ぶ者",
+  "mods": {
+   "windDmgPct": 5
+  }
+ },
+ "tamer": {
+  "name": "魔物使い",
+  "mods": {
+   "maxHp": 50
+  }
+ },
+ "artisan": {
+  "name": "匠",
+  "mods": {
+   "gatherPct": 5
+  }
+ }
+}

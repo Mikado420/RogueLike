@@ -141,5 +141,78 @@
   "rarity": {
    "common": 1
   }
+ },
+ "dungeon_boss": {
+  "rolls": 3,
+  "chance": 1,
+  "rarity": {
+   "common": 0,
+   "rare": 45,
+   "epic": 38,
+   "legend": 14,
+   "mythic": 3
+  },
+  "slots": {
+   "weapon": 3,
+   "sub": 1.5,
+   "body": 2,
+   "head": 1.5,
+   "accessory": 1.5
+  },
+  "setChance": 0.5
+ },
+ "chest": {
+  "rolls": 2,
+  "chance": 1,
+  "rarity": {
+   "common": 20,
+   "rare": 50,
+   "epic": 24,
+   "legend": 5,
+   "mythic": 1
+  },
+  "slots": {
+   "weapon": 3,
+   "sub": 1.5,
+   "body": 2,
+   "head": 1.5,
+   "accessory": 1.5
+  }
+ },
+ "tower_boss": {
+  "rolls": 3,
+  "chance": 1,
+  "rarity": {
+   "common": 0,
+   "rare": 40,
+   "epic": 38,
+   "legend": 18,
+   "mythic": 4
+  },
+  "slots": {
+   "weapon": 3,
+   "sub": 1.5,
+   "body": 2,
+   "head": 1.5,
+   "accessory": 1.5
+  }
+ },
+ "raid": {
+  "rolls": 5,
+  "chance": 1,
+  "rarity": {
+   "common": 0,
+   "rare": 10,
+   "epic": 45,
+   "legend": 35,
+   "mythic": 10
+  },
+  "slots": {
+   "weapon": 3,
+   "sub": 1.5,
+   "body": 2,
+   "head": 1.5,
+   "accessory": 1.5
+  }
  }
 }

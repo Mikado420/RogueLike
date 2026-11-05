@@ -12,6 +12,7 @@ import { saveSettings, type Settings } from './settings';
 import { Modal } from './ui/modal';
 import { Menu } from './ui/menu';
 import { NpcPanels } from './ui/npc';
+import { registerContentPanels } from './ui/content';
 import type { Ctx } from './ui/ctx';
 
 const AUTOSAVE_MS = 15000;
@@ -64,6 +65,7 @@ export class Game {
     };
     this.menu = new Menu(this.ctx);
     this.npc = new NpcPanels(this.ctx);
+    registerContentPanels(this.npc, this.menu, this.ctx);
     this.modal.onChange = () => { this.input.enabled = !this.modal.isOpen; };
     this.hud.onMenu = () => this.menu.toggle();
     this.hud.onPotion = () => this.usePotion();
@@ -120,7 +122,7 @@ export class Game {
     this.hud.handleEvents(events);
     let refresh = false;
     for (const e of events) {
-      if (e.type === 'npc' && e.playerId === this.ctx.myId) this.npc.open(e.npc);
+      if (e.type === 'npc' && e.playerId === this.ctx.myId) this.npc.open(e.npc, e.npcId);
       if ((e.type === 'charChanged' || e.type === 'equip' || e.type === 'gold') && e.playerId === this.ctx.myId) refresh = true;
       if (e.type === 'pickup' && e.playerId === this.ctx.myId) refresh = true;
       if (e.type === 'levelUp' && e.playerId === this.ctx.myId) { refresh = true; void this.save(); }

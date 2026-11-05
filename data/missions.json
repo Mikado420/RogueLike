@@ -1,0 +1,235 @@
+{
+ "dailyCount": 3,
+ "weeklyCount": 3,
+ "daily": [
+  {
+   "id": "kill_any",
+   "counter": "kills",
+   "n": [
+    25,
+    50
+   ],
+   "reward": {
+    "gold": 400,
+    "exp": 0.4,
+    "items": {
+     "refine_stone": 2
+    }
+   }
+  },
+  {
+   "id": "kill_night",
+   "counter": "kills.night",
+   "n": [
+    10,
+    25
+   ],
+   "reward": {
+    "gold": 500,
+    "exp": 0.5
+   }
+  },
+  {
+   "id": "kill_elite",
+   "counter": "kills.elite",
+   "n": [
+    1,
+    3
+   ],
+   "reward": {
+    "gold": 600,
+    "exp": 0.5,
+    "items": {
+     "refine_stone": 3
+    }
+   }
+  },
+  {
+   "id": "boss",
+   "counter": "bossKills",
+   "n": [
+    1,
+    2
+   ],
+   "reward": {
+    "gold": 800,
+    "exp": 0.6
+   }
+  },
+  {
+   "id": "dungeon",
+   "counter": "dungeonClears",
+   "n": [
+    1,
+    2
+   ],
+   "reward": {
+    "gold": 800,
+    "exp": 0.8
+   }
+  },
+  {
+   "id": "tower",
+   "counter": "towerFloors",
+   "n": [
+    3,
+    6
+   ],
+   "reward": {
+    "gold": 600,
+    "exp": 0.6
+   }
+  },
+  {
+   "id": "refine",
+   "counter": "refineSuccess",
+   "n": [
+    2,
+    4
+   ],
+   "reward": {
+    "gold": 300,
+    "items": {
+     "refine_stone": 4
+    }
+   }
+  },
+  {
+   "id": "kill_rain",
+   "counter": "kills.w.rain",
+   "n": [
+    8,
+    15
+   ],
+   "reward": {
+    "gold": 500,
+    "exp": 0.5
+   }
+  },
+  {
+   "id": "gather",
+   "counter": "gathers",
+   "n": [
+    8,
+    15
+   ],
+   "reward": {
+    "gold": 400,
+    "exp": 0.3
+   }
+  },
+  {
+   "id": "cook",
+   "counter": "cooks",
+   "n": [
+    2,
+    4
+   ],
+   "reward": {
+    "gold": 400,
+    "exp": 0.3
+   }
+  }
+ ],
+ "weekly": [
+  {
+   "id": "kill_any",
+   "counter": "kills",
+   "n": [
+    300,
+    500
+   ],
+   "reward": {
+    "gold": 4000,
+    "exp": 3,
+    "items": {
+     "refine_stone": 15
+    }
+   }
+  },
+  {
+   "id": "kill_storm_elite",
+   "counter": "kills.w.storm.elite",
+   "n": [
+    2,
+    4
+   ],
+   "reward": {
+    "gold": 5000,
+    "exp": 3
+   }
+  },
+  {
+   "id": "dungeon_hard",
+   "counter": "dungeonClears.hard",
+   "n": [
+    3,
+    5
+   ],
+   "reward": {
+    "gold": 6000,
+    "exp": 4
+   }
+  },
+  {
+   "id": "tower",
+   "counter": "towerFloors",
+   "n": [
+    20,
+    30
+   ],
+   "reward": {
+    "gold": 5000,
+    "exp": 4
+   }
+  },
+  {
+   "id": "raid",
+   "counter": "raidClears",
+   "n": [
+    1,
+    2
+   ],
+   "reward": {
+    "gold": 8000,
+    "exp": 5
+   }
+  },
+  {
+   "id": "invasion",
+   "counter": "invasions",
+   "n": [
+    1,
+    3
+   ],
+   "reward": {
+    "gold": 4000,
+    "exp": 3
+   }
+  },
+  {
+   "id": "field_boss",
+   "counter": "fieldBossKills",
+   "n": [
+    3,
+    6
+   ],
+   "reward": {
+    "gold": 5000,
+    "exp": 4
+   }
+  },
+  {
+   "id": "craft",
+   "counter": "crafts",
+   "n": [
+    5,
+    10
+   ],
+   "reward": {
+    "gold": 3000,
+    "exp": 2
+   }
+  }
+ ]
+}

@@ -5,6 +5,7 @@ import { applyHit, buildSpec, enemiesOf, heal, launchAttack } from './combat';
 import { applyStatus } from './status';
 import { isNight } from './time';
 import { currentWeather, weatherDef } from './weather';
+import { baseActive } from './base';
 import { sec } from './util';
 
 /**
@@ -45,6 +46,7 @@ export function conditionalMods(w: World, p: Player): { key: string; mods: Mods 
   // 天候による補正（雪で足が遅いなど）
   const wd = weatherDef(w);
   if (wd.moveSpeedPct) { addMods(mods, { moveSpeedPct: wd.moveSpeedPct }); on.push(`w:${currentWeather(w)}`); }
+  on.push(`b:${baseActive(w.account, w.content, w.clock)}`);
   return { key: on.join(','), mods };
 }
 

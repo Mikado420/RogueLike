@@ -8,6 +8,10 @@ import {
 } from './items';
 import { nearRole } from './interact';
 import { notice } from './util';
+import { setCounterMax } from './counters';
+import { enterDungeon, enterRaid, enterTower, leaveInstance } from './instance';
+import { claimMission, equipTitle } from './quest';
+import { buildFacility, payUpkeep } from './base';
 
 /**
  * プレイヤーのコマンド（装備・ステ振り・スキル習得など）を処理する。
@@ -39,7 +43,7 @@ export function applyCommand(w: World, p: Player, cmd: Command) {
       break;
     case 'rebirth':
       err = nearRole(w, p, 'rebirth') ? rebirth(ch, c) : 'err.notNear';
-      if (!err) { p.skillCd = {}; w.events.push({ type: 'levelUp', playerId: p.id, level: ch.level }); notice(w, p.id, 'notice.rebirth', ch.rebirths); }
+      if (!err) { p.skillCd = {}; w.events.push({ type: 'levelUp', playerId: p.id, level: ch.level }); notice(w, p.id, 'notice.rebirth', ch.rebirths); setCounterMax(w, p, 'rebirths', ch.rebirths); }
       break;
     case 'useItem': err = useItem(w, p, cmd.id); break;
     case 'sell': err = sellItem(w, p, cmd.uid); break;
@@ -68,6 +72,18 @@ export function applyCommand(w: World, p: Player, cmd: Command) {
       w.pendingTransition = { to: cmd.town, spawn: '' };
       break;
     }
+    case 'enterDungeon': {
+      const gate = w.area.npcs.find((n) => n.npc === 'dungeon_gate' && Math.hypot(n.x - p.x, n.y - p.y) <= c.balance.player.interactRange + 0.6);
+      err = gate && gate.data === cmd.dungeon ? enterDungeon(w, p, cmd.dungeon, cmd.difficulty) : 'err.notNear';
+      break;
+    }
+    case 'enterTower': err = nearRole(w, p, 'tower') ? enterTower(w, p, cmd.floor) : 'err.notNear'; break;
+    case 'enterRaid': err = nearRole(w, p, 'raid') ? enterRaid(w, p, cmd.raid, cmd.difficulty) : 'err.notNear'; break;
+    case 'leaveInstance': err = leaveInstance(w, p); break;
+    case 'claimMission': err = claimMission(w, p, cmd.kind, cmd.index); break;
+    case 'equipTitle': err = equipTitle(ch, cmd.title); break;
+    case 'buildFacility': err = nearRole(w, p, 'base') ? buildFacility(w, p, cmd.facility) : 'err.notNear'; break;
+    case 'payUpkeep': err = nearRole(w, p, 'base') ? payUpkeep(w, p) : 'err.notNear'; break;
     case 'lock': {
       const it = ch.inventory.find((x) => x.uid === cmd.uid) ?? Object.values(ch.equipment).find((x) => x?.uid === cmd.uid);
       if (it) it.locked = cmd.locked; else err = 'err.invalid';
