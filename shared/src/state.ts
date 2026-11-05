@@ -81,7 +81,11 @@ export interface CharacterData {
   tower: { best: number };
   /** サブ職（採集・鍛冶・料理・錬成） */
   sub: Record<'gather' | 'smith' | 'cook' | 'alchemy', { level: number; exp: number }>;
+  pets: PetData[];
+  activePet: number | null;
 }
+
+export interface PetData { uid: number; species: string; name: string; level: number; exp: number; skills: string[]; role: 'battle' | 'gather'; elite: boolean }
 
 export interface MissionState { id: string; counter: string; n: number; base: number; claimed: boolean }
 
@@ -158,7 +162,12 @@ export type Command =
   | { type: 'payUpkeep' }
   | { type: 'craft'; tier: number; base: string }
   | { type: 'cook'; recipe: string }
-  | { type: 'alchemy'; uid: number; mode: 'one' | 'values'; index: number };
+  | { type: 'alchemy'; uid: number; mode: 'one' | 'values'; index: number }
+  | { type: 'capture'; item: string }
+  | { type: 'setActivePet'; uid: number | null }
+  | { type: 'setPetRole'; uid: number; role: 'battle' | 'gather' }
+  | { type: 'inheritPet'; base: number; material: number; skill: string; slot: number }
+  | { type: 'releasePet'; uid: number };
 
 export const emptyInput = (): PlayerInput => ({
   move: { x: 0, y: 0 }, aim: null, attack: false, skill: -1, dodge: false, interact: false, commands: [],
@@ -419,6 +428,8 @@ export interface World {
   players: Player[];
   nextId: number;
   events: GameEvent[];
+  /** 連れているペット（エリアをまたいでついてくる） */
+  pets: Monster[];
   /** 区切り（天候の切り替わり）を見張る */
   lastWeatherSlot: number;
   pendingTransition: { to: string; spawn: string; pos?: { x: number; y: number } } | null;
@@ -463,4 +474,6 @@ export type GameEvent =
   | { type: 'invasion'; what: 'start' | 'wave' | 'end'; wave?: number; tier?: number }
   | { type: 'gather'; playerId: number; node: number; id: string; n: number; x: number; y: number }
   | { type: 'crafted'; playerId: number; kind: 'smith' | 'cook' | 'alchemy'; uid?: number; id?: string }
-  | { type: 'subLevel'; playerId: number; job: string; level: number };
+  | { type: 'subLevel'; playerId: number; job: string; level: number }
+  | { type: 'capture'; playerId: number; success: boolean; species: string; x: number; y: number }
+  | { type: 'petLevel'; playerId: number; uid: number; level: number };

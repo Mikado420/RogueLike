@@ -14,6 +14,7 @@ import { Menu } from './ui/menu';
 import { NpcPanels } from './ui/npc';
 import { registerContentPanels } from './ui/content';
 import { registerCraftPanels } from './ui/crafting';
+import { registerPetTab } from './ui/pets';
 import type { Ctx } from './ui/ctx';
 
 const AUTOSAVE_MS = 15000;
@@ -68,14 +69,17 @@ export class Game {
     this.npc = new NpcPanels(this.ctx);
     registerContentPanels(this.npc, this.menu, this.ctx);
     registerCraftPanels(this.npc);
+    registerPetTab(this.menu, this.ctx);
     this.modal.onChange = () => { this.input.enabled = !this.modal.isOpen; };
     this.hud.onMenu = () => this.menu.toggle();
     this.hud.onPotion = () => this.usePotion();
+    this.hud.onCapture = () => this.useCapture();
     this.input.onAction = (a) => {
       if (a === 'menu') {
         if (this.modal.isOpen) this.modal.close(); else this.menu.open();
       }
       if (a === 'potion') this.usePotion();
+      if (a === 'capture') this.useCapture();
     };
     this.tickFn = (t) => this.frame(t);
     app.ticker.add(this.tickFn);
@@ -92,6 +96,12 @@ export class Game {
     const missing = 1 - p.hp / p.stats.maxHp;
     const id = missing > 0.55 && bag.potion_m ? 'potion_m' : bag.potion_s ? 'potion_s' : bag.potion_m ? 'potion_m' : null;
     if (id) this.input.pushCommand({ type: 'useItem', id });
+  }
+
+  private useCapture() {
+    const bag = this.ctx.me().char.bag;
+    const item = bag.seal_stone ? 'seal_stone' : bag.seal_stone_hi ? 'seal_stone_hi' : null;
+    if (item) this.input.pushCommand({ type: 'capture', item });
   }
 
   private frame(t: Ticker) {

@@ -7,6 +7,7 @@ import { currentWeather, weatherDef } from './weather';
 import { isNight } from './time';
 import { addContribution } from './events';
 import { recordCodex } from './quest';
+import { petGainExp, petOwner } from './pets';
 import { rarityRank } from '../core';
 import { findPlayer, isBoss, newId, sec } from './util';
 import { addCounter } from './counters';
@@ -22,9 +23,9 @@ export function onMonsterKilled(w: World, m: Monster, by: Actor | null) {
   }
   // 削った人（いなければ倒した人）に配る
   const ids = Object.keys(m.damageBy).map(Number);
-  const killer = by && by.kind === 'player' ? by : null;
+  const killer = by && by.kind === 'player' ? by : by ? petOwner(w, by.id) ?? null : null;
   const players = new Set<Player>();
-  for (const id of ids) { const p = findPlayer(w, id); if (p && !p.dead) players.add(p); }
+  for (const id of ids) { const p = findPlayer(w, id) ?? petOwner(w, id); if (p && !p.dead) players.add(p); }
   if (killer) players.add(killer);
   if (players.size === 0) return;
 
@@ -33,6 +34,7 @@ export function onMonsterKilled(w: World, m: Monster, by: Actor | null) {
   for (const p of players) {
     const exp = monsterExp(m.level, def, c, eliteMul * m.scale.exp) * levelDiffMul(p.char.level, m.level, c);
     gainExp(w, p, exp);
+    petGainExp(w, p, exp);
     const goldBase = (mb.gold[0] + mb.gold[1] * Math.pow(m.level, mb.gold[2])) * (def.gold ?? 1) * eliteMul * m.scale.gold;
     const gold = Math.max(1, Math.round(goldBase * (1 + (p.stats.m.goldPct ?? 0) / 100) * w.rng.range(0.8, 1.2)));
     p.char.gold += gold;

@@ -1,7 +1,7 @@
 import type { Command, PlayerInput } from '../../shared/src';
 import { screenDirToWorld } from './iso';
 
-export type Action = 'up' | 'down' | 'left' | 'right' | 'attack' | 'skill1' | 'skill2' | 'skill3' | 'skill4' | 'dodge' | 'interact' | 'potion' | 'menu';
+export type Action = 'up' | 'down' | 'left' | 'right' | 'attack' | 'skill1' | 'skill2' | 'skill3' | 'skill4' | 'dodge' | 'interact' | 'potion' | 'capture' | 'menu';
 
 /** 既定のキー割り当て（設定で変えられる） */
 export const DEFAULT_KEYS: Record<Action, string[]> = {
@@ -17,6 +17,7 @@ export const DEFAULT_KEYS: Record<Action, string[]> = {
   dodge: ['Space', 'ShiftLeft', 'KeyK'],
   interact: ['KeyE', 'KeyF'],
   potion: ['KeyQ'],
+  capture: ['KeyC'],
   menu: ['KeyM', 'Tab', 'Escape'],
 };
 
@@ -80,6 +81,7 @@ export class InputManager {
           if (this.is('dodge', k)) this.pendingDodge = true;
           if (this.is('interact', k)) this.pendingInteract = true;
           if (this.is('potion', k)) this.onAction?.('potion');
+          if (this.is('capture', k)) this.onAction?.('capture');
         }
       }
       this.keys.add(k);

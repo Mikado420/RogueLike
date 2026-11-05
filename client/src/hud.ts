@@ -37,6 +37,8 @@ export class Hud {
   private banner: HTMLDivElement;
   onMenu: (() => void) | null = null;
   onPotion: (() => void) | null = null;
+  onCapture: (() => void) | null = null;
+  private captureBtn: HTMLButtonElement;
 
   constructor(private world: World, private myId: number, private input: InputManager, private sfx: Sfx) {
     this.root = document.getElementById('ui')!;
@@ -126,7 +128,10 @@ export class Hud {
     this.potionCount = h('span', 'count');
     this.potionBtn.append(h('span', 'act-name', txt('hud.potion')), this.potionCount, h('span', 'key', 'Q'));
     this.potionBtn.addEventListener('pointerdown', (e) => { e.preventDefault(); this.sfx.unlock(); this.onPotion?.(); });
-    side.append(this.interactBtn, this.potionBtn);
+    this.captureBtn = h('button', 'act2 capture');
+    this.captureBtn.append(h('span', 'act-name', txt('hud.capture')), h('span', 'key', 'C'));
+    this.captureBtn.addEventListener('pointerdown', (e) => { e.preventDefault(); this.sfx.unlock(); this.onCapture?.(); });
+    side.append(this.interactBtn, this.potionBtn, this.captureBtn);
     this.root.append(side);
 
     this.root.append(this.makeStick());
@@ -220,6 +225,10 @@ export class Hud {
       if (e.type === 'levelUp' && e.playerId === this.myId) this.toast(txt('notice.levelUp', e.level), '#ffe14a');
       if (e.type === 'refine' && e.playerId === this.myId) this.toast(txt(e.success ? 'smith.success' : 'smith.failed', e.level), e.success ? '#ffe14a' : '#ff8a7a');
       if (e.type === 'worldNotice') this.showBanner(txt(e.key, ...e.args), !!e.rare);
+      if (e.type === 'petLevel' && e.playerId === this.myId) {
+        const pet = this.world.players.find((x) => x.id === this.myId)?.char.pets.find((x) => x.uid === e.uid);
+        if (pet) this.toast(txt('notice.petLevel', pet.name, e.level), '#9be04a');
+      }
       if (e.type === 'gather' && e.playerId === this.myId) this.toast(txt('notice.gather', bagInfo(e.id).name, e.n), bagInfo(e.id).color);
       if (e.type === 'subLevel' && e.playerId === this.myId) this.toast(txt('notice.subLevel', txt(`sub.${e.job}`), e.level), '#9be04a');
       if (e.type === 'crafted' && e.playerId === this.myId && e.kind === 'smith') {
@@ -359,6 +368,7 @@ export class Hud {
     const potions = (ch.bag.potion_s ?? 0) + (ch.bag.potion_m ?? 0);
     this.potionCount.textContent = String(potions);
     this.potionBtn.classList.toggle('none', potions === 0);
+    this.captureBtn.classList.toggle('show', (ch.bag.seal_stone ?? 0) + (ch.bag.seal_stone_hi ?? 0) > 0 && this.world.area.type !== 'town');
 
     const pts = freeStatPoints(ch, CONTENT) + freeSkillPoints(ch, CONTENT);
     this.menuBadge.textContent = pts > 0 ? String(pts) : '';

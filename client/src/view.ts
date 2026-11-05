@@ -260,6 +260,12 @@ export class WorldView {
         case 'refine':
           if (e.playerId === this.myId) this.sfx.play(e.success ? 'legend' : 'death', 0.7);
           break;
+        case 'capture':
+          if (e.playerId === this.myId) {
+            this.fx.burst(e.x, e.y, e.success ? 0x9be04a : 0xc0a0ff, 1.0, 0.5);
+            this.sfx.play(e.success ? 'legend' : 'evade');
+          }
+          break;
         case 'levelUp':
           if (e.playerId === this.myId) {
             const p = this.me();
@@ -326,7 +332,7 @@ export class WorldView {
       y: v.prev.y + (y - v.prev.y) * alpha,
     });
 
-    for (const a of [...w.players, ...w.area.monsters] as (Player | Monster)[]) {
+    for (const a of [...w.players, ...w.area.monsters, ...w.pets] as (Player | Monster)[]) {
       seen.add(a.id);
       const v = this.actorView(a);
       const pos = lerp(v, a.x, a.y);
@@ -405,6 +411,16 @@ export class WorldView {
           }
         }
         if (v.aura) v.aura.alpha = 0.6 + Math.sin(this.time * 5) * 0.3;
+        if (a.team === 0) {
+          v.body.scale.set(facingLeft ? -0.7 : 0.7, 0.7);
+          if (!v.aura) {
+            v.aura = new Graphics();
+            const { rx, ry } = isoRadii(a.r + 0.15);
+            v.aura.ellipse(0, 0, rx, ry).stroke({ width: 2, color: 0x9be04a, alpha: 0.8 });
+            v.aura.zIndex = -1;
+            v.root.addChild(v.aura);
+          }
+        }
         v.root.alpha = a.hidden ? 0.12 + Math.abs(Math.sin(this.time * 2)) * 0.08 : 1;
       }
     }

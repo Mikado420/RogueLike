@@ -47,6 +47,8 @@ export function conditionalMods(w: World, p: Player): { key: string; mods: Mods 
   const wd = weatherDef(w);
   if (wd.moveSpeedPct) { addMods(mods, { moveSpeedPct: wd.moveSpeedPct }); on.push(`w:${currentWeather(w)}`); }
   on.push(`b:${baseActive(w.account, w.content, w.clock)}`);
+  const pet = p.char.pets.find((x) => x.uid === p.char.activePet);
+  on.push(`p:${pet?.uid ?? 0}:${pet?.role ?? ''}:${pet?.skills.join('.') ?? ''}`);
   return { key: on.join(','), mods };
 }
 

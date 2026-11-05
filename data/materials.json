@@ -505,5 +505,25 @@
     "duration": 30
    }
   }
+ },
+ "seal_stone": {
+  "name": "封晶石",
+  "kind": "capture",
+  "icon": "stone",
+  "color": "#c0a0ff",
+  "price": 200,
+  "use": {
+   "capture": 1
+  }
+ },
+ "seal_stone_hi": {
+  "name": "上級封晶石",
+  "kind": "capture",
+  "icon": "stone",
+  "color": "#ff9ad8",
+  "price": 1200,
+  "use": {
+   "capture": 2.2
+  }
  }
 }

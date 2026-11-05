@@ -454,6 +454,17 @@ export interface RecipesDef {
   alchemy: { rerollOne: { gold: [number, number]; catalyst: number }; rerollValues: { gold: [number, number]; catalyst: number }; catalyst: string };
 }
 
+export interface PetSkillDef {
+  name: string; kind: 'attack' | 'heal' | 'buff' | 'passive' | 'loot';
+  cd?: number; attack?: AttackDef; value?: number; duration?: number; mods?: Mods; range?: number;
+}
+export interface PetsDef {
+  captureItems: Record<string, number>; hpThreshold: number; baseChance: number; hpBonus: number; levelPenalty: number; eliteMul: number; range: number;
+  maxPets: number; maxLevel: number; expShare: number; expCurve: [number, number]; atkMul: number; attackInterval: number;
+  followDist: number; leash: number; aggroRange: number; skillSlots: number; secondSkillChance: number; gatherBonus: number;
+  inheritCost: [number, number]; elementSkills: Record<string, string>; randomSkills: string[]; skills: Record<string, PetSkillDef>;
+}
+
 export interface Content {
   balance: Balance;
   weapons: Record<WeaponType, WeaponDef>;
@@ -514,6 +525,7 @@ export interface Content {
   gathering: GatheringDef;
   subjobs: SubJobsDef;
   recipes: RecipesDef;
+  pets: PetsDef;
   tiles: Record<string, { colors: [string, string]; shine?: string }>;
   text: Record<string, string>;
 }

@@ -162,5 +162,10 @@
   "name": "バラード",
   "kind": "buff",
   "color": "#7ab0ff"
+ },
+ "pet_buff": {
+  "name": "ペット",
+  "kind": "buff",
+  "color": "#9be04a"
  }
 }

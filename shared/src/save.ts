@@ -9,7 +9,7 @@ import { createItem } from './systems/loot';
  * セーブデータの形。構造を変えたら SAVE_VERSION を上げ、MIGRATIONS に変換を足す。
  * 保存先（IndexedDB・サーバーのDB）は client 側の SaveStore が決める。
  */
-export const SAVE_VERSION = 5;
+export const SAVE_VERSION = 6;
 
 type Raw = Record<string, unknown>;
 
@@ -52,6 +52,11 @@ export const MIGRATIONS: Record<number, (d: Raw) => Raw> = {
   /** 4 → 5：サブ職 */
   4: (d) => {
     for (const ch of (d.characters as Raw[] | undefined) ?? []) ch.sub = newSub();
+    return d;
+  },
+  /** 5 → 6：ペット */
+  5: (d) => {
+    for (const ch of (d.characters as Raw[] | undefined) ?? []) { ch.pets = []; ch.activePet = null; }
     return d;
   },
 };
@@ -121,6 +126,8 @@ export function newCharacter(acc: AccountData, name: string, look: { body: numbe
     achievements: {},
     tower: { best: 0 },
     sub: newSub(),
+    pets: [],
+    activePet: null,
   };
   for (const it of [...inventory, ...Object.values(equipment)]) if (it && !ch.appearance.looks.includes(it.look)) ch.appearance.looks.push(it.look);
   acc.characters.push(ch);
@@ -160,6 +167,8 @@ export function normalizeCharacter(ch: CharacterData, c: Content = CONTENT): Cha
   ch.achievements ??= {};
   ch.tower ??= { best: 0 };
   ch.sub ??= newSub();
+  ch.pets ??= [];
+  ch.activePet ??= null;
   return ch;
 }
 

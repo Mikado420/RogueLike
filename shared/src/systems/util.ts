@@ -8,7 +8,7 @@ export const newId = (w: World) => w.nextId++;
 export const newUid = (w: World) => w.account.nextUid++;
 
 export function findActor(w: World, id: number): Actor | undefined {
-  return w.players.find((p) => p.id === id) ?? w.area.monsters.find((m) => m.id === id);
+  return w.players.find((p) => p.id === id) ?? w.area.monsters.find((m) => m.id === id) ?? w.pets.find((m) => m.id === id);
 }
 
 export function findPlayer(w: World, id: number): Player | undefined {

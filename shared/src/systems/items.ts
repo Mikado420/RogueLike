@@ -72,6 +72,7 @@ export function useItem(w: World, p: Player, id: string): string | null {
   if (p.dead) return 'err.invalid';
   if ((p.char.bag[id] ?? 0) <= 0) return 'err.none';
   const u = d.use;
+  if (u.capture) return 'err.invalid';
   if (u.food) {
     const k = 1 + baseBonus(w.account, w.content, w.clock, 'foodDuration') / 100;
     applyStatus(w, p, p.id, 'food', u.food.duration * 60 * k, { mods: { ...u.food.mods } });

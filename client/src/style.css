@@ -363,3 +363,9 @@ button:disabled { opacity: 0.4; cursor: default; }
 .mod.off { opacity: 0.4; }
 .cost-line { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 12px; font-weight: 700; }
 .cost-line .bad { color: var(--bad); }
+
+/* M7 ペット */
+.act2.capture { right: 74px; bottom: 0; border-color: rgba(192,160,255,0.7); }
+.pet-row { width: 100%; text-align: left; cursor: pointer; }
+.pet-row.sel { outline: 2px solid #fff; }
+.tag.on { background: #9be04a; color: #10200a; border-color: #9be04a; }

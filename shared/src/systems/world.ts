@@ -19,6 +19,7 @@ import { updateInstance } from './instance';
 import { updateInvasion } from './events';
 import { ensureMissions } from './quest';
 import { placeNodes, updateNodes } from './crafting';
+import { updatePets } from './pets';
 
 export interface WorldOptions {
   account: AccountData;
@@ -34,7 +35,7 @@ export function createWorld(opts: WorldOptions): World {
   if (!char) throw new Error('character not found');
   const w: World = {
     seed: opts.seed, tick: 0, clock: opts.now ?? 0, rng: new Rng(opts.seed), content, account: opts.account,
-    area: null as unknown as AreaInstance, players: [], nextId: 1, events: [], lastWeatherSlot: -1, pendingTransition: null,
+    area: null as unknown as AreaInstance, players: [], pets: [], nextId: 1, events: [], lastWeatherSlot: -1, pendingTransition: null,
   };
   const p = makePlayer(w, char);
   w.players.push(p);
@@ -224,6 +225,7 @@ export function step(w: World, inputs: Map<number, PlayerInput>, now?: number): 
   }
   for (const m of area.monsters) updateMonster(w, m);
   separateActors(w);
+  updatePets(w);
   updateStrikes(w);
   updateProjectiles(w);
   for (const a of [...w.players, ...area.monsters]) if (!a.dead) tickStatuses(w, a, (t, n, id, src) => dealDot(w, t, n, id, src));
