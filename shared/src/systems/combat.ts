@@ -2,11 +2,12 @@ import { angleDiff, scaled, type DamageType, type Element, type Shape } from '..
 import type { AttackDef } from '../content/types';
 import type { Actor, HitSpec, Monster, Player, Projectile, Strike, World } from '../state';
 import { computeDamage } from '../damage';
-import { isSolid } from '../map';
+import { isSolid, moveCircle } from '../map';
 import { addBreak, applyStatus, dmgTakenPct, missChance } from './status';
 import { DT, findActor, isBoss, newId, sec } from './util';
 import { onMonsterKilled, onPlayerKilled } from './rewards';
 import { procOnHit } from './effects';
+import { weaponHitMods, weaponOnHit } from './weapons';
 
 /** 攻撃定義と使い手から命中仕様を作る */
 export function buildSpec(
@@ -22,6 +23,9 @@ export function buildSpec(
     statusLevel: level,
     lifesteal: def.lifesteal,
     skillId,
+    execute: def.execute,
+    knockback: def.knockback,
+    tags: def.tags,
   };
 }
 
@@ -46,6 +50,7 @@ export function launchAttack(w: World, owner: Actor, def: AttackDef, dir: number
   const rangeMul = opts.rangeMul ?? 1;
   const area = w.area;
   if (def.delivery === 'strike') {
+    if (def.shape && (def.shape.type === 'arc' || def.shape.type === 'line') && spec.reach === undefined) spec.reach = def.shape.range * rangeMul;
     const count = def.count ?? 1;
     const hits = def.hits ?? 1;
     const delay = opts.delay ?? sec(w, def.delay ?? 0);
@@ -238,6 +243,12 @@ export function applyHit(w: World, src: Actor, tgt: Actor, spec: HitSpec, combo:
     return false;
   }
   let bonus = spec.bonusMul ?? 1;
+  let critBonus = spec.critBonus ?? 0;
+  let sweet = false, back = false;
+  if (src.kind === 'player') {
+    const wm = weaponHitMods(w, src, tgt, spec);
+    bonus *= wm.mul; critBonus += wm.critBonus; sweet = wm.sweet; back = wm.back;
+  }
   if (isBoss(w, tgt)) bonus *= 1 + (src.stats.m.bossDmgPct ?? 0) / 100;
   bonus *= 1 + dmgTakenPct(w, tgt) / 100;
   if (tgt.kind === 'player' && spec.kind === 'monster') {
@@ -249,7 +260,7 @@ export function applyHit(w: World, src: Actor, tgt: Actor, spec: HitSpec, combo:
   }
   const r = computeDamage(src.stats, tgt.stats, {
     power: spec.power, element: spec.element, damageType: spec.damageType, kind: spec.kind,
-    canCrit: spec.canCrit, bonusMul: bonus, critBonus: spec.critBonus,
+    canCrit: spec.canCrit, bonusMul: bonus, critBonus,
   }, w.rng, c.balance.damage);
   tgt.hp -= r.amount;
   if (tgt.kind === 'monster') tgt.damageBy[src.id] = (tgt.damageBy[src.id] ?? 0) + r.amount;
@@ -274,8 +285,13 @@ export function applyHit(w: World, src: Actor, tgt: Actor, spec: HitSpec, combo:
   w.events.push({
     type: 'damage', src: src.id, tgt: tgt.id, amount: r.amount, crit: r.crit, weak: r.weak, resist: r.resist,
     element: spec.element, combo, cnt, x: tgt.x, y: tgt.y, toPlayer: tgt.kind === 'player',
-    broke: tgt.kind === 'monster' && tgt.breaks > wasBroken,
+    broke: tgt.kind === 'monster' && tgt.breaks > wasBroken, sweet, back,
   });
+  if (src.kind === 'player') weaponOnHit(w, src, spec);
+  if (spec.knockback && tgt.kind === 'monster' && !isBoss(w, tgt) && tgt.r <= c.balance.combat.knockbackMaxRadius) {
+    const a = Math.atan2(tgt.y - src.y, tgt.x - src.x);
+    moveCircle(w.area.map, tgt, tgt.r, Math.cos(a) * spec.knockback, Math.sin(a) * spec.knockback);
+  }
 
   // HP 吸収
   if (src.kind === 'player') {

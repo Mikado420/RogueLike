@@ -139,5 +139,21 @@
     "y": 10.5
    }
   ]
+ },
+ "training": {
+  "name": "訓練場",
+  "type": "field",
+  "map": "arena",
+  "level": [
+   1,
+   100
+  ],
+  "playerSpawn": {
+   "x": 8.5,
+   "y": 13.5
+  },
+  "safeRadius": 0,
+  "spawns": [],
+  "npcs": []
  }
 }

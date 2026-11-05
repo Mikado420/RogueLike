@@ -235,6 +235,11 @@ export interface HitSpec {
   /** 銃の背面撃ちなどで足す倍率 */
   bonusMul?: number;
   critBonus?: number;
+  /** 槍の間合い判定に使う攻撃の届く距離 */
+  reach?: number;
+  execute?: { below: number; mul: number };
+  knockback?: number;
+  tags?: string[];
 }
 
 export interface Strike {
@@ -330,7 +335,8 @@ export interface World {
 
 export type GameEvent =
   | { type: 'damage'; src: number; tgt: number; amount: number; crit: boolean; weak: boolean; resist: boolean;
-      element: Element; combo: number; cnt: number; x: number; y: number; toPlayer: boolean; dot?: boolean; broke?: boolean }
+      element: Element; combo: number; cnt: number; x: number; y: number; toPlayer: boolean; dot?: boolean; broke?: boolean;
+      sweet?: boolean; back?: boolean }
   | { type: 'heal'; tgt: number; amount: number; x: number; y: number }
   | { type: 'evade'; tgt: number; x: number; y: number; block?: boolean }
   | { type: 'attack'; src: number; dir: number; skill: string | null; weapon: WeaponType | null; charge?: number }
@@ -353,4 +359,5 @@ export type GameEvent =
   | { type: 'notice'; playerId: number; key: string; args?: (string | number)[] }
   | { type: 'npc'; playerId: number; npc: string; npcId: number }
   | { type: 'rhythm'; playerId: number; onBeat: boolean; stacks: number }
+  | { type: 'reload'; playerId: number; done: boolean }
   | { type: 'areaChanged'; playerId: number; area: string };

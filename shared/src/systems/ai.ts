@@ -138,6 +138,7 @@ export function moveToward(w: World, m: Monster, tx: number, ty: number, speed: 
   const d = Math.hypot(dx, dy);
   if (d <= stopDist || d < 1e-4) return;
   const v = Math.min(d, speed * DT(w));
+  if (v <= 0) return;
   m.facing = Math.atan2(dy, dx);
   let moved = moveCircle(w.area.map, m, m.r, (dx / d) * v, (dy / d) * v);
   if (!moved) {

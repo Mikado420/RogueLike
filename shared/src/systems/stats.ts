@@ -66,6 +66,7 @@ export function staticMods(char: CharacterData, c: Content): Mods {
     if (it) addMods(m, itemMods(it, c));
   }
   addMods(m, passiveMods(char, weaponTypeOf(char), c));
+  addMods(m, c.weapons[weaponTypeOf(char)]?.mods);
   for (const src of extraSources) addMods(m, src(char, c));
   return m;
 }

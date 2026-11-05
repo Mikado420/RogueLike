@@ -47,6 +47,8 @@ export interface AttackDef {
   status?: StatusApply[];
   knockback?: number;
   lifesteal?: number;
+  /** 相手の HP がこの割合（%）以下なら威力が mul 倍 */
+  execute?: { below: number; mul: number };
   tags?: string[];
 }
 
@@ -55,7 +57,7 @@ export type WeaponMechanic =
   | { type: 'charge'; levels: number[]; powerMul: number[]; breakMul: number[]; moveMul: number }
   | { type: 'ammo'; magazine: number; reload: number; backstabMul: number; backstabCrit: number }
   | { type: 'combo'; window: number; perStack: number; max: number }
-  | { type: 'rhythm'; bpm: number; window: number; maxStacks: number; perStack: number; missLoss: number }
+  | { type: 'rhythm'; bpm: number; window: number; maxStacks: number; perStack: number; missLoss: number; perfectMul: number }
   | { type: 'spacing'; sweetFrom: number; bonus: number }
   | { type: 'drain'; pct: number; darkBonus: number }
   | { type: 'flurry'; dodgeCdMul: number; statusBonus: number }
@@ -73,6 +75,8 @@ export interface WeaponDef {
   chain?: (AttackDef & { interval: number })[];
   mechanic: WeaponMechanic;
   dodge?: { costMul?: number; speedMul?: number; iframesMul?: number };
+  /** 持っている間ずっと効く補正 */
+  mods?: Mods;
   icon: string;
 }
 
@@ -102,7 +106,7 @@ export interface SkillDef {
   attacks?: AttackDef[];
   buff?: BuffDef;
   heal?: { power: Scaled; base: 'matk' | 'maxHp' };
-  dash?: { distance: number; speed: number; iframes?: number };
+  dash?: { distance: number; speed: number; iframes?: number; toTarget?: boolean };
   cleanse?: boolean;
   consume?: { resource: 'combo' | 'rhythm'; powerPerStack: number };
   reload?: boolean;
@@ -367,6 +371,7 @@ export interface Balance {
   drop: { lifetime: number; scatter: number };
   sell: { base: number; perLevel: number; perRefine: number; materialMul: number };
   world: { startArea: string };
+  combat: { backAngle: number; preciseCrit: number; chargeMinMove: number; knockbackMaxRadius: number };
   start: { gold: number; bag: Record<string, number>; equipment: { base: string; slot: EquipSlot }[]; inventory: { base: string }[] };
 }
 

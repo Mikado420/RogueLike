@@ -291,3 +291,14 @@ button:disabled { opacity: 0.4; cursor: default; }
 .swatches { display: flex; gap: 8px; flex-wrap: wrap; }
 .swatch-btn { width: 36px; height: 36px; border-radius: 50%; border: 3px solid transparent; }
 .swatch-btn.on { border-color: #fff; }
+
+/* 武器の状態 */
+.weapon-res { position: absolute; right: 0; bottom: 96px; width: 92px; display: flex; justify-content: center; align-items: center; gap: 4px; pointer-events: none; min-height: 18px; }
+.weapon-res .pip { width: 16px; height: 8px; border-radius: 4px; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.3); }
+.weapon-res .pip.on { background: #ffb02e; box-shadow: 0 0 8px #ffb02e; }
+.res-text { font-size: 12px; font-weight: 900; text-shadow: 0 1px 2px #000; background: rgba(0,0,0,0.5); padding: 1px 6px; border-radius: 6px; }
+.res-text.warn { color: #ff8a7a; animation: pulse 0.3s infinite alternate; }
+.res-text.combo { color: #ffd23a; }
+.res-sub { font-size: 10px; color: var(--muted); }
+.beat { width: 14px; height: 14px; border-radius: 50%; border: 2px solid #ff9ad8; background: transparent; }
+.beat.on { background: #ff9ad8; box-shadow: 0 0 12px #ff9ad8; }

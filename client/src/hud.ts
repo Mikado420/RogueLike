@@ -1,6 +1,6 @@
 import {
-  CONTENT, expToNext, freeSkillPoints, freeStatPoints, interactTarget, slotSkill, txt,
-  type GameEvent, type Item, type Player, type World,
+  CONTENT, beatTicks, chargeLevel, comboMax, expToNext, freeSkillPoints, freeStatPoints, interactTarget, magazineSize,
+  slotSkill, txt, weaponTypeOf, type GameEvent, type Item, type Player, type World,
 } from '../../shared/src';
 import { rarityColor, statusColor } from './colors';
 import type { InputManager } from './input';
@@ -27,6 +27,8 @@ export class Hud {
   private death: { root: HTMLDivElement; count: HTMLDivElement };
   private toasts: HTMLDivElement;
   private skillKey = '';
+  private res: HTMLDivElement;
+  private resKey = '';
   onMenu: (() => void) | null = null;
   onPotion: (() => void) | null = null;
 
@@ -104,6 +106,8 @@ export class Hud {
     dodge.append(h('span', 'act-name', txt('hud.dodge')), h('span', 'key', 'Space'));
     dodge.addEventListener('pointerdown', (e) => { e.preventDefault(); this.sfx.unlock(); this.input.triggerDodge(); });
     actions.append(dodge);
+    this.res = h('div', 'weapon-res');
+    actions.append(this.res);
     this.root.append(actions);
 
     // 話す・薬
@@ -202,6 +206,44 @@ export class Hud {
     }
   }
 
+  /** 武器の状態（溜め・残弾・コンボ・拍） */
+  private updateWeaponRes(p: Player) {
+    const mech = CONTENT.weapons[weaponTypeOf(p.char)]?.mechanic;
+    let key = mech?.type ?? 'none';
+    let html: (() => HTMLElement[]) | null = null;
+    switch (mech?.type) {
+      case 'charge': {
+        const lvl = chargeLevel(this.world, p);
+        key += lvl + (p.charge > 0 ? 'c' : '');
+        html = () => [0, 1, 2].map((i) => h('i', `pip${i < lvl ? ' on' : ''}${p.charge > 0 ? ' active' : ''}`));
+        break;
+      }
+      case 'ammo': {
+        const mag = magazineSize(this.world, p);
+        key += `${p.ammo}/${mag}/${p.reloadTicks > 0}`;
+        html = () => [h('span', p.reloadTicks > 0 ? 'res-text warn' : 'res-text', p.reloadTicks > 0 ? txt('hud.reload') : `${Math.max(0, p.ammo)} / ${mag}`)];
+        break;
+      }
+      case 'combo': {
+        key += `${p.combo}`;
+        html = () => p.combo > 0 ? [h('span', 'res-text combo', `${txt('hud.combo')} ${p.combo}`), h('span', 'res-sub', `/${comboMax(this.world, p)}`)] : [];
+        break;
+      }
+      case 'rhythm': {
+        const b = beatTicks(this.world, mech.bpm);
+        const ph = this.world.tick % b;
+        const on = ph <= mech.window || ph >= b - mech.window;
+        key += `${p.rhythm}/${on}`;
+        html = () => [h('i', `beat${on ? ' on' : ''}`), h('span', 'res-text', `♪ ${p.rhythm}`)];
+        break;
+      }
+    }
+    if (key === this.resKey) return;
+    this.resKey = key;
+    this.res.className = `weapon-res ${mech?.type ?? ''}`;
+    this.res.replaceChildren(...(html ? html() : []));
+  }
+
   itemToast(item: Item) {
     this.toast(item.name, rarityColor(item.rarity), `r-${item.rarity}`);
   }
@@ -291,6 +333,8 @@ export class Hud {
       this.boss.root.classList.toggle('broken', broken);
       this.boss.root.classList.toggle('enraged', boss.enraged);
     }
+
+    this.updateWeaponRes(p);
 
     this.death.root.classList.toggle('show', p.dead);
     if (p.dead) this.death.count.textContent = String(Math.ceil(p.respawnTicks / CONTENT.balance.tickRate));

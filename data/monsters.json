@@ -291,5 +291,26 @@
     ]
    }
   ]
+ },
+ "dummy": {
+  "name": "訓練用の人形",
+  "sprite": "golem",
+  "element": "neutral",
+  "radius": 0.5,
+  "speed": 0,
+  "aggroRange": 0,
+  "leashRange": 999,
+  "attackInterval": 1,
+  "hp": 1000,
+  "atk": 0,
+  "matk": 0,
+  "def": 1.0,
+  "mdef": 1.0,
+  "poise": 3,
+  "drops": "none",
+  "attacks": [],
+  "tags": [
+   "dummy"
+  ]
  }
 }

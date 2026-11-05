@@ -1,185 +1,4251 @@
 {
-  "trees": {
-    "oneHandSword": { "name": "片手剣", "weapon": "oneHandSword", "kind": "weapon", "order": 1, "icon": "sword" },
-    "twoHandSword": { "name": "両手剣", "weapon": "twoHandSword", "kind": "weapon", "order": 2, "icon": "greatsword" },
-    "dualSwords":   { "name": "双剣",   "weapon": "dualSwords",   "kind": "weapon", "order": 3, "icon": "dual" },
-    "spear":        { "name": "槍",     "weapon": "spear",        "kind": "weapon", "order": 4, "icon": "spear" },
-    "bow":          { "name": "弓",     "weapon": "bow",          "kind": "weapon", "order": 5, "icon": "bow" },
-    "staff":        { "name": "杖",     "weapon": "staff",        "kind": "weapon", "order": 6, "icon": "staff" },
-    "knuckles":     { "name": "手甲",   "weapon": "knuckles",     "kind": "weapon", "order": 7, "icon": "fist" },
-    "gun":          { "name": "銃",     "weapon": "gun",          "kind": "weapon", "order": 8, "icon": "gun" },
-    "scythe":       { "name": "鎌",     "weapon": "scythe",       "kind": "weapon", "order": 9, "icon": "scythe" },
-    "instrument":   { "name": "楽器",   "weapon": "instrument",   "kind": "weapon", "order": 10, "icon": "lute" },
-    "magic":        { "name": "魔法",   "kind": "general", "order": 11, "icon": "magic" },
-    "support":      { "name": "支援",   "kind": "general", "order": 12, "icon": "support" },
-    "survival":     { "name": "生存",   "kind": "general", "order": 13, "icon": "survival" },
-    "mastery":      { "name": "武術",   "kind": "general", "order": 14, "icon": "mastery" }
+ "trees": {
+  "oneHandSword": {
+   "name": "片手剣",
+   "weapon": "oneHandSword",
+   "kind": "weapon",
+   "order": 1,
+   "icon": "sword"
   },
-  "skills": {
-    "slash": { "name": "スラッシュ", "tree": "oneHandSword", "tier": 1, "type": "active", "maxLevel": 10, "weapon": "oneHandSword",
-      "mp": [30, 0], "cooldown": [2.5, -0.05], "lock": 0.25,
-      "attack": { "delivery": "strike", "anchor": "self", "shape": { "type": "arc", "range": 2.4, "arc": 160 }, "power": [2.2, 0.15], "element": "weapon", "range": 2.4, "breakPower": 3 } },
-    "sword_mastery": { "name": "剣術の心得", "tree": "oneHandSword", "tier": 1, "type": "passive", "maxLevel": 10, "weapon": "oneHandSword",
-      "mods": { "atkPct": [1, 1], "aspdPct": [0.5, 0.5] } },
-    "renga": { "name": "連牙", "tree": "oneHandSword", "tier": 2, "type": "active", "maxLevel": 10, "weapon": "oneHandSword", "requires": [{ "skill": "slash", "level": 3 }],
-      "mp": [40, 0], "cooldown": [5, -0.1], "lock": 0.55,
-      "attack": { "delivery": "strike", "anchor": "self", "follow": true, "shape": { "type": "arc", "range": 2.0, "arc": 120 }, "power": [0.85, 0.06], "hits": 4, "interval": 0.12, "element": "weapon", "range": 2.0, "breakPower": 1 } },
-    "shield_bash": { "name": "シールドバッシュ", "tree": "oneHandSword", "tier": 2, "type": "active", "maxLevel": 10, "weapon": "oneHandSword", "requires": [{ "skill": "sword_mastery", "level": 3 }],
-      "mp": [25, 0], "cooldown": [6, -0.1], "lock": 0.3,
-      "attack": { "delivery": "strike", "anchor": "self", "shape": { "type": "arc", "range": 1.6, "arc": 90 }, "power": [1.2, 0.1], "range": 1.6, "breakPower": 6,
-        "status": [{ "id": "stun", "chance": [30, 3], "duration": 1.2 }] } },
-    "senpu": { "name": "旋風斬", "tree": "oneHandSword", "tier": 3, "type": "active", "maxLevel": 10, "weapon": "oneHandSword", "requires": [{ "skill": "renga", "level": 5 }],
-      "mp": [50, 0], "cooldown": [8, -0.15], "lock": 0.6,
-      "attack": { "delivery": "strike", "anchor": "self", "follow": true, "shape": { "type": "circle", "radius": 2.6 }, "power": [1.0, 0.08], "hits": 3, "interval": 0.2, "element": "wind", "range": 2.6, "breakPower": 2 } },
-    "guard_stance": { "name": "守護の構え", "tree": "oneHandSword", "tier": 3, "type": "passive", "maxLevel": 10, "weapon": "oneHandSword", "requires": [{ "skill": "shield_bash", "level": 3 }],
-      "mods": { "defPct": [2, 2], "blockRate": [1, 1] } },
-    "brave_slash": { "name": "ブレイブスラッシュ", "tree": "oneHandSword", "tier": 4, "type": "active", "maxLevel": 10, "weapon": "oneHandSword", "requires": [{ "skill": "senpu", "level": 5 }],
-      "mp": [60, 0], "cooldown": [10, -0.2], "lock": 0.4,
-      "attack": { "delivery": "projectile", "power": [3.2, 0.2], "element": "weapon", "range": 8, "breakPower": 5,
-        "projectile": { "count": 1, "spread": 0, "speed": 14, "range": 8, "radius": 0.6, "pierce": 99, "sprite": "wave" } } },
-    "holy_blade": { "name": "聖剣解放", "tree": "oneHandSword", "tier": 5, "type": "active", "maxLevel": 10, "weapon": "oneHandSword", "requires": [{ "skill": "brave_slash", "level": 5 }],
-      "mp": [80, 0], "cooldown": [30, -0.5], "lock": 0.5,
-      "buff": { "status": "holy_blade", "duration": [12, 0.5], "mods": { "atkPct": [10, 1], "aspdPct": [10, 0.5] } },
-      "attack": { "delivery": "strike", "anchor": "self", "shape": { "type": "circle", "radius": 3.0 }, "delay": 0.2, "power": [2.5, 0.2], "element": "light", "range": 3.0, "breakPower": 4 } },
-
-    "power_shot": { "name": "パワーショット", "tree": "bow", "tier": 1, "type": "active", "maxLevel": 10, "weapon": "bow",
-      "mp": [30, 0], "cooldown": [3, -0.05], "lock": 0.3,
-      "attack": { "delivery": "projectile", "power": [2.4, 0.16], "element": "weapon", "range": 12, "breakPower": 3,
-        "projectile": { "count": 1, "spread": 0, "speed": 20, "range": 12, "radius": 0.35, "pierce": 5, "sprite": "arrow_big" } } },
-    "bow_mastery": { "name": "弓術の心得", "tree": "bow", "tier": 1, "type": "passive", "maxLevel": 10, "weapon": "bow",
-      "mods": { "atkPct": [1, 1], "rangePct": [2, 2] } },
-    "triple_arrow": { "name": "トリプルアロー", "tree": "bow", "tier": 2, "type": "active", "maxLevel": 10, "weapon": "bow", "requires": [{ "skill": "power_shot", "level": 3 }],
-      "mp": [35, 0], "cooldown": [4, -0.08], "lock": 0.25,
-      "attack": { "delivery": "projectile", "power": [1.15, 0.08], "element": "weapon", "range": 9, "breakPower": 1,
-        "projectile": { "count": 3, "spread": 24, "speed": 16, "range": 9, "radius": 0.25, "pierce": 1, "sprite": "arrow" } } },
-    "back_shot": { "name": "バックショット", "tree": "bow", "tier": 2, "type": "active", "maxLevel": 10, "weapon": "bow", "requires": [{ "skill": "bow_mastery", "level": 3 }],
-      "mp": [20, 0], "cooldown": [6, -0.15], "lock": 0.2,
-      "dash": { "distance": -3.5, "speed": 14, "iframes": 0.3 },
-      "attack": { "delivery": "projectile", "power": [1.6, 0.1], "element": "weapon", "range": 10, "breakPower": 1,
-        "projectile": { "count": 1, "spread": 0, "speed": 18, "range": 10, "radius": 0.3, "pierce": 1, "sprite": "arrow" } } },
-    "arrow_rain": { "name": "アローレイン", "tree": "bow", "tier": 3, "type": "active", "maxLevel": 10, "weapon": "bow", "requires": [{ "skill": "triple_arrow", "level": 5 }],
-      "mp": [50, 0], "cooldown": [9, -0.2], "lock": 0.35,
-      "attack": { "delivery": "strike", "anchor": "aim", "aimDistance": 6, "shape": { "type": "circle", "radius": 2.2 }, "delay": 0.35, "power": [0.6, 0.04], "hits": 6, "interval": 0.18, "element": "weapon", "range": 9, "breakPower": 0.5 } },
-    "hunter_eye": { "name": "狩人の眼", "tree": "bow", "tier": 3, "type": "passive", "maxLevel": 10, "weapon": "bow", "requires": [{ "skill": "bow_mastery", "level": 5 }],
-      "mods": { "critRate": [0.8, 0.8], "critDamage": [1.5, 1.5] } },
-    "snipe": { "name": "スナイプ", "tree": "bow", "tier": 4, "type": "active", "maxLevel": 10, "weapon": "bow", "requires": [{ "skill": "arrow_rain", "level": 3 }],
-      "mp": [60, 0], "cooldown": [12, -0.3], "lock": 0.6,
-      "attack": { "delivery": "projectile", "power": [4.5, 0.3], "element": "weapon", "range": 16, "breakPower": 8,
-        "projectile": { "count": 1, "spread": 0, "speed": 30, "range": 16, "radius": 0.3, "pierce": 1, "sprite": "arrow_big" } } },
-    "storm_arrow": { "name": "ストームアロー", "tree": "bow", "tier": 5, "type": "active", "maxLevel": 10, "weapon": "bow", "requires": [{ "skill": "snipe", "level": 5 }],
-      "mp": [80, 0], "cooldown": [18, -0.4], "lock": 0.5,
-      "attack": { "delivery": "projectile", "power": [0.9, 0.06], "element": "wind", "range": 10, "breakPower": 1,
-        "projectile": { "count": 8, "spread": 90, "speed": 13, "range": 10, "radius": 0.3, "pierce": 1, "sprite": "arrow", "homing": 0.25 } } },
-
-    "fireball": { "name": "ファイアボール", "tree": "staff", "tier": 1, "type": "active", "maxLevel": 10, "weapon": "staff",
-      "mp": [30, 0], "cooldown": [3, -0.05], "lock": 0.3,
-      "attack": { "delivery": "projectile", "power": [2.0, 0.14], "element": "fire", "range": 9, "breakPower": 2,
-        "status": [{ "id": "burn", "chance": [20, 2], "power": 0.12 }],
-        "projectile": { "count": 1, "spread": 0, "speed": 10, "range": 9, "radius": 0.4, "pierce": 1, "explodeRadius": 1.7, "sprite": "fireball" } } },
-    "magic_mastery": { "name": "魔力の心得", "tree": "staff", "tier": 1, "type": "passive", "maxLevel": 10, "weapon": "staff",
-      "mods": { "matkPct": [1, 1], "cspdPct": [1, 1] } },
-    "aqua_lance": { "name": "アクアランス", "tree": "staff", "tier": 2, "type": "active", "maxLevel": 10, "weapon": "staff", "requires": [{ "skill": "fireball", "level": 3 }],
-      "mp": [35, 0], "cooldown": [4, -0.08], "lock": 0.3,
-      "attack": { "delivery": "projectile", "power": [1.9, 0.12], "element": "water", "range": 10, "breakPower": 2,
-        "status": [{ "id": "freeze", "chance": [8, 1], "duration": 1.2 }],
-        "projectile": { "count": 1, "spread": 0, "speed": 16, "range": 10, "radius": 0.4, "pierce": 99, "sprite": "aqua" } } },
-    "magic_barrier": { "name": "マジックバリア", "tree": "staff", "tier": 2, "type": "active", "maxLevel": 10, "weapon": "staff", "requires": [{ "skill": "magic_mastery", "level": 3 }],
-      "mp": [30, 0], "cooldown": [25, -0.5], "lock": 0.2,
-      "buff": { "status": "barrier", "duration": [8, 0.3], "mods": { "dmgReductionPct": [10, 1.5] } } },
-    "holy_nova": { "name": "ホーリーノヴァ", "tree": "staff", "tier": 3, "type": "active", "maxLevel": 10, "weapon": "staff", "requires": [{ "skill": "aqua_lance", "level": 5 }],
-      "mp": [50, 0], "cooldown": [9, -0.2], "lock": 0.5,
-      "attack": { "delivery": "strike", "anchor": "self", "shape": { "type": "circle", "radius": 3.0 }, "delay": 0.25, "power": [1.5, 0.1], "hits": 2, "interval": 0.3, "element": "light", "range": 3.0, "breakPower": 2 } },
-    "chant_mastery": { "name": "詠唱の極意", "tree": "staff", "tier": 3, "type": "passive", "maxLevel": 10, "weapon": "staff", "requires": [{ "skill": "magic_barrier", "level": 3 }],
-      "mods": { "mpCostPct": [-1.5, -1.5], "cooldownPct": [-1, -1] } },
-    "meteor": { "name": "メテオ", "tree": "staff", "tier": 4, "type": "active", "maxLevel": 10, "weapon": "staff", "requires": [{ "skill": "holy_nova", "level": 3 }],
-      "mp": [70, 0], "cooldown": [14, -0.3], "lock": 0.7,
-      "attack": { "delivery": "strike", "anchor": "aim", "aimDistance": 5, "shape": { "type": "circle", "radius": 2.6 }, "delay": 1.0, "power": [5.0, 0.3], "element": "fire", "range": 9, "breakPower": 8,
-        "status": [{ "id": "burn", "chance": [40, 3], "power": 0.15 }] } },
-    "crystal_nova": { "name": "クリスタルノヴァ", "tree": "staff", "tier": 5, "type": "active", "maxLevel": 10, "weapon": "staff", "requires": [{ "skill": "meteor", "level": 5 }],
-      "mp": [90, 0], "cooldown": [20, -0.4], "lock": 0.6,
-      "attack": { "delivery": "projectile", "power": [1.3, 0.08], "element": "weapon", "range": 9, "breakPower": 1,
-        "projectile": { "count": 12, "spread": 360, "speed": 11, "range": 9, "radius": 0.35, "pierce": 3, "sprite": "crystal" } } },
-
-    "fire_bolt": { "name": "ファイアボルト", "tree": "magic", "tier": 1, "type": "active", "maxLevel": 10,
-      "mp": [20, 0], "cooldown": [3, -0.05], "lock": 0.3,
-      "attack": { "delivery": "projectile", "damageType": "magic", "power": [1.5, 0.1], "element": "fire", "range": 9, "breakPower": 1,
-        "status": [{ "id": "burn", "chance": [10, 1], "power": 0.1 }],
-        "projectile": { "count": 1, "spread": 0, "speed": 13, "range": 9, "radius": 0.3, "pierce": 1, "sprite": "fireball" } } },
-    "ice_needle": { "name": "アイスニードル", "tree": "magic", "tier": 1, "type": "active", "maxLevel": 10,
-      "mp": [20, 0], "cooldown": [3, -0.05], "lock": 0.3,
-      "attack": { "delivery": "projectile", "damageType": "magic", "power": [1.4, 0.1], "element": "water", "range": 9, "breakPower": 1,
-        "status": [{ "id": "freeze", "chance": [10, 1], "duration": 1 }],
-        "projectile": { "count": 1, "spread": 0, "speed": 15, "range": 9, "radius": 0.3, "pierce": 1, "sprite": "aqua" } } },
-    "wind_cutter": { "name": "ウィンドカッター", "tree": "magic", "tier": 2, "type": "active", "maxLevel": 10, "requires": [{ "skill": "fire_bolt", "level": 3 }],
-      "mp": [30, 0], "cooldown": [5, -0.1], "lock": 0.3,
-      "attack": { "delivery": "projectile", "damageType": "magic", "power": [1.7, 0.12], "element": "wind", "range": 9, "breakPower": 1,
-        "projectile": { "count": 1, "spread": 0, "speed": 14, "range": 9, "radius": 0.55, "pierce": 99, "sprite": "wave" } } },
-    "stone_edge": { "name": "ストーンエッジ", "tree": "magic", "tier": 2, "type": "active", "maxLevel": 10, "requires": [{ "skill": "ice_needle", "level": 3 }],
-      "mp": [30, 0], "cooldown": [5, -0.1], "lock": 0.35,
-      "attack": { "delivery": "strike", "anchor": "aim", "aimDistance": 4, "damageType": "magic", "shape": { "type": "circle", "radius": 1.4 }, "delay": 0.3, "power": [2.0, 0.14], "element": "earth", "range": 8, "breakPower": 5 } },
-    "holy_ray": { "name": "ホーリーレイ", "tree": "magic", "tier": 3, "type": "active", "maxLevel": 10, "requires": [{ "skill": "wind_cutter", "level": 5 }],
-      "mp": [45, 0], "cooldown": [8, -0.15], "lock": 0.4,
-      "attack": { "delivery": "strike", "anchor": "self", "damageType": "magic", "shape": { "type": "line", "range": 8, "width": 0.9 }, "delay": 0.15, "power": [2.6, 0.18], "element": "light", "range": 8, "breakPower": 3 } },
-    "shadow_bolt": { "name": "シャドウボルト", "tree": "magic", "tier": 3, "type": "active", "maxLevel": 10, "requires": [{ "skill": "stone_edge", "level": 5 }],
-      "mp": [45, 0], "cooldown": [8, -0.15], "lock": 0.35,
-      "attack": { "delivery": "projectile", "damageType": "magic", "power": [2.4, 0.16], "element": "dark", "range": 10, "breakPower": 2,
-        "status": [{ "id": "blind", "chance": [25, 2], "duration": 4 }],
-        "projectile": { "count": 1, "spread": 0, "speed": 9, "range": 10, "radius": 0.4, "pierce": 1, "sprite": "shadow", "homing": 0.35 } } },
-    "mana_amp": { "name": "魔力増幅", "tree": "magic", "tier": 4, "type": "passive", "maxLevel": 10, "requires": [{ "skill": "holy_ray", "level": 3 }],
-      "mods": { "matkPct": [1.5, 1.5], "magDmgPct": [1, 1] } },
-
-    "heal": { "name": "ヒール", "tree": "support", "tier": 1, "type": "active", "maxLevel": 10,
-      "mp": [25, 0], "cooldown": [6, -0.1], "lock": 0.3,
-      "heal": { "power": [0.12, 0.012], "base": "maxHp" } },
-    "brave_aura": { "name": "ブレイブオーラ", "tree": "support", "tier": 1, "type": "active", "maxLevel": 10,
-      "mp": [30, 0], "cooldown": [40, -1], "lock": 0.3,
-      "buff": { "status": "brave", "duration": [30, 1], "mods": { "atkPct": [5, 0.8], "matkPct": [5, 0.8] } } },
-    "protect": { "name": "プロテクト", "tree": "support", "tier": 2, "type": "active", "maxLevel": 10, "requires": [{ "skill": "heal", "level": 3 }],
-      "mp": [30, 0], "cooldown": [40, -1], "lock": 0.3,
-      "buff": { "status": "protect", "duration": [30, 1], "mods": { "defPct": [8, 1], "mdefPct": [8, 1] } } },
-    "quick_step": { "name": "クイックステップ", "tree": "support", "tier": 2, "type": "active", "maxLevel": 10, "requires": [{ "skill": "brave_aura", "level": 3 }],
-      "mp": [30, 0], "cooldown": [40, -1], "lock": 0.3,
-      "buff": { "status": "quick", "duration": [20, 1], "mods": { "aspdPct": [6, 0.6], "moveSpeedPct": [5, 0.5] } } },
-    "regen": { "name": "リジェネ", "tree": "support", "tier": 3, "type": "active", "maxLevel": 10, "requires": [{ "skill": "protect", "level": 5 }],
-      "mp": [35, 0], "cooldown": [30, -0.5], "lock": 0.3,
-      "buff": { "status": "regen", "duration": [20, 0], "mods": { "hpRegen": [5, 3] } } },
-    "purify": { "name": "浄化", "tree": "support", "tier": 3, "type": "active", "maxLevel": 10, "requires": [{ "skill": "quick_step", "level": 5 }],
-      "mp": [25, 0], "cooldown": [20, -0.8], "lock": 0.3, "cleanse": true,
-      "heal": { "power": [0.05, 0.005], "base": "maxHp" } },
-    "goddess_grace": { "name": "女神の加護", "tree": "support", "tier": 4, "type": "passive", "maxLevel": 10, "requires": [{ "skill": "regen", "level": 3 }],
-      "mods": { "healPct": [2, 2], "statusResistPct": [2, 2] } },
-
-    "hp_boost": { "name": "HPブースト", "tree": "survival", "tier": 1, "type": "passive", "maxLevel": 10,
-      "mods": { "maxHpPct": [2, 2] } },
-    "ukemi": { "name": "受け身", "tree": "survival", "tier": 1, "type": "passive", "maxLevel": 10,
-      "mods": { "dodgeCostPct": [-3, -3], "staRegenPct": [3, 3] } },
-    "iron_wall": { "name": "鉄壁", "tree": "survival", "tier": 2, "type": "passive", "maxLevel": 10, "requires": [{ "skill": "hp_boost", "level": 3 }],
-      "mods": { "defPct": [2, 2], "mdefPct": [2, 2] } },
-    "first_aid": { "name": "応急手当", "tree": "survival", "tier": 2, "type": "active", "maxLevel": 10, "requires": [{ "skill": "ukemi", "level": 3 }],
-      "mp": [20, 0], "cooldown": [30, -0.5], "lock": 0.4,
-      "heal": { "power": [0.15, 0.015], "base": "maxHp" } },
-    "guts": { "name": "根性", "tree": "survival", "tier": 3, "type": "passive", "maxLevel": 10, "requires": [{ "skill": "iron_wall", "level": 5 }],
-      "mods": { "dmgReductionPct": [1, 1] } },
-    "indomitable": { "name": "不屈の闘志", "tree": "survival", "tier": 3, "type": "active", "maxLevel": 10, "requires": [{ "skill": "first_aid", "level": 3 }],
-      "mp": [30, 0], "cooldown": [40, -0.8], "lock": 0.2,
-      "buff": { "status": "indomitable", "duration": [6, 0.2], "mods": { "dmgReductionPct": [20, 2], "statusResistPct": [50, 0] } } },
-    "life_spring": { "name": "生命の泉", "tree": "survival", "tier": 4, "type": "passive", "maxLevel": 10, "requires": [{ "skill": "guts", "level": 3 }],
-      "mods": { "hpRegen": [2, 2] } },
-
-    "power_up": { "name": "攻撃力アップ", "tree": "mastery", "tier": 1, "type": "passive", "maxLevel": 10,
-      "mods": { "atkPct": [1, 1], "matkPct": [1, 1] } },
-    "critical_art": { "name": "会心の技", "tree": "mastery", "tier": 1, "type": "passive", "maxLevel": 10,
-      "mods": { "critRate": [0.6, 0.6] } },
-    "swift_attack": { "name": "速攻", "tree": "mastery", "tier": 2, "type": "passive", "maxLevel": 10, "requires": [{ "skill": "power_up", "level": 3 }],
-      "mods": { "aspdPct": [1.5, 1.5] } },
-    "focus": { "name": "集中", "tree": "mastery", "tier": 2, "type": "active", "maxLevel": 10, "requires": [{ "skill": "critical_art", "level": 3 }],
-      "mp": [30, 0], "cooldown": [45, -1], "lock": 0.2,
-      "buff": { "status": "focus", "duration": [15, 0.5], "mods": { "critRate": [10, 1], "critDamage": [10, 1] } } },
-    "hunter_art": { "name": "狩人の心得", "tree": "mastery", "tier": 3, "type": "passive", "maxLevel": 10, "requires": [{ "skill": "swift_attack", "level": 5 }],
-      "mods": { "bossDmgPct": [1.5, 1.5] } },
-    "onslaught": { "name": "怒涛", "tree": "mastery", "tier": 3, "type": "passive", "maxLevel": 10, "requires": [{ "skill": "focus", "level": 3 }],
-      "mods": { "normalDmgPct": [2, 2] } },
-    "technique": { "name": "技の冴え", "tree": "mastery", "tier": 4, "type": "passive", "maxLevel": 10, "requires": [{ "skill": "hunter_art", "level": 3 }],
-      "mods": { "skillDmgPct": [1.5, 1.5], "cooldownPct": [-1, -1] } }
+  "twoHandSword": {
+   "name": "両手剣",
+   "weapon": "twoHandSword",
+   "kind": "weapon",
+   "order": 2,
+   "icon": "greatsword"
+  },
+  "dualSwords": {
+   "name": "双剣",
+   "weapon": "dualSwords",
+   "kind": "weapon",
+   "order": 3,
+   "icon": "dual"
+  },
+  "spear": {
+   "name": "槍",
+   "weapon": "spear",
+   "kind": "weapon",
+   "order": 4,
+   "icon": "spear"
+  },
+  "bow": {
+   "name": "弓",
+   "weapon": "bow",
+   "kind": "weapon",
+   "order": 5,
+   "icon": "bow"
+  },
+  "staff": {
+   "name": "杖",
+   "weapon": "staff",
+   "kind": "weapon",
+   "order": 6,
+   "icon": "staff"
+  },
+  "knuckles": {
+   "name": "手甲",
+   "weapon": "knuckles",
+   "kind": "weapon",
+   "order": 7,
+   "icon": "fist"
+  },
+  "gun": {
+   "name": "銃",
+   "weapon": "gun",
+   "kind": "weapon",
+   "order": 8,
+   "icon": "gun"
+  },
+  "scythe": {
+   "name": "鎌",
+   "weapon": "scythe",
+   "kind": "weapon",
+   "order": 9,
+   "icon": "scythe"
+  },
+  "instrument": {
+   "name": "楽器",
+   "weapon": "instrument",
+   "kind": "weapon",
+   "order": 10,
+   "icon": "lute"
+  },
+  "magic": {
+   "name": "魔法",
+   "kind": "general",
+   "order": 11,
+   "icon": "magic"
+  },
+  "support": {
+   "name": "支援",
+   "kind": "general",
+   "order": 12,
+   "icon": "support"
+  },
+  "survival": {
+   "name": "生存",
+   "kind": "general",
+   "order": 13,
+   "icon": "survival"
+  },
+  "mastery": {
+   "name": "武術",
+   "kind": "general",
+   "order": 14,
+   "icon": "mastery"
   }
+ },
+ "skills": {
+  "slash": {
+   "name": "スラッシュ",
+   "tree": "oneHandSword",
+   "tier": 1,
+   "type": "active",
+   "maxLevel": 10,
+   "weapon": "oneHandSword",
+   "mp": [
+    30,
+    0
+   ],
+   "cooldown": [
+    2.5,
+    -0.05
+   ],
+   "lock": 0.25,
+   "attack": {
+    "delivery": "strike",
+    "anchor": "self",
+    "shape": {
+     "type": "arc",
+     "range": 2.4,
+     "arc": 160
+    },
+    "power": [
+     2.2,
+     0.15
+    ],
+    "element": "weapon",
+    "range": 2.4,
+    "breakPower": 3
+   }
+  },
+  "sword_mastery": {
+   "name": "剣術の心得",
+   "tree": "oneHandSword",
+   "tier": 1,
+   "type": "passive",
+   "maxLevel": 10,
+   "weapon": "oneHandSword",
+   "mods": {
+    "atkPct": [
+     1,
+     1
+    ],
+    "aspdPct": [
+     0.5,
+     0.5
+    ]
+   }
+  },
+  "renga": {
+   "name": "連牙",
+   "tree": "oneHandSword",
+   "tier": 2,
+   "type": "active",
+   "maxLevel": 10,
+   "weapon": "oneHandSword",
+   "requires": [
+    {
+     "skill": "slash",
+     "level": 3
+    }
+   ],
+   "mp": [
+    40,
+    0
+   ],
+   "cooldown": [
+    5,
+    -0.1
+   ],
+   "lock": 0.55,
+   "attack": {
+    "delivery": "strike",
+    "anchor": "self",
+    "follow": true,
+    "shape": {
+     "type": "arc",
+     "range": 2.0,
+     "arc": 120
+    },
+    "power": [
+     0.85,
+     0.06
+    ],
+    "hits": 4,
+    "interval": 0.12,
+    "element": "weapon",
+    "range": 2.0,
+    "breakPower": 1
+   }
+  },
+  "shield_bash": {
+   "name": "シールドバッシュ",
+   "tree": "oneHandSword",
+   "tier": 2,
+   "type": "active",
+   "maxLevel": 10,
+   "weapon": "oneHandSword",
+   "requires": [
+    {
+     "skill": "sword_mastery",
+     "level": 3
+    }
+   ],
+   "mp": [
+    25,
+    0
+   ],
+   "cooldown": [
+    6,
+    -0.1
+   ],
+   "lock": 0.3,
+   "attack": {
+    "delivery": "strike",
+    "anchor": "self",
+    "shape": {
+     "type": "arc",
+     "range": 1.6,
+     "arc": 90
+    },
+    "power": [
+     1.2,
+     0.1
+    ],
+    "range": 1.6,
+    "breakPower": 6,
+    "status": [
+     {
+      "id": "stun",
+      "chance": [
+       30,
+       3
+      ],
+      "duration": 1.2
+     }
+    ]
+   }
+  },
+  "senpu": {
+   "name": "旋風斬",
+   "tree": "oneHandSword",
+   "tier": 3,
+   "type": "active",
+   "maxLevel": 10,
+   "weapon": "oneHandSword",
+   "requires": [
+    {
+     "skill": "renga",
+     "level": 5
+    }
+   ],
+   "mp": [
+    50,
+    0
+   ],
+   "cooldown": [
+    8,
+    -0.15
+   ],
+   "lock": 0.6,
+   "attack": {
+    "delivery": "strike",
+    "anchor": "self",
+    "follow": true,
+    "shape": {
+     "type": "circle",
+     "radius": 2.6
+    },
+    "power": [
+     1.0,
+     0.08
+    ],
+    "hits": 3,
+    "interval": 0.2,
+    "element": "wind",
+    "range": 2.6,
+    "breakPower": 2
+   }
+  },
+  "guard_stance": {
+   "name": "守護の構え",
+   "tree": "oneHandSword",
+   "tier": 3,
+   "type": "passive",
+   "maxLevel": 10,
+   "weapon": "oneHandSword",
+   "requires": [
+    {
+     "skill": "shield_bash",
+     "level": 3
+    }
+   ],
+   "mods": {
+    "defPct": [
+     2,
+     2
+    ],
+    "blockRate": [
+     1,
+     1
+    ]
+   }
+  },
+  "brave_slash": {
+   "name": "ブレイブスラッシュ",
+   "tree": "oneHandSword",
+   "tier": 4,
+   "type": "active",
+   "maxLevel": 10,
+   "weapon": "oneHandSword",
+   "requires": [
+    {
+     "skill": "senpu",
+     "level": 5
+    }
+   ],
+   "mp": [
+    60,
+    0
+   ],
+   "cooldown": [
+    10,
+    -0.2
+   ],
+   "lock": 0.4,
+   "attack": {
+    "delivery": "projectile",
+    "power": [
+     3.2,
+     0.2
+    ],
+    "element": "weapon",
+    "range": 8,
+    "breakPower": 5,
+    "projectile": {
+     "count": 1,
+     "spread": 0,
+     "speed": 14,
+     "range": 8,
+     "radius": 0.6,
+     "pierce": 99,
+     "sprite": "wave"
+    }
+   }
+  },
+  "holy_blade": {
+   "name": "聖剣解放",
+   "tree": "oneHandSword",
+   "tier": 5,
+   "type": "active",
+   "maxLevel": 10,
+   "weapon": "oneHandSword",
+   "requires": [
+    {
+     "skill": "brave_slash",
+     "level": 5
+    }
+   ],
+   "mp": [
+    80,
+    0
+   ],
+   "cooldown": [
+    30,
+    -0.5
+   ],
+   "lock": 0.5,
+   "buff": {
+    "status": "holy_blade",
+    "duration": [
+     12,
+     0.5
+    ],
+    "mods": {
+     "atkPct": [
+      10,
+      1
+     ],
+     "aspdPct": [
+      10,
+      0.5
+     ]
+    }
+   },
+   "attack": {
+    "delivery": "strike",
+    "anchor": "self",
+    "shape": {
+     "type": "circle",
+     "radius": 3.0
+    },
+    "delay": 0.2,
+    "power": [
+     2.5,
+     0.2
+    ],
+    "element": "light",
+    "range": 3.0,
+    "breakPower": 4
+   }
+  },
+  "power_shot": {
+   "name": "パワーショット",
+   "tree": "bow",
+   "tier": 1,
+   "type": "active",
+   "maxLevel": 10,
+   "weapon": "bow",
+   "mp": [
+    30,
+    0
+   ],
+   "cooldown": [
+    3,
+    -0.05
+   ],
+   "lock": 0.3,
+   "attack": {
+    "delivery": "projectile",
+    "power": [
+     2.76,
+     0.184
+    ],
+    "element": "weapon",
+    "range": 12,
+    "breakPower": 3,
+    "projectile": {
+     "count": 1,
+     "spread": 0,
+     "speed": 20,
+     "range": 12,
+     "radius": 0.35,
+     "pierce": 5,
+     "sprite": "arrow_big"
+    }
+   }
+  },
+  "bow_mastery": {
+   "name": "弓術の心得",
+   "tree": "bow",
+   "tier": 1,
+   "type": "passive",
+   "maxLevel": 10,
+   "weapon": "bow",
+   "mods": {
+    "atkPct": [
+     1,
+     1
+    ],
+    "rangePct": [
+     2,
+     2
+    ]
+   }
+  },
+  "triple_arrow": {
+   "name": "トリプルアロー",
+   "tree": "bow",
+   "tier": 2,
+   "type": "active",
+   "maxLevel": 10,
+   "weapon": "bow",
+   "requires": [
+    {
+     "skill": "power_shot",
+     "level": 3
+    }
+   ],
+   "mp": [
+    35,
+    0
+   ],
+   "cooldown": [
+    4,
+    -0.08
+   ],
+   "lock": 0.25,
+   "attack": {
+    "delivery": "projectile",
+    "power": [
+     1.322,
+     0.092
+    ],
+    "element": "weapon",
+    "range": 9,
+    "breakPower": 1,
+    "projectile": {
+     "count": 3,
+     "spread": 24,
+     "speed": 16,
+     "range": 9,
+     "radius": 0.25,
+     "pierce": 1,
+     "sprite": "arrow"
+    }
+   }
+  },
+  "back_shot": {
+   "name": "バックショット",
+   "tree": "bow",
+   "tier": 2,
+   "type": "active",
+   "maxLevel": 10,
+   "weapon": "bow",
+   "requires": [
+    {
+     "skill": "bow_mastery",
+     "level": 3
+    }
+   ],
+   "mp": [
+    20,
+    0
+   ],
+   "cooldown": [
+    6,
+    -0.15
+   ],
+   "lock": 0.2,
+   "dash": {
+    "distance": -3.5,
+    "speed": 14,
+    "iframes": 0.3
+   },
+   "attack": {
+    "delivery": "projectile",
+    "power": [
+     1.84,
+     0.115
+    ],
+    "element": "weapon",
+    "range": 10,
+    "breakPower": 1,
+    "projectile": {
+     "count": 1,
+     "spread": 0,
+     "speed": 18,
+     "range": 10,
+     "radius": 0.3,
+     "pierce": 1,
+     "sprite": "arrow"
+    }
+   }
+  },
+  "arrow_rain": {
+   "name": "アローレイン",
+   "tree": "bow",
+   "tier": 3,
+   "type": "active",
+   "maxLevel": 10,
+   "weapon": "bow",
+   "requires": [
+    {
+     "skill": "triple_arrow",
+     "level": 5
+    }
+   ],
+   "mp": [
+    50,
+    0
+   ],
+   "cooldown": [
+    9,
+    -0.2
+   ],
+   "lock": 0.35,
+   "attack": {
+    "delivery": "strike",
+    "anchor": "aim",
+    "aimDistance": 6,
+    "shape": {
+     "type": "circle",
+     "radius": 2.2
+    },
+    "delay": 0.35,
+    "power": [
+     0.69,
+     0.046
+    ],
+    "hits": 6,
+    "interval": 0.18,
+    "element": "weapon",
+    "range": 9,
+    "breakPower": 0.5
+   }
+  },
+  "hunter_eye": {
+   "name": "狩人の眼",
+   "tree": "bow",
+   "tier": 3,
+   "type": "passive",
+   "maxLevel": 10,
+   "weapon": "bow",
+   "requires": [
+    {
+     "skill": "bow_mastery",
+     "level": 5
+    }
+   ],
+   "mods": {
+    "critRate": [
+     0.8,
+     0.8
+    ],
+    "critDamage": [
+     1.5,
+     1.5
+    ]
+   }
+  },
+  "snipe": {
+   "name": "スナイプ",
+   "tree": "bow",
+   "tier": 4,
+   "type": "active",
+   "maxLevel": 10,
+   "weapon": "bow",
+   "requires": [
+    {
+     "skill": "arrow_rain",
+     "level": 3
+    }
+   ],
+   "mp": [
+    60,
+    0
+   ],
+   "cooldown": [
+    12,
+    -0.3
+   ],
+   "lock": 0.6,
+   "attack": {
+    "delivery": "projectile",
+    "power": [
+     5.175,
+     0.345
+    ],
+    "element": "weapon",
+    "range": 16,
+    "breakPower": 8,
+    "projectile": {
+     "count": 1,
+     "spread": 0,
+     "speed": 30,
+     "range": 16,
+     "radius": 0.3,
+     "pierce": 1,
+     "sprite": "arrow_big"
+    }
+   }
+  },
+  "storm_arrow": {
+   "name": "ストームアロー",
+   "tree": "bow",
+   "tier": 5,
+   "type": "active",
+   "maxLevel": 10,
+   "weapon": "bow",
+   "requires": [
+    {
+     "skill": "snipe",
+     "level": 5
+    }
+   ],
+   "mp": [
+    80,
+    0
+   ],
+   "cooldown": [
+    18,
+    -0.4
+   ],
+   "lock": 0.5,
+   "attack": {
+    "delivery": "projectile",
+    "power": [
+     1.035,
+     0.069
+    ],
+    "element": "wind",
+    "range": 10,
+    "breakPower": 1,
+    "projectile": {
+     "count": 8,
+     "spread": 90,
+     "speed": 13,
+     "range": 10,
+     "radius": 0.3,
+     "pierce": 1,
+     "sprite": "arrow",
+     "homing": 0.25
+    }
+   }
+  },
+  "fireball": {
+   "name": "ファイアボール",
+   "tree": "staff",
+   "tier": 1,
+   "type": "active",
+   "maxLevel": 10,
+   "weapon": "staff",
+   "mp": [
+    30,
+    0
+   ],
+   "cooldown": [
+    3,
+    -0.05
+   ],
+   "lock": 0.3,
+   "attack": {
+    "delivery": "projectile",
+    "power": [
+     2.53,
+     0.1771
+    ],
+    "element": "fire",
+    "range": 9,
+    "breakPower": 2,
+    "status": [
+     {
+      "id": "burn",
+      "chance": [
+       20,
+       2
+      ],
+      "power": 0.12
+     }
+    ],
+    "projectile": {
+     "count": 1,
+     "spread": 0,
+     "speed": 10,
+     "range": 9,
+     "radius": 0.4,
+     "pierce": 1,
+     "explodeRadius": 1.7,
+     "sprite": "fireball"
+    }
+   }
+  },
+  "magic_mastery": {
+   "name": "魔力の心得",
+   "tree": "staff",
+   "tier": 1,
+   "type": "passive",
+   "maxLevel": 10,
+   "weapon": "staff",
+   "mods": {
+    "matkPct": [
+     1,
+     1
+    ],
+    "cspdPct": [
+     1,
+     1
+    ]
+   }
+  },
+  "aqua_lance": {
+   "name": "アクアランス",
+   "tree": "staff",
+   "tier": 2,
+   "type": "active",
+   "maxLevel": 10,
+   "weapon": "staff",
+   "requires": [
+    {
+     "skill": "fireball",
+     "level": 3
+    }
+   ],
+   "mp": [
+    35,
+    0
+   ],
+   "cooldown": [
+    4,
+    -0.08
+   ],
+   "lock": 0.3,
+   "attack": {
+    "delivery": "projectile",
+    "power": [
+     2.404,
+     0.1518
+    ],
+    "element": "water",
+    "range": 10,
+    "breakPower": 2,
+    "status": [
+     {
+      "id": "freeze",
+      "chance": [
+       8,
+       1
+      ],
+      "duration": 1.2
+     }
+    ],
+    "projectile": {
+     "count": 1,
+     "spread": 0,
+     "speed": 16,
+     "range": 10,
+     "radius": 0.4,
+     "pierce": 99,
+     "sprite": "aqua"
+    }
+   }
+  },
+  "magic_barrier": {
+   "name": "マジックバリア",
+   "tree": "staff",
+   "tier": 2,
+   "type": "active",
+   "maxLevel": 10,
+   "weapon": "staff",
+   "requires": [
+    {
+     "skill": "magic_mastery",
+     "level": 3
+    }
+   ],
+   "mp": [
+    30,
+    0
+   ],
+   "cooldown": [
+    25,
+    -0.5
+   ],
+   "lock": 0.2,
+   "buff": {
+    "status": "barrier",
+    "duration": [
+     8,
+     0.3
+    ],
+    "mods": {
+     "dmgReductionPct": [
+      10,
+      1.5
+     ]
+    }
+   }
+  },
+  "holy_nova": {
+   "name": "ホーリーノヴァ",
+   "tree": "staff",
+   "tier": 3,
+   "type": "active",
+   "maxLevel": 10,
+   "weapon": "staff",
+   "requires": [
+    {
+     "skill": "aqua_lance",
+     "level": 5
+    }
+   ],
+   "mp": [
+    50,
+    0
+   ],
+   "cooldown": [
+    9,
+    -0.2
+   ],
+   "lock": 0.5,
+   "attack": {
+    "delivery": "strike",
+    "anchor": "self",
+    "shape": {
+     "type": "circle",
+     "radius": 3.0
+    },
+    "delay": 0.25,
+    "power": [
+     1.898,
+     0.1265
+    ],
+    "hits": 2,
+    "interval": 0.3,
+    "element": "light",
+    "range": 3.0,
+    "breakPower": 2
+   }
+  },
+  "chant_mastery": {
+   "name": "詠唱の極意",
+   "tree": "staff",
+   "tier": 3,
+   "type": "passive",
+   "maxLevel": 10,
+   "weapon": "staff",
+   "requires": [
+    {
+     "skill": "magic_barrier",
+     "level": 3
+    }
+   ],
+   "mods": {
+    "mpCostPct": [
+     -1.5,
+     -1.5
+    ],
+    "cooldownPct": [
+     -1,
+     -1
+    ]
+   }
+  },
+  "meteor": {
+   "name": "メテオ",
+   "tree": "staff",
+   "tier": 4,
+   "type": "active",
+   "maxLevel": 10,
+   "weapon": "staff",
+   "requires": [
+    {
+     "skill": "holy_nova",
+     "level": 3
+    }
+   ],
+   "mp": [
+    70,
+    0
+   ],
+   "cooldown": [
+    14,
+    -0.3
+   ],
+   "lock": 0.7,
+   "attack": {
+    "delivery": "strike",
+    "anchor": "aim",
+    "aimDistance": 5,
+    "shape": {
+     "type": "circle",
+     "radius": 2.6
+    },
+    "delay": 1.0,
+    "power": [
+     6.325,
+     0.3795
+    ],
+    "element": "fire",
+    "range": 9,
+    "breakPower": 8,
+    "status": [
+     {
+      "id": "burn",
+      "chance": [
+       40,
+       3
+      ],
+      "power": 0.15
+     }
+    ]
+   }
+  },
+  "crystal_nova": {
+   "name": "クリスタルノヴァ",
+   "tree": "staff",
+   "tier": 5,
+   "type": "active",
+   "maxLevel": 10,
+   "weapon": "staff",
+   "requires": [
+    {
+     "skill": "meteor",
+     "level": 5
+    }
+   ],
+   "mp": [
+    90,
+    0
+   ],
+   "cooldown": [
+    20,
+    -0.4
+   ],
+   "lock": 0.6,
+   "attack": {
+    "delivery": "projectile",
+    "power": [
+     1.645,
+     0.1012
+    ],
+    "element": "weapon",
+    "range": 9,
+    "breakPower": 1,
+    "projectile": {
+     "count": 12,
+     "spread": 360,
+     "speed": 11,
+     "range": 9,
+     "radius": 0.35,
+     "pierce": 3,
+     "sprite": "crystal"
+    }
+   }
+  },
+  "fire_bolt": {
+   "name": "ファイアボルト",
+   "tree": "magic",
+   "tier": 1,
+   "type": "active",
+   "maxLevel": 10,
+   "mp": [
+    20,
+    0
+   ],
+   "cooldown": [
+    3,
+    -0.05
+   ],
+   "lock": 0.3,
+   "attack": {
+    "delivery": "projectile",
+    "damageType": "magic",
+    "power": [
+     1.5,
+     0.1
+    ],
+    "element": "fire",
+    "range": 9,
+    "breakPower": 1,
+    "status": [
+     {
+      "id": "burn",
+      "chance": [
+       10,
+       1
+      ],
+      "power": 0.1
+     }
+    ],
+    "projectile": {
+     "count": 1,
+     "spread": 0,
+     "speed": 13,
+     "range": 9,
+     "radius": 0.3,
+     "pierce": 1,
+     "sprite": "fireball"
+    }
+   }
+  },
+  "ice_needle": {
+   "name": "アイスニードル",
+   "tree": "magic",
+   "tier": 1,
+   "type": "active",
+   "maxLevel": 10,
+   "mp": [
+    20,
+    0
+   ],
+   "cooldown": [
+    3,
+    -0.05
+   ],
+   "lock": 0.3,
+   "attack": {
+    "delivery": "projectile",
+    "damageType": "magic",
+    "power": [
+     1.4,
+     0.1
+    ],
+    "element": "water",
+    "range": 9,
+    "breakPower": 1,
+    "status": [
+     {
+      "id": "freeze",
+      "chance": [
+       10,
+       1
+      ],
+      "duration": 1
+     }
+    ],
+    "projectile": {
+     "count": 1,
+     "spread": 0,
+     "speed": 15,
+     "range": 9,
+     "radius": 0.3,
+     "pierce": 1,
+     "sprite": "aqua"
+    }
+   }
+  },
+  "wind_cutter": {
+   "name": "ウィンドカッター",
+   "tree": "magic",
+   "tier": 2,
+   "type": "active",
+   "maxLevel": 10,
+   "requires": [
+    {
+     "skill": "fire_bolt",
+     "level": 3
+    }
+   ],
+   "mp": [
+    30,
+    0
+   ],
+   "cooldown": [
+    5,
+    -0.1
+   ],
+   "lock": 0.3,
+   "attack": {
+    "delivery": "projectile",
+    "damageType": "magic",
+    "power": [
+     1.7,
+     0.12
+    ],
+    "element": "wind",
+    "range": 9,
+    "breakPower": 1,
+    "projectile": {
+     "count": 1,
+     "spread": 0,
+     "speed": 14,
+     "range": 9,
+     "radius": 0.55,
+     "pierce": 99,
+     "sprite": "wave"
+    }
+   }
+  },
+  "stone_edge": {
+   "name": "ストーンエッジ",
+   "tree": "magic",
+   "tier": 2,
+   "type": "active",
+   "maxLevel": 10,
+   "requires": [
+    {
+     "skill": "ice_needle",
+     "level": 3
+    }
+   ],
+   "mp": [
+    30,
+    0
+   ],
+   "cooldown": [
+    5,
+    -0.1
+   ],
+   "lock": 0.35,
+   "attack": {
+    "delivery": "strike",
+    "anchor": "aim",
+    "aimDistance": 4,
+    "damageType": "magic",
+    "shape": {
+     "type": "circle",
+     "radius": 1.4
+    },
+    "delay": 0.3,
+    "power": [
+     2.0,
+     0.14
+    ],
+    "element": "earth",
+    "range": 8,
+    "breakPower": 5
+   }
+  },
+  "holy_ray": {
+   "name": "ホーリーレイ",
+   "tree": "magic",
+   "tier": 3,
+   "type": "active",
+   "maxLevel": 10,
+   "requires": [
+    {
+     "skill": "wind_cutter",
+     "level": 5
+    }
+   ],
+   "mp": [
+    45,
+    0
+   ],
+   "cooldown": [
+    8,
+    -0.15
+   ],
+   "lock": 0.4,
+   "attack": {
+    "delivery": "strike",
+    "anchor": "self",
+    "damageType": "magic",
+    "shape": {
+     "type": "line",
+     "range": 8,
+     "width": 0.9
+    },
+    "delay": 0.15,
+    "power": [
+     2.6,
+     0.18
+    ],
+    "element": "light",
+    "range": 8,
+    "breakPower": 3
+   }
+  },
+  "shadow_bolt": {
+   "name": "シャドウボルト",
+   "tree": "magic",
+   "tier": 3,
+   "type": "active",
+   "maxLevel": 10,
+   "requires": [
+    {
+     "skill": "stone_edge",
+     "level": 5
+    }
+   ],
+   "mp": [
+    45,
+    0
+   ],
+   "cooldown": [
+    8,
+    -0.15
+   ],
+   "lock": 0.35,
+   "attack": {
+    "delivery": "projectile",
+    "damageType": "magic",
+    "power": [
+     2.4,
+     0.16
+    ],
+    "element": "dark",
+    "range": 10,
+    "breakPower": 2,
+    "status": [
+     {
+      "id": "blind",
+      "chance": [
+       25,
+       2
+      ],
+      "duration": 4
+     }
+    ],
+    "projectile": {
+     "count": 1,
+     "spread": 0,
+     "speed": 9,
+     "range": 10,
+     "radius": 0.4,
+     "pierce": 1,
+     "sprite": "shadow",
+     "homing": 0.35
+    }
+   }
+  },
+  "mana_amp": {
+   "name": "魔力増幅",
+   "tree": "magic",
+   "tier": 4,
+   "type": "passive",
+   "maxLevel": 10,
+   "requires": [
+    {
+     "skill": "holy_ray",
+     "level": 3
+    }
+   ],
+   "mods": {
+    "matkPct": [
+     1.5,
+     1.5
+    ],
+    "magDmgPct": [
+     1,
+     1
+    ]
+   }
+  },
+  "heal": {
+   "name": "ヒール",
+   "tree": "support",
+   "tier": 1,
+   "type": "active",
+   "maxLevel": 10,
+   "mp": [
+    25,
+    0
+   ],
+   "cooldown": [
+    6,
+    -0.1
+   ],
+   "lock": 0.3,
+   "heal": {
+    "power": [
+     0.12,
+     0.012
+    ],
+    "base": "maxHp"
+   }
+  },
+  "brave_aura": {
+   "name": "ブレイブオーラ",
+   "tree": "support",
+   "tier": 1,
+   "type": "active",
+   "maxLevel": 10,
+   "mp": [
+    30,
+    0
+   ],
+   "cooldown": [
+    40,
+    -1
+   ],
+   "lock": 0.3,
+   "buff": {
+    "status": "brave",
+    "duration": [
+     30,
+     1
+    ],
+    "mods": {
+     "atkPct": [
+      5,
+      0.8
+     ],
+     "matkPct": [
+      5,
+      0.8
+     ]
+    }
+   }
+  },
+  "protect": {
+   "name": "プロテクト",
+   "tree": "support",
+   "tier": 2,
+   "type": "active",
+   "maxLevel": 10,
+   "requires": [
+    {
+     "skill": "heal",
+     "level": 3
+    }
+   ],
+   "mp": [
+    30,
+    0
+   ],
+   "cooldown": [
+    40,
+    -1
+   ],
+   "lock": 0.3,
+   "buff": {
+    "status": "protect",
+    "duration": [
+     30,
+     1
+    ],
+    "mods": {
+     "defPct": [
+      8,
+      1
+     ],
+     "mdefPct": [
+      8,
+      1
+     ]
+    }
+   }
+  },
+  "quick_step": {
+   "name": "クイックステップ",
+   "tree": "support",
+   "tier": 2,
+   "type": "active",
+   "maxLevel": 10,
+   "requires": [
+    {
+     "skill": "brave_aura",
+     "level": 3
+    }
+   ],
+   "mp": [
+    30,
+    0
+   ],
+   "cooldown": [
+    40,
+    -1
+   ],
+   "lock": 0.3,
+   "buff": {
+    "status": "quick",
+    "duration": [
+     20,
+     1
+    ],
+    "mods": {
+     "aspdPct": [
+      6,
+      0.6
+     ],
+     "moveSpeedPct": [
+      5,
+      0.5
+     ]
+    }
+   }
+  },
+  "regen": {
+   "name": "リジェネ",
+   "tree": "support",
+   "tier": 3,
+   "type": "active",
+   "maxLevel": 10,
+   "requires": [
+    {
+     "skill": "protect",
+     "level": 5
+    }
+   ],
+   "mp": [
+    35,
+    0
+   ],
+   "cooldown": [
+    30,
+    -0.5
+   ],
+   "lock": 0.3,
+   "buff": {
+    "status": "regen",
+    "duration": [
+     20,
+     0
+    ],
+    "mods": {
+     "hpRegen": [
+      5,
+      3
+     ]
+    }
+   }
+  },
+  "purify": {
+   "name": "浄化",
+   "tree": "support",
+   "tier": 3,
+   "type": "active",
+   "maxLevel": 10,
+   "requires": [
+    {
+     "skill": "quick_step",
+     "level": 5
+    }
+   ],
+   "mp": [
+    25,
+    0
+   ],
+   "cooldown": [
+    20,
+    -0.8
+   ],
+   "lock": 0.3,
+   "cleanse": true,
+   "heal": {
+    "power": [
+     0.05,
+     0.005
+    ],
+    "base": "maxHp"
+   }
+  },
+  "goddess_grace": {
+   "name": "女神の加護",
+   "tree": "support",
+   "tier": 4,
+   "type": "passive",
+   "maxLevel": 10,
+   "requires": [
+    {
+     "skill": "regen",
+     "level": 3
+    }
+   ],
+   "mods": {
+    "healPct": [
+     2,
+     2
+    ],
+    "statusResistPct": [
+     2,
+     2
+    ]
+   }
+  },
+  "hp_boost": {
+   "name": "HPブースト",
+   "tree": "survival",
+   "tier": 1,
+   "type": "passive",
+   "maxLevel": 10,
+   "mods": {
+    "maxHpPct": [
+     2,
+     2
+    ]
+   }
+  },
+  "ukemi": {
+   "name": "受け身",
+   "tree": "survival",
+   "tier": 1,
+   "type": "passive",
+   "maxLevel": 10,
+   "mods": {
+    "dodgeCostPct": [
+     -3,
+     -3
+    ],
+    "staRegenPct": [
+     3,
+     3
+    ]
+   }
+  },
+  "iron_wall": {
+   "name": "鉄壁",
+   "tree": "survival",
+   "tier": 2,
+   "type": "passive",
+   "maxLevel": 10,
+   "requires": [
+    {
+     "skill": "hp_boost",
+     "level": 3
+    }
+   ],
+   "mods": {
+    "defPct": [
+     2,
+     2
+    ],
+    "mdefPct": [
+     2,
+     2
+    ]
+   }
+  },
+  "first_aid": {
+   "name": "応急手当",
+   "tree": "survival",
+   "tier": 2,
+   "type": "active",
+   "maxLevel": 10,
+   "requires": [
+    {
+     "skill": "ukemi",
+     "level": 3
+    }
+   ],
+   "mp": [
+    20,
+    0
+   ],
+   "cooldown": [
+    30,
+    -0.5
+   ],
+   "lock": 0.4,
+   "heal": {
+    "power": [
+     0.15,
+     0.015
+    ],
+    "base": "maxHp"
+   }
+  },
+  "guts": {
+   "name": "根性",
+   "tree": "survival",
+   "tier": 3,
+   "type": "passive",
+   "maxLevel": 10,
+   "requires": [
+    {
+     "skill": "iron_wall",
+     "level": 5
+    }
+   ],
+   "mods": {
+    "dmgReductionPct": [
+     1,
+     1
+    ]
+   }
+  },
+  "indomitable": {
+   "name": "不屈の闘志",
+   "tree": "survival",
+   "tier": 3,
+   "type": "active",
+   "maxLevel": 10,
+   "requires": [
+    {
+     "skill": "first_aid",
+     "level": 3
+    }
+   ],
+   "mp": [
+    30,
+    0
+   ],
+   "cooldown": [
+    40,
+    -0.8
+   ],
+   "lock": 0.2,
+   "buff": {
+    "status": "indomitable",
+    "duration": [
+     6,
+     0.2
+    ],
+    "mods": {
+     "dmgReductionPct": [
+      20,
+      2
+     ],
+     "statusResistPct": [
+      50,
+      0
+     ]
+    }
+   }
+  },
+  "life_spring": {
+   "name": "生命の泉",
+   "tree": "survival",
+   "tier": 4,
+   "type": "passive",
+   "maxLevel": 10,
+   "requires": [
+    {
+     "skill": "guts",
+     "level": 3
+    }
+   ],
+   "mods": {
+    "hpRegen": [
+     2,
+     2
+    ]
+   }
+  },
+  "power_up": {
+   "name": "攻撃力アップ",
+   "tree": "mastery",
+   "tier": 1,
+   "type": "passive",
+   "maxLevel": 10,
+   "mods": {
+    "atkPct": [
+     1,
+     1
+    ],
+    "matkPct": [
+     1,
+     1
+    ]
+   }
+  },
+  "critical_art": {
+   "name": "会心の技",
+   "tree": "mastery",
+   "tier": 1,
+   "type": "passive",
+   "maxLevel": 10,
+   "mods": {
+    "critRate": [
+     0.6,
+     0.6
+    ]
+   }
+  },
+  "swift_attack": {
+   "name": "速攻",
+   "tree": "mastery",
+   "tier": 2,
+   "type": "passive",
+   "maxLevel": 10,
+   "requires": [
+    {
+     "skill": "power_up",
+     "level": 3
+    }
+   ],
+   "mods": {
+    "aspdPct": [
+     1.5,
+     1.5
+    ]
+   }
+  },
+  "focus": {
+   "name": "集中",
+   "tree": "mastery",
+   "tier": 2,
+   "type": "active",
+   "maxLevel": 10,
+   "requires": [
+    {
+     "skill": "critical_art",
+     "level": 3
+    }
+   ],
+   "mp": [
+    30,
+    0
+   ],
+   "cooldown": [
+    45,
+    -1
+   ],
+   "lock": 0.2,
+   "buff": {
+    "status": "focus",
+    "duration": [
+     15,
+     0.5
+    ],
+    "mods": {
+     "critRate": [
+      10,
+      1
+     ],
+     "critDamage": [
+      10,
+      1
+     ]
+    }
+   }
+  },
+  "hunter_art": {
+   "name": "狩人の心得",
+   "tree": "mastery",
+   "tier": 3,
+   "type": "passive",
+   "maxLevel": 10,
+   "requires": [
+    {
+     "skill": "swift_attack",
+     "level": 5
+    }
+   ],
+   "mods": {
+    "bossDmgPct": [
+     1.5,
+     1.5
+    ]
+   }
+  },
+  "onslaught": {
+   "name": "怒涛",
+   "tree": "mastery",
+   "tier": 3,
+   "type": "passive",
+   "maxLevel": 10,
+   "requires": [
+    {
+     "skill": "focus",
+     "level": 3
+    }
+   ],
+   "mods": {
+    "normalDmgPct": [
+     2,
+     2
+    ]
+   }
+  },
+  "technique": {
+   "name": "技の冴え",
+   "tree": "mastery",
+   "tier": 4,
+   "type": "passive",
+   "maxLevel": 10,
+   "requires": [
+    {
+     "skill": "hunter_art",
+     "level": 3
+    }
+   ],
+   "mods": {
+    "skillDmgPct": [
+     1.5,
+     1.5
+    ],
+    "cooldownPct": [
+     -1,
+     -1
+    ]
+   }
+  },
+  "sword_secret": {
+   "name": "剣の極意",
+   "tree": "oneHandSword",
+   "tier": 4,
+   "type": "passive",
+   "maxLevel": 10,
+   "weapon": "oneHandSword",
+   "requires": [
+    {
+     "skill": "guard_stance",
+     "level": 3
+    }
+   ],
+   "mods": {
+    "skillDmgPct": [
+     1.5,
+     1.5
+    ],
+    "critRate": [
+     0.3,
+     0.3
+    ]
+   }
+  },
+  "rapid_fire": {
+   "name": "速射",
+   "tree": "bow",
+   "tier": 2,
+   "type": "passive",
+   "maxLevel": 10,
+   "weapon": "bow",
+   "requires": [
+    {
+     "skill": "bow_mastery",
+     "level": 3
+    }
+   ],
+   "mods": {
+    "aspdPct": [
+     1.5,
+     1.5
+    ]
+   }
+  },
+  "elemental_lore": {
+   "name": "元素の理",
+   "tree": "staff",
+   "tier": 4,
+   "type": "passive",
+   "maxLevel": 10,
+   "weapon": "staff",
+   "requires": [
+    {
+     "skill": "chant_mastery",
+     "level": 3
+    }
+   ],
+   "mods": {
+    "fireDmgPct": [
+     1.5,
+     1.5
+    ],
+    "waterDmgPct": [
+     1.5,
+     1.5
+    ],
+    "lightDmgPct": [
+     1.5,
+     1.5
+    ]
+   }
+  },
+  "heavy_cleave": {
+   "name": "剛断",
+   "tree": "twoHandSword",
+   "tier": 1,
+   "type": "active",
+   "maxLevel": 10,
+   "weapon": "twoHandSword",
+   "chargeable": true,
+   "mp": [
+    30,
+    0
+   ],
+   "cooldown": [
+    3,
+    -0.05
+   ],
+   "lock": 0.45,
+   "attack": {
+    "delivery": "strike",
+    "anchor": "self",
+    "shape": {
+     "type": "arc",
+     "range": 2.5,
+     "arc": 140
+    },
+    "power": [
+     2.8,
+     0.18
+    ],
+    "range": 2.5,
+    "breakPower": 8
+   }
+  },
+  "greatsword_mastery": {
+   "name": "大剣の心得",
+   "tree": "twoHandSword",
+   "tier": 1,
+   "type": "passive",
+   "maxLevel": 10,
+   "weapon": "twoHandSword",
+   "mods": {
+    "atkPct": [
+     1,
+     1
+    ],
+    "breakPct": [
+     3,
+     3
+    ]
+   }
+  },
+  "whirl_cleave": {
+   "name": "旋回斬",
+   "tree": "twoHandSword",
+   "tier": 2,
+   "type": "active",
+   "maxLevel": 10,
+   "weapon": "twoHandSword",
+   "requires": [
+    {
+     "skill": "heavy_cleave",
+     "level": 3
+    }
+   ],
+   "mp": [
+    35,
+    0
+   ],
+   "cooldown": [
+    5,
+    -0.1
+   ],
+   "lock": 0.5,
+   "attack": {
+    "delivery": "strike",
+    "anchor": "self",
+    "follow": true,
+    "shape": {
+     "type": "circle",
+     "radius": 2.8
+    },
+    "power": [
+     1.35,
+     0.09
+    ],
+    "hits": 2,
+    "interval": 0.25,
+    "range": 2.8,
+    "breakPower": 3
+   }
+  },
+  "charge_mastery": {
+   "name": "溜め上手",
+   "tree": "twoHandSword",
+   "tier": 2,
+   "type": "passive",
+   "maxLevel": 10,
+   "weapon": "twoHandSword",
+   "requires": [
+    {
+     "skill": "greatsword_mastery",
+     "level": 3
+    }
+   ],
+   "mods": {
+    "chargePct": [
+     5,
+     5
+    ],
+    "critRate": [
+     0.3,
+     0.3
+    ]
+   }
+  },
+  "helm_splitter": {
+   "name": "兜割り",
+   "tree": "twoHandSword",
+   "tier": 3,
+   "type": "active",
+   "maxLevel": 10,
+   "weapon": "twoHandSword",
+   "chargeable": true,
+   "requires": [
+    {
+     "skill": "whirl_cleave",
+     "level": 5
+    }
+   ],
+   "mp": [
+    50,
+    0
+   ],
+   "cooldown": [
+    8,
+    -0.15
+   ],
+   "lock": 0.7,
+   "attack": {
+    "delivery": "strike",
+    "anchor": "self",
+    "shape": {
+     "type": "line",
+     "range": 3.2,
+     "width": 1.5
+    },
+    "delay": 0.15,
+    "power": [
+     4.2,
+     0.28
+    ],
+    "range": 3.2,
+    "breakPower": 15,
+    "status": [
+     {
+      "id": "stun",
+      "chance": [
+       35,
+       2
+      ],
+      "duration": 1.5
+     }
+    ]
+   }
+  },
+  "immovable": {
+   "name": "不動の構え",
+   "tree": "twoHandSword",
+   "tier": 3,
+   "type": "active",
+   "maxLevel": 10,
+   "weapon": "twoHandSword",
+   "requires": [
+    {
+     "skill": "charge_mastery",
+     "level": 3
+    }
+   ],
+   "mp": [
+    30,
+    0
+   ],
+   "cooldown": [
+    30,
+    -0.6
+   ],
+   "lock": 0.2,
+   "buff": {
+    "status": "immovable",
+    "duration": [
+     8,
+     0.3
+    ],
+    "mods": {
+     "dmgReductionPct": [
+      15,
+      1
+     ],
+     "statusResistPct": [
+      50,
+      2
+     ],
+     "atkPct": [
+      5,
+      0.5
+     ]
+    }
+   }
+  },
+  "earth_rend": {
+   "name": "地裂斬",
+   "tree": "twoHandSword",
+   "tier": 4,
+   "type": "active",
+   "maxLevel": 10,
+   "weapon": "twoHandSword",
+   "requires": [
+    {
+     "skill": "helm_splitter",
+     "level": 3
+    }
+   ],
+   "mp": [
+    55,
+    0
+   ],
+   "cooldown": [
+    10,
+    -0.2
+   ],
+   "lock": 0.5,
+   "attack": {
+    "delivery": "strike",
+    "anchor": "self",
+    "shape": {
+     "type": "line",
+     "range": 7,
+     "width": 1.7
+    },
+    "delay": 0.2,
+    "power": [
+     3.4,
+     0.22
+    ],
+    "element": "earth",
+    "range": 7,
+    "breakPower": 6
+   }
+  },
+  "brute_force": {
+   "name": "剛力",
+   "tree": "twoHandSword",
+   "tier": 4,
+   "type": "passive",
+   "maxLevel": 10,
+   "weapon": "twoHandSword",
+   "requires": [
+    {
+     "skill": "immovable",
+     "level": 3
+    }
+   ],
+   "mods": {
+    "critDamage": [
+     2,
+     2
+    ],
+    "atkPct": [
+     1,
+     1
+    ]
+   }
+  },
+  "cataclysm": {
+   "name": "天地崩壊",
+   "tree": "twoHandSword",
+   "tier": 5,
+   "type": "active",
+   "maxLevel": 10,
+   "weapon": "twoHandSword",
+   "chargeable": true,
+   "requires": [
+    {
+     "skill": "earth_rend",
+     "level": 5
+    }
+   ],
+   "mp": [
+    80,
+    0
+   ],
+   "cooldown": [
+    20,
+    -0.4
+   ],
+   "lock": 0.9,
+   "attack": {
+    "delivery": "strike",
+    "anchor": "self",
+    "shape": {
+     "type": "circle",
+     "radius": 4.0
+    },
+    "delay": 0.5,
+    "power": [
+     5.6,
+     0.36
+    ],
+    "element": "earth",
+    "range": 4.0,
+    "breakPower": 20
+   }
+  },
+  "wild_dance": {
+   "name": "乱舞",
+   "tree": "dualSwords",
+   "tier": 1,
+   "type": "active",
+   "maxLevel": 10,
+   "weapon": "dualSwords",
+   "mp": [
+    30,
+    0
+   ],
+   "cooldown": [
+    3,
+    -0.05
+   ],
+   "lock": 0.5,
+   "attack": {
+    "delivery": "strike",
+    "anchor": "self",
+    "follow": true,
+    "shape": {
+     "type": "arc",
+     "range": 2.0,
+     "arc": 140
+    },
+    "power": [
+     0.422,
+     0.0282
+    ],
+    "hits": 6,
+    "interval": 0.08,
+    "range": 2.0,
+    "breakPower": 0.5,
+    "status": [
+     {
+      "id": "bleed",
+      "chance": [
+       10,
+       1
+      ],
+      "duration": 4,
+      "power": 0.06
+     }
+    ]
+   }
+  },
+  "dual_mastery": {
+   "name": "双剣の心得",
+   "tree": "dualSwords",
+   "tier": 1,
+   "type": "passive",
+   "maxLevel": 10,
+   "weapon": "dualSwords",
+   "mods": {
+    "aspdPct": [
+     1.5,
+     1.5
+    ],
+    "critRate": [
+     0.3,
+     0.3
+    ]
+   }
+  },
+  "venom_edge": {
+   "name": "ベノムエッジ",
+   "tree": "dualSwords",
+   "tier": 2,
+   "type": "active",
+   "maxLevel": 10,
+   "weapon": "dualSwords",
+   "requires": [
+    {
+     "skill": "wild_dance",
+     "level": 3
+    }
+   ],
+   "mp": [
+    30,
+    0
+   ],
+   "cooldown": [
+    5,
+    -0.1
+   ],
+   "lock": 0.3,
+   "attack": {
+    "delivery": "strike",
+    "anchor": "self",
+    "shape": {
+     "type": "arc",
+     "range": 1.8,
+     "arc": 120
+    },
+    "power": [
+     0.924,
+     0.0616
+    ],
+    "hits": 2,
+    "interval": 0.1,
+    "range": 1.8,
+    "breakPower": 1,
+    "status": [
+     {
+      "id": "poison",
+      "chance": [
+       60,
+       4
+      ],
+      "duration": 6,
+      "power": 0.09
+     }
+    ]
+   }
+  },
+  "light_feet": {
+   "name": "疾風の足さばき",
+   "tree": "dualSwords",
+   "tier": 2,
+   "type": "passive",
+   "maxLevel": 10,
+   "weapon": "dualSwords",
+   "requires": [
+    {
+     "skill": "dual_mastery",
+     "level": 3
+    }
+   ],
+   "mods": {
+    "dodgeCostPct": [
+     -3,
+     -3
+    ],
+    "evasion": [
+     0.5,
+     0.5
+    ]
+   }
+  },
+  "cross_step": {
+   "name": "クロスステップ",
+   "tree": "dualSwords",
+   "tier": 3,
+   "type": "active",
+   "maxLevel": 10,
+   "weapon": "dualSwords",
+   "requires": [
+    {
+     "skill": "venom_edge",
+     "level": 3
+    }
+   ],
+   "mp": [
+    35,
+    0
+   ],
+   "cooldown": [
+    6,
+    -0.12
+   ],
+   "lock": 0.2,
+   "dash": {
+    "distance": 4,
+    "speed": 18,
+    "iframes": 0.3
+   },
+   "attack": {
+    "delivery": "strike",
+    "anchor": "self",
+    "shape": {
+     "type": "line",
+     "range": 4.4,
+     "width": 1.3
+    },
+    "power": [
+     1.1,
+     0.0704
+    ],
+    "hits": 2,
+    "interval": 0.08,
+    "range": 4.4,
+    "breakPower": 1.5
+   }
+  },
+  "shadow_stitch": {
+   "name": "影縫い",
+   "tree": "dualSwords",
+   "tier": 3,
+   "type": "active",
+   "maxLevel": 10,
+   "weapon": "dualSwords",
+   "requires": [
+    {
+     "skill": "light_feet",
+     "level": 3
+    }
+   ],
+   "mp": [
+    35,
+    0
+   ],
+   "cooldown": [
+    8,
+    -0.15
+   ],
+   "lock": 0.3,
+   "attack": {
+    "delivery": "projectile",
+    "power": [
+     0.836,
+     0.0528
+    ],
+    "range": 7,
+    "breakPower": 1,
+    "status": [
+     {
+      "id": "slow",
+      "chance": [
+       60,
+       3
+      ],
+      "duration": 4
+     }
+    ],
+    "projectile": {
+     "count": 3,
+     "spread": 22,
+     "speed": 16,
+     "range": 7,
+     "radius": 0.25,
+     "pierce": 1,
+     "sprite": "dagger"
+    }
+   }
+  },
+  "thousand_blades": {
+   "name": "千刃",
+   "tree": "dualSwords",
+   "tier": 4,
+   "type": "active",
+   "maxLevel": 10,
+   "weapon": "dualSwords",
+   "requires": [
+    {
+     "skill": "cross_step",
+     "level": 3
+    }
+   ],
+   "mp": [
+    55,
+    0
+   ],
+   "cooldown": [
+    10,
+    -0.2
+   ],
+   "lock": 0.9,
+   "attack": {
+    "delivery": "strike",
+    "anchor": "self",
+    "follow": true,
+    "shape": {
+     "type": "circle",
+     "radius": 2.4
+    },
+    "power": [
+     0.29,
+     0.0194
+    ],
+    "hits": 12,
+    "interval": 0.07,
+    "range": 2.4,
+    "breakPower": 0.4,
+    "status": [
+     {
+      "id": "bleed",
+      "chance": [
+       15,
+       1
+      ],
+      "duration": 4,
+      "power": 0.06
+     }
+    ]
+   }
+  },
+  "vital_strike": {
+   "name": "急所狙い",
+   "tree": "dualSwords",
+   "tier": 4,
+   "type": "passive",
+   "maxLevel": 10,
+   "weapon": "dualSwords",
+   "requires": [
+    {
+     "skill": "shadow_stitch",
+     "level": 3
+    }
+   ],
+   "mods": {
+    "statusChancePct": [
+     4,
+     4
+    ],
+    "critDamage": [
+     1,
+     1
+    ]
+   }
+  },
+  "blade_storm": {
+   "name": "ブレードストーム",
+   "tree": "dualSwords",
+   "tier": 5,
+   "type": "active",
+   "maxLevel": 10,
+   "weapon": "dualSwords",
+   "requires": [
+    {
+     "skill": "thousand_blades",
+     "level": 5
+    }
+   ],
+   "mp": [
+    80,
+    0
+   ],
+   "cooldown": [
+    18,
+    -0.4
+   ],
+   "lock": 0.15,
+   "attack": {
+    "delivery": "strike",
+    "anchor": "self",
+    "follow": true,
+    "shape": {
+     "type": "circle",
+     "radius": 2.8
+    },
+    "power": [
+     0.352,
+     0.0229
+    ],
+    "hits": 16,
+    "interval": 0.1,
+    "range": 2.8,
+    "breakPower": 0.5
+   }
+  },
+  "thrust": {
+   "name": "刺突",
+   "tree": "spear",
+   "tier": 1,
+   "type": "active",
+   "maxLevel": 10,
+   "weapon": "spear",
+   "mp": [
+    30,
+    0
+   ],
+   "cooldown": [
+    3,
+    -0.05
+   ],
+   "lock": 0.3,
+   "attack": {
+    "delivery": "strike",
+    "anchor": "self",
+    "shape": {
+     "type": "line",
+     "range": 4.2,
+     "width": 0.9
+    },
+    "power": [
+     2.3,
+     0.15
+    ],
+    "range": 4.2,
+    "breakPower": 3
+   }
+  },
+  "spear_mastery": {
+   "name": "槍術の心得",
+   "tree": "spear",
+   "tier": 1,
+   "type": "passive",
+   "maxLevel": 10,
+   "weapon": "spear",
+   "mods": {
+    "atkPct": [
+     1,
+     1
+    ],
+    "rangePct": [
+     1.5,
+     1.5
+    ]
+   }
+  },
+  "sweep": {
+   "name": "薙ぎ払い",
+   "tree": "spear",
+   "tier": 2,
+   "type": "active",
+   "maxLevel": 10,
+   "weapon": "spear",
+   "requires": [
+    {
+     "skill": "thrust",
+     "level": 3
+    }
+   ],
+   "mp": [
+    35,
+    0
+   ],
+   "cooldown": [
+    5,
+    -0.1
+   ],
+   "lock": 0.35,
+   "attack": {
+    "delivery": "strike",
+    "anchor": "self",
+    "shape": {
+     "type": "arc",
+     "range": 3.2,
+     "arc": 210
+    },
+    "power": [
+     1.8,
+     0.12
+    ],
+    "range": 3.2,
+    "breakPower": 3,
+    "knockback": 1.2
+   }
+  },
+  "foresight": {
+   "name": "見切り",
+   "tree": "spear",
+   "tier": 2,
+   "type": "passive",
+   "maxLevel": 10,
+   "weapon": "spear",
+   "requires": [
+    {
+     "skill": "spear_mastery",
+     "level": 3
+    }
+   ],
+   "mods": {
+    "evasion": [
+     0.6,
+     0.6
+    ],
+    "critRate": [
+     0.5,
+     0.5
+    ]
+   }
+  },
+  "leap_thrust": {
+   "name": "跳躍突き",
+   "tree": "spear",
+   "tier": 3,
+   "type": "active",
+   "maxLevel": 10,
+   "weapon": "spear",
+   "requires": [
+    {
+     "skill": "sweep",
+     "level": 3
+    }
+   ],
+   "mp": [
+    45,
+    0
+   ],
+   "cooldown": [
+    7,
+    -0.15
+   ],
+   "lock": 0.45,
+   "dash": {
+    "distance": 5,
+    "speed": 16,
+    "iframes": 0.35,
+    "toTarget": true
+   },
+   "attack": {
+    "delivery": "strike",
+    "anchor": "self",
+    "follow": true,
+    "shape": {
+     "type": "circle",
+     "radius": 1.7
+    },
+    "delay": 0.32,
+    "power": [
+     3.1,
+     0.2
+    ],
+    "range": 5,
+    "breakPower": 6
+   }
+  },
+  "spiral_lance": {
+   "name": "螺旋槍",
+   "tree": "spear",
+   "tier": 3,
+   "type": "active",
+   "maxLevel": 10,
+   "weapon": "spear",
+   "requires": [
+    {
+     "skill": "foresight",
+     "level": 3
+    }
+   ],
+   "mp": [
+    45,
+    0
+   ],
+   "cooldown": [
+    8,
+    -0.15
+   ],
+   "lock": 0.5,
+   "attack": {
+    "delivery": "strike",
+    "anchor": "self",
+    "shape": {
+     "type": "line",
+     "range": 6,
+     "width": 1.0
+    },
+    "power": [
+     0.9,
+     0.06
+    ],
+    "hits": 4,
+    "interval": 0.1,
+    "element": "wind",
+    "range": 6,
+    "breakPower": 1.5
+   }
+  },
+  "spear_wall": {
+   "name": "槍衾",
+   "tree": "spear",
+   "tier": 4,
+   "type": "active",
+   "maxLevel": 10,
+   "weapon": "spear",
+   "requires": [
+    {
+     "skill": "leap_thrust",
+     "level": 3
+    }
+   ],
+   "mp": [
+    55,
+    0
+   ],
+   "cooldown": [
+    10,
+    -0.2
+   ],
+   "lock": 0.4,
+   "attack": {
+    "delivery": "projectile",
+    "power": [
+     1.3,
+     0.08
+    ],
+    "range": 5,
+    "breakPower": 2,
+    "projectile": {
+     "count": 5,
+     "spread": 60,
+     "speed": 18,
+     "range": 5,
+     "radius": 0.35,
+     "pierce": 3,
+     "sprite": "spear_tip"
+    }
+   }
+  },
+  "keen_eye": {
+   "name": "見極め",
+   "tree": "spear",
+   "tier": 4,
+   "type": "passive",
+   "maxLevel": 10,
+   "weapon": "spear",
+   "requires": [
+    {
+     "skill": "spiral_lance",
+     "level": 3
+    }
+   ],
+   "mods": {
+    "skillDmgPct": [
+     1.5,
+     1.5
+    ],
+    "breakPct": [
+     2,
+     2
+    ]
+   }
+  },
+  "gungnir": {
+   "name": "グングニル",
+   "tree": "spear",
+   "tier": 5,
+   "type": "active",
+   "maxLevel": 10,
+   "weapon": "spear",
+   "requires": [
+    {
+     "skill": "spear_wall",
+     "level": 5
+    }
+   ],
+   "mp": [
+    80,
+    0
+   ],
+   "cooldown": [
+    18,
+    -0.4
+   ],
+   "lock": 0.7,
+   "attack": {
+    "delivery": "strike",
+    "anchor": "self",
+    "shape": {
+     "type": "line",
+     "range": 10,
+     "width": 1.6
+    },
+    "delay": 0.4,
+    "power": [
+     5.8,
+     0.36
+    ],
+    "element": "light",
+    "range": 10,
+    "breakPower": 12
+   }
+  },
+  "hundred_fists": {
+   "name": "百裂拳",
+   "tree": "knuckles",
+   "tier": 1,
+   "type": "active",
+   "maxLevel": 10,
+   "weapon": "knuckles",
+   "mp": [
+    25,
+    0
+   ],
+   "cooldown": [
+    3,
+    -0.05
+   ],
+   "lock": 0.55,
+   "attack": {
+    "delivery": "strike",
+    "anchor": "self",
+    "follow": true,
+    "shape": {
+     "type": "arc",
+     "range": 1.6,
+     "arc": 110
+    },
+    "power": [
+     0.34,
+     0.022
+    ],
+    "hits": 8,
+    "interval": 0.06,
+    "range": 1.6,
+    "breakPower": 0.4
+   }
+  },
+  "fist_mastery": {
+   "name": "拳法の心得",
+   "tree": "knuckles",
+   "tier": 1,
+   "type": "passive",
+   "maxLevel": 10,
+   "weapon": "knuckles",
+   "mods": {
+    "atkPct": [
+     1,
+     1
+    ],
+    "aspdPct": [
+     1,
+     1
+    ]
+   }
+  },
+  "rising_dragon": {
+   "name": "昇龍撃",
+   "tree": "knuckles",
+   "tier": 2,
+   "type": "active",
+   "maxLevel": 10,
+   "weapon": "knuckles",
+   "requires": [
+    {
+     "skill": "hundred_fists",
+     "level": 3
+    }
+   ],
+   "mp": [
+    35,
+    0
+   ],
+   "cooldown": [
+    6,
+    -0.1
+   ],
+   "lock": 0.35,
+   "attack": {
+    "delivery": "strike",
+    "anchor": "self",
+    "shape": {
+     "type": "circle",
+     "radius": 1.6
+    },
+    "power": [
+     2.1,
+     0.14
+    ],
+    "range": 1.6,
+    "breakPower": 6,
+    "status": [
+     {
+      "id": "stun",
+      "chance": [
+       30,
+       3
+      ],
+      "duration": 1.2
+     }
+    ]
+   }
+  },
+  "ki_charge": {
+   "name": "練気",
+   "tree": "knuckles",
+   "tier": 2,
+   "type": "active",
+   "maxLevel": 10,
+   "weapon": "knuckles",
+   "requires": [
+    {
+     "skill": "fist_mastery",
+     "level": 3
+    }
+   ],
+   "mp": [
+    30,
+    0
+   ],
+   "cooldown": [
+    30,
+    -0.6
+   ],
+   "lock": 0.2,
+   "buff": {
+    "status": "ki",
+    "duration": [
+     15,
+     0.5
+    ],
+    "mods": {
+     "atkPct": [
+      8,
+      1
+     ],
+     "critRate": [
+      5,
+      0.3
+     ]
+    }
+   }
+  },
+  "hakkei": {
+   "name": "発勁",
+   "tree": "knuckles",
+   "tier": 3,
+   "type": "active",
+   "maxLevel": 10,
+   "weapon": "knuckles",
+   "requires": [
+    {
+     "skill": "rising_dragon",
+     "level": 3
+    }
+   ],
+   "mp": [
+    40,
+    0
+   ],
+   "cooldown": [
+    6,
+    -0.1
+   ],
+   "lock": 0.4,
+   "consume": {
+    "resource": "combo",
+    "powerPerStack": 0.08
+   },
+   "attack": {
+    "delivery": "strike",
+    "anchor": "self",
+    "shape": {
+     "type": "arc",
+     "range": 1.7,
+     "arc": 100
+    },
+    "power": [
+     1.8,
+     0.12
+    ],
+    "range": 1.7,
+    "breakPower": 10
+   }
+  },
+  "combo_secret": {
+   "name": "連撃の極意",
+   "tree": "knuckles",
+   "tier": 3,
+   "type": "passive",
+   "maxLevel": 10,
+   "weapon": "knuckles",
+   "requires": [
+    {
+     "skill": "ki_charge",
+     "level": 3
+    }
+   ],
+   "mods": {
+    "comboMax": [
+     3,
+     3
+    ],
+    "normalDmgPct": [
+     1.5,
+     1.5
+    ]
+   }
+  },
+  "iron_body_strike": {
+   "name": "鉄山靠",
+   "tree": "knuckles",
+   "tier": 4,
+   "type": "active",
+   "maxLevel": 10,
+   "weapon": "knuckles",
+   "requires": [
+    {
+     "skill": "hakkei",
+     "level": 3
+    }
+   ],
+   "mp": [
+    45,
+    0
+   ],
+   "cooldown": [
+    8,
+    -0.15
+   ],
+   "lock": 0.35,
+   "dash": {
+    "distance": 2.5,
+    "speed": 16,
+    "iframes": 0.2
+   },
+   "attack": {
+    "delivery": "strike",
+    "anchor": "self",
+    "follow": true,
+    "shape": {
+     "type": "circle",
+     "radius": 1.8
+    },
+    "delay": 0.15,
+    "power": [
+     2.9,
+     0.18
+    ],
+    "range": 2.5,
+    "breakPower": 8,
+    "knockback": 1.5
+   }
+  },
+  "diamond_body": {
+   "name": "金剛",
+   "tree": "knuckles",
+   "tier": 4,
+   "type": "passive",
+   "maxLevel": 10,
+   "weapon": "knuckles",
+   "requires": [
+    {
+     "skill": "combo_secret",
+     "level": 3
+    }
+   ],
+   "mods": {
+    "defPct": [
+     2,
+     2
+    ],
+    "maxHpPct": [
+     1,
+     1
+    ]
+   }
+  },
+  "overlord_fist": {
+   "name": "覇王拳",
+   "tree": "knuckles",
+   "tier": 5,
+   "type": "active",
+   "maxLevel": 10,
+   "weapon": "knuckles",
+   "requires": [
+    {
+     "skill": "iron_body_strike",
+     "level": 5
+    }
+   ],
+   "mp": [
+    70,
+    0
+   ],
+   "cooldown": [
+    15,
+    -0.3
+   ],
+   "lock": 0.6,
+   "consume": {
+    "resource": "combo",
+    "powerPerStack": 0.15
+   },
+   "attack": {
+    "delivery": "projectile",
+    "power": [
+     3.6,
+     0.22
+    ],
+    "range": 6,
+    "breakPower": 15,
+    "projectile": {
+     "count": 1,
+     "spread": 0,
+     "speed": 14,
+     "range": 6,
+     "radius": 0.8,
+     "pierce": 99,
+     "sprite": "fist_wave"
+    }
+   }
+  },
+  "precision_shot": {
+   "name": "精密射撃",
+   "tree": "gun",
+   "tier": 1,
+   "type": "active",
+   "maxLevel": 10,
+   "weapon": "gun",
+   "mp": [
+    30,
+    0
+   ],
+   "cooldown": [
+    3,
+    -0.05
+   ],
+   "lock": 0.35,
+   "attack": {
+    "delivery": "projectile",
+    "power": [
+     2.8,
+     0.18
+    ],
+    "range": 14,
+    "breakPower": 4,
+    "tags": [
+     "precise"
+    ],
+    "projectile": {
+     "count": 1,
+     "spread": 0,
+     "speed": 36,
+     "range": 14,
+     "radius": 0.2,
+     "pierce": 1,
+     "sprite": "bullet_big"
+    }
+   }
+  },
+  "gun_mastery": {
+   "name": "銃の心得",
+   "tree": "gun",
+   "tier": 1,
+   "type": "passive",
+   "maxLevel": 10,
+   "weapon": "gun",
+   "mods": {
+    "atkPct": [
+     1,
+     1
+    ],
+    "magazine": [
+     0.5,
+     0.5
+    ]
+   }
+  },
+  "scatter_shot": {
+   "name": "散弾",
+   "tree": "gun",
+   "tier": 2,
+   "type": "active",
+   "maxLevel": 10,
+   "weapon": "gun",
+   "requires": [
+    {
+     "skill": "precision_shot",
+     "level": 3
+    }
+   ],
+   "mp": [
+    30,
+    0
+   ],
+   "cooldown": [
+    5,
+    -0.1
+   ],
+   "lock": 0.3,
+   "attack": {
+    "delivery": "projectile",
+    "power": [
+     0.6,
+     0.04
+    ],
+    "range": 5,
+    "breakPower": 0.8,
+    "knockback": 0.6,
+    "projectile": {
+     "count": 7,
+     "spread": 50,
+     "speed": 20,
+     "range": 5,
+     "radius": 0.2,
+     "pierce": 1,
+     "sprite": "bullet"
+    }
+   }
+  },
+  "quick_reload": {
+   "name": "クイックリロード",
+   "tree": "gun",
+   "tier": 2,
+   "type": "active",
+   "maxLevel": 10,
+   "weapon": "gun",
+   "requires": [
+    {
+     "skill": "gun_mastery",
+     "level": 3
+    }
+   ],
+   "mp": [
+    15,
+    0
+   ],
+   "cooldown": [
+    12,
+    -0.3
+   ],
+   "lock": 0.1,
+   "reload": true,
+   "buff": {
+    "status": "quick_reload",
+    "duration": [
+     6,
+     0.2
+    ],
+    "mods": {
+     "aspdPct": [
+      10,
+      1
+     ]
+    }
+   }
+  },
+  "barrage": {
+   "name": "弾幕",
+   "tree": "gun",
+   "tier": 3,
+   "type": "active",
+   "maxLevel": 10,
+   "weapon": "gun",
+   "requires": [
+    {
+     "skill": "scatter_shot",
+     "level": 3
+    }
+   ],
+   "mp": [
+    45,
+    0
+   ],
+   "cooldown": [
+    8,
+    -0.15
+   ],
+   "lock": 1.0,
+   "attack": {
+    "delivery": "strike",
+    "anchor": "self",
+    "shape": {
+     "type": "line",
+     "range": 9,
+     "width": 0.7
+    },
+    "power": [
+     0.45,
+     0.03
+    ],
+    "hits": 10,
+    "interval": 0.1,
+    "range": 9,
+    "breakPower": 0.4
+   }
+  },
+  "shock_round": {
+   "name": "麻痺弾",
+   "tree": "gun",
+   "tier": 3,
+   "type": "active",
+   "maxLevel": 10,
+   "weapon": "gun",
+   "requires": [
+    {
+     "skill": "quick_reload",
+     "level": 3
+    }
+   ],
+   "mp": [
+    35,
+    0
+   ],
+   "cooldown": [
+    7,
+    -0.12
+   ],
+   "lock": 0.3,
+   "attack": {
+    "delivery": "projectile",
+    "power": [
+     1.6,
+     0.1
+    ],
+    "element": "wind",
+    "range": 11,
+    "breakPower": 2,
+    "status": [
+     {
+      "id": "shock",
+      "chance": [
+       70,
+       2
+      ],
+      "duration": 4
+     }
+    ],
+    "projectile": {
+     "count": 1,
+     "spread": 0,
+     "speed": 24,
+     "range": 11,
+     "radius": 0.3,
+     "pierce": 1,
+     "sprite": "spark"
+    }
+   }
+  },
+  "explosive_round": {
+   "name": "爆裂弾",
+   "tree": "gun",
+   "tier": 4,
+   "type": "active",
+   "maxLevel": 10,
+   "weapon": "gun",
+   "requires": [
+    {
+     "skill": "barrage",
+     "level": 3
+    }
+   ],
+   "mp": [
+    55,
+    0
+   ],
+   "cooldown": [
+    10,
+    -0.2
+   ],
+   "lock": 0.4,
+   "attack": {
+    "delivery": "projectile",
+    "power": [
+     3.0,
+     0.2
+    ],
+    "element": "fire",
+    "range": 10,
+    "breakPower": 5,
+    "status": [
+     {
+      "id": "burn",
+      "chance": [
+       50,
+       3
+      ],
+      "power": 0.12
+     }
+    ],
+    "projectile": {
+     "count": 1,
+     "spread": 0,
+     "speed": 18,
+     "range": 10,
+     "radius": 0.35,
+     "pierce": 1,
+     "explodeRadius": 2.2,
+     "sprite": "fireball"
+    }
+   }
+  },
+  "weakpoint_eye": {
+   "name": "弱点看破",
+   "tree": "gun",
+   "tier": 4,
+   "type": "passive",
+   "maxLevel": 10,
+   "weapon": "gun",
+   "requires": [
+    {
+     "skill": "shock_round",
+     "level": 3
+    }
+   ],
+   "mods": {
+    "critDamage": [
+     2,
+     2
+    ],
+    "bossDmgPct": [
+     1,
+     1
+    ]
+   }
+  },
+  "quick_draw": {
+   "name": "早撃ち",
+   "tree": "gun",
+   "tier": 3,
+   "type": "passive",
+   "maxLevel": 10,
+   "weapon": "gun",
+   "requires": [
+    {
+     "skill": "gun_mastery",
+     "level": 5
+    }
+   ],
+   "mods": {
+    "reloadPct": [
+     4,
+     4
+    ],
+    "aspdPct": [
+     0.5,
+     0.5
+    ]
+   }
+  },
+  "dead_eye": {
+   "name": "デッドアイ",
+   "tree": "gun",
+   "tier": 5,
+   "type": "active",
+   "maxLevel": 10,
+   "weapon": "gun",
+   "requires": [
+    {
+     "skill": "explosive_round",
+     "level": 5
+    }
+   ],
+   "mp": [
+    80,
+    0
+   ],
+   "cooldown": [
+    18,
+    -0.4
+   ],
+   "lock": 0.9,
+   "attack": {
+    "delivery": "projectile",
+    "power": [
+     6.5,
+     0.4
+    ],
+    "range": 18,
+    "breakPower": 15,
+    "tags": [
+     "precise"
+    ],
+    "projectile": {
+     "count": 1,
+     "spread": 0,
+     "speed": 40,
+     "range": 18,
+     "radius": 0.3,
+     "pierce": 3,
+     "sprite": "bullet_big"
+    }
+   }
+  },
+  "reaper": {
+   "name": "死神の鎌",
+   "tree": "scythe",
+   "tier": 1,
+   "type": "active",
+   "maxLevel": 10,
+   "weapon": "scythe",
+   "mp": [
+    30,
+    0
+   ],
+   "cooldown": [
+    3,
+    -0.05
+   ],
+   "lock": 0.4,
+   "attack": {
+    "delivery": "strike",
+    "anchor": "self",
+    "shape": {
+     "type": "arc",
+     "range": 3.2,
+     "arc": 300
+    },
+    "power": [
+     2.244,
+     0.1452
+    ],
+    "element": "dark",
+    "range": 3.2,
+    "breakPower": 3
+   }
+  },
+  "scythe_mastery": {
+   "name": "鎌術の心得",
+   "tree": "scythe",
+   "tier": 1,
+   "type": "passive",
+   "maxLevel": 10,
+   "weapon": "scythe",
+   "mods": {
+    "atkPct": [
+     1,
+     1
+    ],
+    "lifestealPct": [
+     0.2,
+     0.2
+    ]
+   }
+  },
+  "soul_drain": {
+   "name": "ソウルドレイン",
+   "tree": "scythe",
+   "tier": 2,
+   "type": "active",
+   "maxLevel": 10,
+   "weapon": "scythe",
+   "requires": [
+    {
+     "skill": "reaper",
+     "level": 3
+    }
+   ],
+   "mp": [
+    35,
+    0
+   ],
+   "cooldown": [
+    6,
+    -0.1
+   ],
+   "lock": 0.5,
+   "attack": {
+    "delivery": "strike",
+    "anchor": "self",
+    "follow": true,
+    "shape": {
+     "type": "circle",
+     "radius": 2.6
+    },
+    "power": [
+     1.122,
+     0.0726
+    ],
+    "hits": 3,
+    "interval": 0.2,
+    "element": "dark",
+    "range": 2.6,
+    "breakPower": 1,
+    "lifesteal": 15
+   }
+  },
+  "harvest": {
+   "name": "刈り取り",
+   "tree": "scythe",
+   "tier": 2,
+   "type": "active",
+   "maxLevel": 10,
+   "weapon": "scythe",
+   "requires": [
+    {
+     "skill": "scythe_mastery",
+     "level": 3
+    }
+   ],
+   "mp": [
+    35,
+    0
+   ],
+   "cooldown": [
+    5,
+    -0.1
+   ],
+   "lock": 0.35,
+   "attack": {
+    "delivery": "strike",
+    "anchor": "self",
+    "shape": {
+     "type": "arc",
+     "range": 2.8,
+     "arc": 160
+    },
+    "power": [
+     2.904,
+     0.1848
+    ],
+    "range": 2.8,
+    "breakPower": 3,
+    "execute": {
+     "below": 30,
+     "mul": 1.8
+    }
+   }
+  },
+  "dark_veil": {
+   "name": "闇の帳",
+   "tree": "scythe",
+   "tier": 3,
+   "type": "active",
+   "maxLevel": 10,
+   "weapon": "scythe",
+   "requires": [
+    {
+     "skill": "soul_drain",
+     "level": 3
+    }
+   ],
+   "mp": [
+    45,
+    0
+   ],
+   "cooldown": [
+    9,
+    -0.18
+   ],
+   "lock": 0.4,
+   "attack": {
+    "delivery": "strike",
+    "anchor": "self",
+    "follow": true,
+    "shape": {
+     "type": "circle",
+     "radius": 3.5
+    },
+    "power": [
+     0.924,
+     0.0594
+    ],
+    "hits": 4,
+    "interval": 0.4,
+    "element": "dark",
+    "range": 3.5,
+    "breakPower": 1,
+    "status": [
+     {
+      "id": "blind",
+      "chance": [
+       40,
+       2
+      ],
+      "duration": 4
+     }
+    ]
+   }
+  },
+  "binding_curse": {
+   "name": "呪縛",
+   "tree": "scythe",
+   "tier": 3,
+   "type": "active",
+   "maxLevel": 10,
+   "weapon": "scythe",
+   "requires": [
+    {
+     "skill": "harvest",
+     "level": 3
+    }
+   ],
+   "mp": [
+    40,
+    0
+   ],
+   "cooldown": [
+    9,
+    -0.18
+   ],
+   "lock": 0.3,
+   "attack": {
+    "delivery": "projectile",
+    "damageType": "magic",
+    "power": [
+     1.848,
+     0.1188
+    ],
+    "element": "dark",
+    "range": 9,
+    "breakPower": 2,
+    "status": [
+     {
+      "id": "slow",
+      "chance": [
+       80,
+       2
+      ],
+      "duration": 5
+     },
+     {
+      "id": "weaken",
+      "chance": [
+       50,
+       3
+      ],
+      "duration": 6
+     }
+    ],
+    "projectile": {
+     "count": 1,
+     "spread": 0,
+     "speed": 10,
+     "range": 9,
+     "radius": 0.4,
+     "pierce": 1,
+     "sprite": "shadow",
+     "homing": 0.4
+    }
+   }
+  },
+  "underworld_gale": {
+   "name": "冥府の旋風",
+   "tree": "scythe",
+   "tier": 4,
+   "type": "active",
+   "maxLevel": 10,
+   "weapon": "scythe",
+   "requires": [
+    {
+     "skill": "dark_veil",
+     "level": 3
+    }
+   ],
+   "mp": [
+    55,
+    0
+   ],
+   "cooldown": [
+    11,
+    -0.2
+   ],
+   "lock": 0.4,
+   "attack": {
+    "delivery": "strike",
+    "anchor": "self",
+    "follow": true,
+    "shape": {
+     "type": "circle",
+     "radius": 3.2
+    },
+    "power": [
+     0.766,
+     0.0502
+    ],
+    "hits": 8,
+    "interval": 0.15,
+    "element": "dark",
+    "range": 3.2,
+    "breakPower": 0.8,
+    "lifesteal": 5
+   }
+  },
+  "dark_affinity": {
+   "name": "闇の親和",
+   "tree": "scythe",
+   "tier": 4,
+   "type": "passive",
+   "maxLevel": 10,
+   "weapon": "scythe",
+   "requires": [
+    {
+     "skill": "binding_curse",
+     "level": 3
+    }
+   ],
+   "mods": {
+    "darkDmgPct": [
+     2,
+     2
+    ],
+    "matkPct": [
+     1,
+     1
+    ]
+   }
+  },
+  "blood_thirst": {
+   "name": "血の渇き",
+   "tree": "scythe",
+   "tier": 3,
+   "type": "passive",
+   "maxLevel": 10,
+   "weapon": "scythe",
+   "requires": [
+    {
+     "skill": "scythe_mastery",
+     "level": 5
+    }
+   ],
+   "mods": {
+    "maxHpPct": [
+     1,
+     1
+    ],
+    "healPct": [
+     2,
+     2
+    ]
+   }
+  },
+  "death_scythe": {
+   "name": "デスサイズ",
+   "tree": "scythe",
+   "tier": 5,
+   "type": "active",
+   "maxLevel": 10,
+   "weapon": "scythe",
+   "requires": [
+    {
+     "skill": "underworld_gale",
+     "level": 5
+    }
+   ],
+   "mp": [
+    80,
+    0
+   ],
+   "cooldown": [
+    18,
+    -0.4
+   ],
+   "lock": 0.7,
+   "attack": {
+    "delivery": "strike",
+    "anchor": "self",
+    "shape": {
+     "type": "circle",
+     "radius": 4.5
+    },
+    "delay": 0.3,
+    "power": [
+     6.072,
+     0.396
+    ],
+    "element": "dark",
+    "range": 4.5,
+    "breakPower": 12,
+    "execute": {
+     "below": 40,
+     "mul": 2.0
+    }
+   }
+  },
+  "song_courage": {
+   "name": "勇気の歌",
+   "tree": "instrument",
+   "tier": 1,
+   "type": "active",
+   "maxLevel": 10,
+   "weapon": "instrument",
+   "mp": [
+    30,
+    0
+   ],
+   "cooldown": [
+    35,
+    -0.8
+   ],
+   "lock": 0.3,
+   "buff": {
+    "status": "courage",
+    "duration": [
+     30,
+     1
+    ],
+    "rhythm": true,
+    "target": "allies",
+    "mods": {
+     "atkPct": [
+      6,
+      0.8
+     ],
+     "matkPct": [
+      6,
+      0.8
+     ]
+    }
+   }
+  },
+  "music_mastery": {
+   "name": "音楽の心得",
+   "tree": "instrument",
+   "tier": 1,
+   "type": "passive",
+   "maxLevel": 10,
+   "weapon": "instrument",
+   "mods": {
+    "matkPct": [
+     1,
+     1
+    ],
+    "rhythmPct": [
+     3,
+     3
+    ]
+   }
+  },
+  "arpeggio": {
+   "name": "衝撃のアルペジオ",
+   "tree": "instrument",
+   "tier": 2,
+   "type": "active",
+   "maxLevel": 10,
+   "weapon": "instrument",
+   "requires": [
+    {
+     "skill": "song_courage",
+     "level": 1
+    }
+   ],
+   "mp": [
+    30,
+    0
+   ],
+   "cooldown": [
+    4,
+    -0.08
+   ],
+   "lock": 0.4,
+   "attack": {
+    "delivery": "strike",
+    "anchor": "self",
+    "shape": {
+     "type": "circle",
+     "radius": 2.8
+    },
+    "power": [
+     0.95,
+     0.065
+    ],
+    "hits": 3,
+    "interval": 0.15,
+    "range": 2.8,
+    "breakPower": 1.5,
+    "status": [
+     {
+      "id": "stun",
+      "chance": [
+       15,
+       1
+      ],
+      "duration": 0.8
+     }
+    ]
+   }
+  },
+  "healing_melody": {
+   "name": "癒しの旋律",
+   "tree": "instrument",
+   "tier": 2,
+   "type": "active",
+   "maxLevel": 10,
+   "weapon": "instrument",
+   "requires": [
+    {
+     "skill": "music_mastery",
+     "level": 3
+    }
+   ],
+   "mp": [
+    35,
+    0
+   ],
+   "cooldown": [
+    20,
+    -0.4
+   ],
+   "lock": 0.3,
+   "heal": {
+    "power": [
+     0.1,
+     0.01
+    ],
+    "base": "maxHp"
+   },
+   "buff": {
+    "status": "melody",
+    "duration": [
+     10,
+     0
+    ],
+    "rhythm": true,
+    "target": "allies",
+    "mods": {
+     "hpRegen": [
+      4,
+      2
+     ]
+    }
+   }
+  },
+  "march": {
+   "name": "疾風のマーチ",
+   "tree": "instrument",
+   "tier": 3,
+   "type": "active",
+   "maxLevel": 10,
+   "weapon": "instrument",
+   "requires": [
+    {
+     "skill": "arpeggio",
+     "level": 3
+    }
+   ],
+   "mp": [
+    35,
+    0
+   ],
+   "cooldown": [
+    35,
+    -0.8
+   ],
+   "lock": 0.3,
+   "buff": {
+    "status": "march",
+    "duration": [
+     25,
+     1
+    ],
+    "rhythm": true,
+    "target": "allies",
+    "mods": {
+     "aspdPct": [
+      8,
+      0.8
+     ],
+     "cspdPct": [
+      8,
+      0.8
+     ],
+     "moveSpeedPct": [
+      6,
+      0.5
+     ]
+    }
+   }
+  },
+  "ballad": {
+   "name": "守りのバラード",
+   "tree": "instrument",
+   "tier": 3,
+   "type": "active",
+   "maxLevel": 10,
+   "weapon": "instrument",
+   "requires": [
+    {
+     "skill": "healing_melody",
+     "level": 3
+    }
+   ],
+   "mp": [
+    35,
+    0
+   ],
+   "cooldown": [
+    35,
+    -0.8
+   ],
+   "lock": 0.3,
+   "buff": {
+    "status": "ballad",
+    "duration": [
+     25,
+     1
+    ],
+    "rhythm": true,
+    "target": "allies",
+    "mods": {
+     "defPct": [
+      10,
+      1
+     ],
+     "mdefPct": [
+      10,
+      1
+     ],
+     "dmgReductionPct": [
+      5,
+      0.3
+     ]
+    }
+   }
+  },
+  "perfect_pitch": {
+   "name": "絶対音感",
+   "tree": "instrument",
+   "tier": 4,
+   "type": "passive",
+   "maxLevel": 10,
+   "weapon": "instrument",
+   "requires": [
+    {
+     "skill": "march",
+     "level": 3
+    }
+   ],
+   "mods": {
+    "rhythmPct": [
+     3,
+     3
+    ],
+    "cspdPct": [
+     1,
+     1
+    ],
+    "magDmgPct": [
+     1,
+     1
+    ]
+   }
+  },
+  "finale": {
+   "name": "フィナーレ",
+   "tree": "instrument",
+   "tier": 5,
+   "type": "active",
+   "maxLevel": 10,
+   "weapon": "instrument",
+   "requires": [
+    {
+     "skill": "ballad",
+     "level": 5
+    }
+   ],
+   "mp": [
+    70,
+    0
+   ],
+   "cooldown": [
+    14,
+    -0.3
+   ],
+   "lock": 0.6,
+   "consume": {
+    "resource": "rhythm",
+    "powerPerStack": 0.4
+   },
+   "attack": {
+    "delivery": "strike",
+    "anchor": "self",
+    "shape": {
+     "type": "circle",
+     "radius": 3.5
+    },
+    "delay": 0.2,
+    "power": [
+     2.0,
+     0.14
+    ],
+    "element": "light",
+    "range": 3.5,
+    "breakPower": 10
+   }
+  }
+ }
 }

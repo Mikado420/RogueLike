@@ -1,21 +1,166 @@
 {
-  "burn":   { "name": "燃焼", "kind": "debuff", "dot": { "interval": 1, "element": "fire" }, "maxStacks": 3, "color": "#ff6a3d" },
-  "poison": { "name": "毒",   "kind": "debuff", "dot": { "interval": 1, "element": "neutral" }, "maxStacks": 5, "color": "#9be04a" },
-  "bleed":  { "name": "出血", "kind": "debuff", "dot": { "interval": 0.5, "element": "neutral" }, "maxStacks": 5, "color": "#d8304a" },
-  "freeze": { "name": "凍結", "kind": "debuff", "cannotAct": true, "dmgTakenPct": 15, "color": "#7fd8ff", "bossDurationMul": 0.3 },
-  "shock":  { "name": "感電", "kind": "debuff", "mods": { "defPct": -15, "mdefPct": -15 }, "jolt": { "interval": 1.5, "duration": 0.25 }, "color": "#ffe14a", "bossDurationMul": 0.6 },
-  "stun":   { "name": "スタン", "kind": "debuff", "cannotAct": true, "color": "#ffd23a", "bossDurationMul": 0.25 },
-  "blind":  { "name": "暗闇", "kind": "debuff", "missChance": 40, "color": "#6a5a8a" },
-  "slow":   { "name": "鈍足", "kind": "debuff", "mods": { "moveSpeedPct": -40, "aspdPct": -20 }, "color": "#8a9ab0", "bossDurationMul": 0.6 },
-  "weaken": { "name": "衰弱", "kind": "debuff", "mods": { "atkPct": -15, "matkPct": -15 }, "color": "#9a7a6a" },
-
-  "holy_blade":  { "name": "聖剣",   "kind": "buff", "color": "#fff27a" },
-  "barrier":     { "name": "バリア", "kind": "buff", "color": "#9fd8ff" },
-  "brave":       { "name": "ブレイブ", "kind": "buff", "color": "#ff9a5a" },
-  "protect":     { "name": "プロテクト", "kind": "buff", "color": "#7ab8ff" },
-  "quick":       { "name": "クイック", "kind": "buff", "color": "#7fe39b" },
-  "regen":       { "name": "リジェネ", "kind": "buff", "color": "#6fe3c0" },
-  "indomitable": { "name": "不屈", "kind": "buff", "color": "#ffb02e" },
-  "focus":       { "name": "集中", "kind": "buff", "color": "#ffd23a" },
-  "food":        { "name": "食事", "kind": "buff", "color": "#ffcf8a" }
+ "burn": {
+  "name": "燃焼",
+  "kind": "debuff",
+  "dot": {
+   "interval": 1,
+   "element": "fire"
+  },
+  "maxStacks": 3,
+  "color": "#ff6a3d"
+ },
+ "poison": {
+  "name": "毒",
+  "kind": "debuff",
+  "dot": {
+   "interval": 1,
+   "element": "neutral"
+  },
+  "maxStacks": 5,
+  "color": "#9be04a"
+ },
+ "bleed": {
+  "name": "出血",
+  "kind": "debuff",
+  "dot": {
+   "interval": 0.5,
+   "element": "neutral"
+  },
+  "maxStacks": 5,
+  "color": "#d8304a"
+ },
+ "freeze": {
+  "name": "凍結",
+  "kind": "debuff",
+  "cannotAct": true,
+  "dmgTakenPct": 15,
+  "color": "#7fd8ff",
+  "bossDurationMul": 0.3
+ },
+ "shock": {
+  "name": "感電",
+  "kind": "debuff",
+  "mods": {
+   "defPct": -15,
+   "mdefPct": -15
+  },
+  "jolt": {
+   "interval": 1.5,
+   "duration": 0.25
+  },
+  "color": "#ffe14a",
+  "bossDurationMul": 0.6
+ },
+ "stun": {
+  "name": "スタン",
+  "kind": "debuff",
+  "cannotAct": true,
+  "color": "#ffd23a",
+  "bossDurationMul": 0.25
+ },
+ "blind": {
+  "name": "暗闇",
+  "kind": "debuff",
+  "missChance": 40,
+  "color": "#6a5a8a"
+ },
+ "slow": {
+  "name": "鈍足",
+  "kind": "debuff",
+  "mods": {
+   "moveSpeedPct": -40,
+   "aspdPct": -20
+  },
+  "color": "#8a9ab0",
+  "bossDurationMul": 0.6
+ },
+ "weaken": {
+  "name": "衰弱",
+  "kind": "debuff",
+  "mods": {
+   "atkPct": -15,
+   "matkPct": -15
+  },
+  "color": "#9a7a6a"
+ },
+ "holy_blade": {
+  "name": "聖剣",
+  "kind": "buff",
+  "color": "#fff27a"
+ },
+ "barrier": {
+  "name": "バリア",
+  "kind": "buff",
+  "color": "#9fd8ff"
+ },
+ "brave": {
+  "name": "ブレイブ",
+  "kind": "buff",
+  "color": "#ff9a5a"
+ },
+ "protect": {
+  "name": "プロテクト",
+  "kind": "buff",
+  "color": "#7ab8ff"
+ },
+ "quick": {
+  "name": "クイック",
+  "kind": "buff",
+  "color": "#7fe39b"
+ },
+ "regen": {
+  "name": "リジェネ",
+  "kind": "buff",
+  "color": "#6fe3c0"
+ },
+ "indomitable": {
+  "name": "不屈",
+  "kind": "buff",
+  "color": "#ffb02e"
+ },
+ "focus": {
+  "name": "集中",
+  "kind": "buff",
+  "color": "#ffd23a"
+ },
+ "food": {
+  "name": "食事",
+  "kind": "buff",
+  "color": "#ffcf8a"
+ },
+ "immovable": {
+  "name": "不動",
+  "kind": "buff",
+  "color": "#c8a46a"
+ },
+ "ki": {
+  "name": "練気",
+  "kind": "buff",
+  "color": "#ff8a5a"
+ },
+ "quick_reload": {
+  "name": "装填",
+  "kind": "buff",
+  "color": "#b0c8e0"
+ },
+ "courage": {
+  "name": "勇気",
+  "kind": "buff",
+  "color": "#ff7ab0"
+ },
+ "melody": {
+  "name": "旋律",
+  "kind": "buff",
+  "color": "#7fe3c0"
+ },
+ "march": {
+  "name": "マーチ",
+  "kind": "buff",
+  "color": "#9be04a"
+ },
+ "ballad": {
+  "name": "バラード",
+  "kind": "buff",
+  "color": "#7ab0ff"
+ }
 }

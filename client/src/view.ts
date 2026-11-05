@@ -5,6 +5,7 @@ import {
 import { depth, isoRadii, TILE_H, TILE_W, toScreen } from './iso';
 import { makeBagIcon, makePlayerSprite, makeSprite, makeWeaponGlyph } from './sprites';
 import { drawIsoShape, Effects } from './fx';
+import { chargeLevel } from '../../shared/src';
 import { BODY_COLORS, ELEMENT_COLOR, hex, HAIR_COLORS, rarityColorNum, statusColor } from './colors';
 import type { Settings } from './settings';
 import type { Sfx } from './audio';
@@ -30,9 +31,11 @@ const FONT = '"Hiragino Kaku Gothic ProN", "Noto Sans JP", system-ui, sans-serif
 /** 落ちている装備の見た目 */
 export function itemIconName(it: Item): string {
   if (it.slot === 'weapon') {
-    if (it.kind === 'bow') return 'item_bow';
-    if (it.kind === 'staff' || it.kind === 'instrument') return 'item_staff';
-    return 'item_sword';
+    const map: Record<string, string> = {
+      bow: 'item_bow', staff: 'item_staff', instrument: 'item_lute', spear: 'item_spear', knuckles: 'item_fist',
+      gun: 'item_gun', scythe: 'item_scythe',
+    };
+    return map[it.kind] ?? 'item_sword';
   }
   if (it.slot === 'accessory') return 'item_ring';
   return 'item_armor';
@@ -133,6 +136,8 @@ export class WorldView {
             break;
           }
           if (mode !== 'mine' || e.src === this.myId) this.fx.damage(e, mode);
+          if (e.src === this.myId && e.sweet) this.fx.text(e.x, e.y, CONTENT.text['hud.just'] ?? 'JUST', 0xffe14a);
+          if (e.src === this.myId && e.back) this.fx.text(e.x, e.y, CONTENT.text['hud.back'] ?? 'BACK', 0xff9a5a);
           const col = e.toPlayer ? 0xff5050 : e.weak ? ELEMENT_COLOR[e.element] : e.crit ? 0xffd23a : 0xffffff;
           this.fx.spark(e.x, e.y, col);
           const v = this.actors.get(e.tgt);
@@ -208,6 +213,15 @@ export class WorldView {
           break;
         case 'equip':
           if (e.playerId === this.myId) this.sfx.play('equip');
+          break;
+        case 'reload':
+          if (e.playerId === this.myId) this.sfx.play(e.done ? 'reloadDone' : 'reload', 0.6);
+          break;
+        case 'rhythm':
+          if (e.playerId === this.myId) {
+            const p = this.me();
+            if (e.onBeat) { this.fx.burst(p.x, p.y, 0xff9ad8, 0.9, 0.25); this.sfx.play('note'); }
+          }
           break;
         case 'levelUp':
           if (e.playerId === this.myId) {
@@ -294,11 +308,21 @@ export class WorldView {
           const fl = Math.hypot(f.x, f.y) || 1;
           v.weapon.x = (f.x / fl) * 16;
           v.weapon.y = -22 + (f.y / fl) * 8;
-          v.weapon.rotation = wt === 'oneHandSword' ? Math.atan2(f.y, f.x) : 0;
-          v.weapon.scale.x = wt !== 'oneHandSword' && f.x < 0 ? -1 : 1;
+          const pointing = ['oneHandSword', 'twoHandSword', 'dualSwords', 'spear', 'gun'].includes(wt ?? 'oneHandSword');
+          v.weapon.rotation = pointing ? Math.atan2(f.y, f.x) : 0;
+          v.weapon.scale.x = !pointing && f.x < 0 ? -1 : 1;
           v.weapon.zIndex = f.y < 0 ? -1 : 1;
         }
         v.body.scale.x = facingLeft ? -1 : 1;
+        // 溜め
+        if (!v.aura) { v.aura = new Graphics(); v.aura.zIndex = -1; v.root.addChild(v.aura); }
+        v.aura.clear();
+        const lvl = chargeLevel(this.world, a);
+        if (a.charge > 2) {
+          const col = [0xffffff, 0xffe14a, 0xff9a3a, 0xff4a4a][lvl];
+          const { rx, ry } = isoRadii(0.6 + lvl * 0.15 + Math.sin(this.time * 20) * 0.03);
+          v.aura.ellipse(0, 0, rx, ry).stroke({ width: 2 + lvl, color: col, alpha: 0.8 });
+        }
       } else {
         const def = CONTENT.monsters[a.defId];
         const sc = (def.scale ?? 1) * (a.elite ? 1.15 : 1);

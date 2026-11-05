@@ -56,9 +56,11 @@ export function castSkill(w: World, p: Player, id: string, aimFor: (range: numbe
 
   if (d.dash) {
     const dir = d.dash.distance >= 0 ? a.dir : a.dir + Math.PI;
+    let dist = Math.abs(d.dash.distance);
+    if (d.dash.toTarget && a.target) dist = Math.min(dist, Math.max(0, Math.hypot(a.target.x - p.x, a.target.y - p.y) - a.target.r - p.r - 0.3));
     p.dodgeDir = { x: Math.cos(dir), y: Math.sin(dir) };
     p.dashSpeed = d.dash.speed;
-    p.dodgeTicks = Math.max(1, Math.round(sec(w, Math.abs(d.dash.distance) / d.dash.speed)));
+    p.dodgeTicks = Math.max(1, Math.round(sec(w, dist / d.dash.speed)));
     if (d.dash.iframes) p.iframes = Math.max(p.iframes, sec(w, d.dash.iframes));
   }
   const mul = hook && typeof hook === 'object' ? hook : { power: 1, buff: 1 };

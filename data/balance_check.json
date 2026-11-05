@@ -1,0 +1,93 @@
+{
+  "levels": [
+    30,
+    60,
+    100
+  ],
+  "duration": 60,
+  "rarity": "rare",
+  "skillLevel": {
+    "30": 5,
+    "60": 8,
+    "100": 10
+  },
+  "distance": {
+    "melee": 0.95,
+    "mid": 2.5,
+    "ranged": 5
+  },
+  "groupSize": 3,
+  "tolerance": 0.25,
+  "weapons": {
+    "oneHandSword": {
+      "stats": {
+        "str": 0.7,
+        "dex": 0.3
+      },
+      "range": "melee"
+    },
+    "twoHandSword": {
+      "stats": {
+        "str": 0.8,
+        "vit": 0.2
+      },
+      "range": "melee"
+    },
+    "dualSwords": {
+      "stats": {
+        "agi": 0.55,
+        "str": 0.45
+      },
+      "range": "melee"
+    },
+    "spear": {
+      "stats": {
+        "str": 0.6,
+        "agi": 0.4
+      },
+      "range": "mid"
+    },
+    "bow": {
+      "stats": {
+        "dex": 0.8,
+        "str": 0.2
+      },
+      "range": "ranged"
+    },
+    "staff": {
+      "stats": {
+        "int": 0.75,
+        "dex": 0.25
+      },
+      "range": "ranged"
+    },
+    "knuckles": {
+      "stats": {
+        "agi": 0.65,
+        "str": 0.35
+      },
+      "range": "melee"
+    },
+    "gun": {
+      "stats": {
+        "dex": 0.75,
+        "agi": 0.25
+      },
+      "range": "ranged"
+    },
+    "scythe": {
+      "stats": {
+        "str": 0.65,
+        "int": 0.35
+      },
+      "range": "melee"
+    },
+    "instrument": {
+      "stats": {
+        "int": 0.6,
+        "dex": 0.4
+      },
+      "range": "ranged"
+    }
+  }
+}

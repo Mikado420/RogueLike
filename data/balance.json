@@ -237,11 +237,38 @@
     ],
     "inventory": [
       {
+        "base": "w_twoHandSword"
+      },
+      {
+        "base": "w_dualSwords"
+      },
+      {
+        "base": "w_spear"
+      },
+      {
         "base": "w_bow"
       },
       {
         "base": "w_staff"
+      },
+      {
+        "base": "w_knuckles"
+      },
+      {
+        "base": "w_gun"
+      },
+      {
+        "base": "w_scythe"
+      },
+      {
+        "base": "w_instrument"
       }
     ]
+  },
+  "combat": {
+    "backAngle": 110,
+    "preciseCrit": 0.3,
+    "chargeMinMove": 0.2,
+    "knockbackMaxRadius": 0.9
   }
 }

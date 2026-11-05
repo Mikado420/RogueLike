@@ -1,6 +1,5 @@
 {
   "game.title": "エンドレスガーデン",
-
   "err.invalid": "できません",
   "err.noPoints": "ポイントが足りません",
   "err.statMax": "上限です",
@@ -18,13 +17,11 @@
   "err.none": "持っていません",
   "err.locked": "ロック中です",
   "err.subMismatch": "今の武器には付けられません",
-
   "notice.respec": "振り直しました",
   "notice.buildSaved": "ビルド{0}を保存しました",
   "notice.buildLoaded": "ビルド{0}に切り替えました",
   "notice.rebirth": "転生 {0} 回目",
   "notice.levelUp": "Lv {0}",
-
   "title.continue": "つづきから",
   "title.new": "あたらしく",
   "title.start": "はじめる",
@@ -34,7 +31,6 @@
   "create.name": "名前",
   "create.body": "服",
   "create.hair": "髪",
-
   "hud.menu": "メニュー",
   "hud.attack": "攻撃",
   "hud.dodge": "回避",
@@ -43,12 +39,10 @@
   "hud.dead": "戦闘不能",
   "hud.levelUp": "LEVEL UP",
   "hud.break": "BREAK",
-
   "menu.status": "ステータス",
   "menu.skills": "スキル",
   "menu.items": "持ち物",
   "menu.settings": "設定",
-
   "stat.str": "STR",
   "stat.int": "INT",
   "stat.vit": "VIT",
@@ -60,12 +54,10 @@
   "stat.exp": "EXP",
   "stat.rebirths": "転生",
   "stat.gold": "G",
-
   "personal.crt": "CRT",
   "personal.tec": "TEC",
   "personal.luk": "LUK",
   "personal.mtl": "MTL",
-
   "d.atk": "ATK",
   "d.matk": "MATK",
   "d.def": "DEF",
@@ -80,7 +72,6 @@
   "d.eva": "回避率",
   "d.element": "属性",
   "d.weapon": "武器",
-
   "skill.sp": "SP",
   "skill.learn": "習得",
   "skill.levelUp": "Lv+",
@@ -103,13 +94,11 @@
   "skill.tier": "段",
   "skill.anyWeapon": "全武器",
   "skill.clear": "外す",
-
   "slot.weapon": "武器",
   "slot.sub": "サブ",
   "slot.body": "体",
   "slot.head": "頭",
   "slot.accessory": "装飾",
-
   "item.equip": "装備",
   "item.unequip": "外す",
   "item.lock": "ロック",
@@ -122,7 +111,6 @@
   "item.price": "価格",
   "item.materials": "素材・消耗品",
   "item.equipment": "装備品",
-
   "npc.respec": "振り直し",
   "npc.builds": "ビルド",
   "npc.save": "保存",
@@ -133,7 +121,6 @@
   "npc.cost": "費用",
   "npc.need": "条件",
   "npc.bonus": "ボーナス",
-
   "settings.damage": "ダメージ表示",
   "settings.all": "全部",
   "settings.mine": "自分",
@@ -142,7 +129,6 @@
   "settings.shake": "画面の揺れ",
   "on": "ON",
   "off": "OFF",
-
   "el.neutral": "無",
   "el.fire": "火",
   "el.water": "水",
@@ -150,10 +136,28 @@
   "el.earth": "地",
   "el.light": "光",
   "el.dark": "闇",
-
   "title.rebirth1": "転生者",
   "title.rebirth2": "二度目の旅人",
   "title.rebirth3": "輪廻の探求者",
   "title.rebirth5": "星を巡る者",
-  "title.rebirth10": "終わりなき庭の主"
+  "title.rebirth10": "終わりなき庭の主",
+  "hud.reload": "RELOAD",
+  "hud.combo": "COMBO",
+  "hud.just": "JUST",
+  "hud.back": "BACK",
+  "mod.rangePct": "射程",
+  "mod.chargePct": "溜め速度",
+  "mod.comboMax": "コンボ上限",
+  "mod.magazine": "装弾数",
+  "mod.reloadPct": "リロード速度",
+  "mod.rhythmPct": "リズム効果",
+  "mod.drainPct": "吸収",
+  "mod.hpRegen": "HP自然回復",
+  "mod.mpRegen": "MP自然回復",
+  "mod.healPct": "回復量",
+  "mod.staRegenPct": "スタミナ回復",
+  "mod.maxSt": "MaxST",
+  "mod.expPct": "獲得経験値",
+  "mod.rareRatePct": "レア率",
+  "mod.gatherPct": "採集量"
 }

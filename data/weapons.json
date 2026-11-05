@@ -1,26 +1,534 @@
 {
-  "oneHandSword": {
-    "name": "片手剣", "hands": 1, "damageType": "physical", "icon": "sword",
-    "scaling": { "atk": { "str": 2.0, "dex": 0.5 }, "matk": { "int": 1.0 } },
-    "subs": ["shield", "dagger", "talisman"],
-    "attack": { "delivery": "strike", "anchor": "self", "shape": { "type": "arc", "range": 1.7, "arc": 120 },
-                "interval": 0.45, "power": 1.0, "mpGain": 10, "lock": 0.1, "range": 1.8, "breakPower": 1 },
-    "mechanic": { "type": "guard", "blockRate": 0, "blockReduce": 60 }
+ "oneHandSword": {
+  "name": "片手剣",
+  "hands": 1,
+  "damageType": "physical",
+  "icon": "sword",
+  "scaling": {
+   "atk": {
+    "str": 2.0,
+    "dex": 0.5
+   },
+   "matk": {
+    "int": 1.0
+   }
   },
-  "bow": {
-    "name": "弓", "hands": 2, "damageType": "physical", "icon": "bow",
-    "scaling": { "atk": { "dex": 2.2, "str": 0.3 }, "matk": { "int": 1.0 } },
-    "subs": ["quiver", "talisman"],
-    "attack": { "delivery": "projectile", "interval": 0.7, "power": 1.0, "mpGain": 10, "lock": 0.1, "range": 9, "breakPower": 0.7,
-                "projectile": { "count": 1, "spread": 0, "speed": 16, "range": 9, "radius": 0.25, "pierce": 1, "sprite": "arrow" } },
-    "mechanic": { "type": "none" }
+  "subs": [
+   "shield",
+   "dagger",
+   "talisman"
+  ],
+  "attack": {
+   "delivery": "strike",
+   "anchor": "self",
+   "shape": {
+    "type": "arc",
+    "range": 1.7,
+    "arc": 120
+   },
+   "interval": 0.45,
+   "power": 1.0,
+   "mpGain": 10,
+   "lock": 0.1,
+   "range": 1.8,
+   "breakPower": 1
   },
-  "staff": {
-    "name": "杖", "hands": 2, "damageType": "magic", "icon": "staff",
-    "scaling": { "atk": { "str": 1.0 }, "matk": { "int": 2.6 } },
-    "subs": ["grimoire", "talisman"],
-    "attack": { "delivery": "projectile", "interval": 0.8, "power": 1.0, "mpGain": 14, "lock": 0.15, "range": 7, "breakPower": 0.7,
-                "projectile": { "count": 1, "spread": 0, "speed": 11, "range": 7, "radius": 0.3, "pierce": 1, "sprite": "bolt" } },
-    "mechanic": { "type": "none" }
+  "mechanic": {
+   "type": "guard",
+   "blockRate": 0,
+   "blockReduce": 60
   }
+ },
+ "twoHandSword": {
+  "name": "両手剣",
+  "hands": 2,
+  "damageType": "physical",
+  "icon": "greatsword",
+  "scaling": {
+   "atk": {
+    "str": 2.4,
+    "vit": 0.4
+   },
+   "matk": {
+    "int": 1.0
+   }
+  },
+  "subs": [
+   "talisman"
+  ],
+  "attack": {
+   "delivery": "strike",
+   "anchor": "self",
+   "shape": {
+    "type": "arc",
+    "range": 2.2,
+    "arc": 150
+   },
+   "interval": 0.95,
+   "power": 1.55,
+   "mpGain": 14,
+   "lock": 0.25,
+   "range": 2.2,
+   "breakPower": 3
+  },
+  "mechanic": {
+   "type": "charge",
+   "levels": [
+    0.45,
+    1.0,
+    1.6
+   ],
+   "powerMul": [
+    1.6,
+    2.4,
+    3.4
+   ],
+   "breakMul": [
+    2,
+    3.5,
+    6
+   ],
+   "moveMul": 0.35
+  }
+ },
+ "dualSwords": {
+  "name": "双剣",
+  "hands": 2,
+  "damageType": "physical",
+  "icon": "dual",
+  "scaling": {
+   "atk": {
+    "agi": 1.4,
+    "str": 1.0,
+    "dex": 0.4
+   },
+   "matk": {
+    "int": 1.0
+   }
+  },
+  "subs": [
+   "talisman"
+  ],
+  "attack": {
+   "delivery": "strike",
+   "anchor": "self",
+   "shape": {
+    "type": "arc",
+    "range": 1.5,
+    "arc": 110
+   },
+   "interval": 0.3,
+   "power": 0.41,
+   "hits": 2,
+   "mpGain": 6,
+   "lock": 0.05,
+   "range": 1.6,
+   "breakPower": 0.5,
+   "status": [
+    {
+     "id": "bleed",
+     "chance": 8,
+     "duration": 4,
+     "power": 0.06
+    }
+   ]
+  },
+  "chain": [
+   {
+    "delivery": "strike",
+    "anchor": "self",
+    "shape": {
+     "type": "arc",
+     "range": 1.5,
+     "arc": 110
+    },
+    "interval": 0.3,
+    "power": 0.41,
+    "hits": 2,
+    "breakPower": 0.5
+   },
+   {
+    "delivery": "strike",
+    "anchor": "self",
+    "shape": {
+     "type": "circle",
+     "radius": 1.7
+    },
+    "interval": 0.45,
+    "power": 0.37,
+    "hits": 3,
+    "breakPower": 0.5
+   }
+  ],
+  "mechanic": {
+   "type": "flurry",
+   "dodgeCdMul": 0.6,
+   "statusBonus": 50
+  },
+  "dodge": {
+   "costMul": 0.6,
+   "speedMul": 1.1,
+   "iframesMul": 1.25
+  },
+  "mods": {
+   "statusChancePct": 50
+  }
+ },
+ "spear": {
+  "name": "槍",
+  "hands": 2,
+  "damageType": "physical",
+  "icon": "spear",
+  "scaling": {
+   "atk": {
+    "str": 1.6,
+    "agi": 0.9,
+    "dex": 0.5
+   },
+   "matk": {
+    "int": 1.0
+   }
+  },
+  "subs": [
+   "talisman"
+  ],
+  "attack": {
+   "delivery": "strike",
+   "anchor": "self",
+   "shape": {
+    "type": "line",
+    "range": 3.0,
+    "width": 0.8
+   },
+   "interval": 0.6,
+   "power": 1.0,
+   "mpGain": 10,
+   "lock": 0.1,
+   "range": 3.0,
+   "breakPower": 1.2
+  },
+  "chain": [
+   {
+    "delivery": "strike",
+    "anchor": "self",
+    "shape": {
+     "type": "line",
+     "range": 3.0,
+     "width": 0.8
+    },
+    "interval": 0.6,
+    "power": 1.0,
+    "breakPower": 1.2
+   },
+   {
+    "delivery": "strike",
+    "anchor": "self",
+    "shape": {
+     "type": "arc",
+     "range": 2.6,
+     "arc": 190
+    },
+    "interval": 0.75,
+    "power": 1.15,
+    "breakPower": 1.5
+   }
+  ],
+  "mechanic": {
+   "type": "spacing",
+   "sweetFrom": 0.62,
+   "bonus": 1.35
+  }
+ },
+ "bow": {
+  "name": "弓",
+  "hands": 2,
+  "damageType": "physical",
+  "icon": "bow",
+  "scaling": {
+   "atk": {
+    "dex": 2.2,
+    "str": 0.3
+   },
+   "matk": {
+    "int": 1.0
+   }
+  },
+  "subs": [
+   "quiver",
+   "talisman"
+  ],
+  "attack": {
+   "delivery": "projectile",
+   "interval": 0.65,
+   "power": 1.15,
+   "mpGain": 10,
+   "lock": 0.1,
+   "range": 9,
+   "breakPower": 0.7,
+   "projectile": {
+    "count": 1,
+    "spread": 0,
+    "speed": 16,
+    "range": 9,
+    "radius": 0.25,
+    "pierce": 1,
+    "sprite": "arrow"
+   }
+  },
+  "mechanic": {
+   "type": "none"
+  }
+ },
+ "staff": {
+  "name": "杖",
+  "hands": 2,
+  "damageType": "magic",
+  "icon": "staff",
+  "scaling": {
+   "atk": {
+    "str": 1.0
+   },
+   "matk": {
+    "int": 2.8
+   }
+  },
+  "subs": [
+   "grimoire",
+   "talisman"
+  ],
+  "attack": {
+   "delivery": "projectile",
+   "interval": 0.8,
+   "power": 1.35,
+   "mpGain": 14,
+   "lock": 0.15,
+   "range": 7,
+   "breakPower": 0.7,
+   "projectile": {
+    "count": 1,
+    "spread": 0,
+    "speed": 11,
+    "range": 7,
+    "radius": 0.3,
+    "pierce": 1,
+    "sprite": "bolt"
+   }
+  },
+  "mechanic": {
+   "type": "none"
+  }
+ },
+ "knuckles": {
+  "name": "手甲",
+  "hands": 1,
+  "damageType": "physical",
+  "icon": "fist",
+  "scaling": {
+   "atk": {
+    "agi": 1.35,
+    "str": 0.8,
+    "dex": 0.4
+   },
+   "matk": {
+    "int": 1.0
+   }
+  },
+  "subs": [
+   "shield",
+   "dagger",
+   "talisman"
+  ],
+  "attack": {
+   "delivery": "strike",
+   "anchor": "self",
+   "shape": {
+    "type": "arc",
+    "range": 1.25,
+    "arc": 90
+   },
+   "interval": 0.26,
+   "power": 0.57,
+   "mpGain": 6,
+   "lock": 0.05,
+   "range": 1.3,
+   "breakPower": 0.6
+  },
+  "chain": [
+   {
+    "delivery": "strike",
+    "anchor": "self",
+    "shape": {
+     "type": "arc",
+     "range": 1.25,
+     "arc": 90
+    },
+    "interval": 0.26,
+    "power": 0.57,
+    "breakPower": 0.6
+   },
+   {
+    "delivery": "strike",
+    "anchor": "self",
+    "shape": {
+     "type": "arc",
+     "range": 1.3,
+     "arc": 120
+    },
+    "interval": 0.32,
+    "power": 0.782,
+    "breakPower": 0.8
+   },
+   {
+    "delivery": "strike",
+    "anchor": "self",
+    "shape": {
+     "type": "line",
+     "range": 1.8,
+     "width": 1.0
+    },
+    "interval": 0.42,
+    "power": 1.15,
+    "breakPower": 2
+   }
+  ],
+  "mechanic": {
+   "type": "combo",
+   "window": 2.0,
+   "perStack": 0.5,
+   "max": 40
+  }
+ },
+ "gun": {
+  "name": "銃",
+  "hands": 2,
+  "damageType": "physical",
+  "icon": "gun",
+  "scaling": {
+   "atk": {
+    "dex": 2.2,
+    "agi": 0.5
+   },
+   "matk": {
+    "int": 1.0
+   }
+  },
+  "subs": [
+   "magazine",
+   "talisman"
+  ],
+  "attack": {
+   "delivery": "projectile",
+   "interval": 0.3,
+   "power": 0.66,
+   "mpGain": 6,
+   "lock": 0.05,
+   "range": 10,
+   "breakPower": 0.5,
+   "projectile": {
+    "count": 1,
+    "spread": 0,
+    "speed": 26,
+    "range": 10,
+    "radius": 0.2,
+    "pierce": 1,
+    "sprite": "bullet"
+   }
+  },
+  "mechanic": {
+   "type": "ammo",
+   "magazine": 8,
+   "reload": 1.4,
+   "backstabMul": 1.35,
+   "backstabCrit": 0.15
+  }
+ },
+ "scythe": {
+  "name": "鎌",
+  "hands": 2,
+  "damageType": "physical",
+  "icon": "scythe",
+  "scaling": {
+   "atk": {
+    "str": 1.9,
+    "int": 0.8
+   },
+   "matk": {
+    "int": 1.6
+   }
+  },
+  "subs": [
+   "grimoire",
+   "talisman"
+  ],
+  "attack": {
+   "delivery": "strike",
+   "anchor": "self",
+   "shape": {
+    "type": "arc",
+    "range": 2.4,
+    "arc": 220
+   },
+   "interval": 0.75,
+   "power": 1.25,
+   "mpGain": 11,
+   "lock": 0.15,
+   "range": 2.4,
+   "breakPower": 1.4
+  },
+  "mechanic": {
+   "type": "drain",
+   "pct": 1.5,
+   "darkBonus": 15
+  },
+  "mods": {
+   "lifestealPct": 1.5,
+   "darkDmgPct": 15
+  }
+ },
+ "instrument": {
+  "name": "楽器",
+  "hands": 2,
+  "damageType": "magic",
+  "icon": "lute",
+  "scaling": {
+   "atk": {
+    "str": 0.5
+   },
+   "matk": {
+    "int": 1.7,
+    "dex": 1.0
+   }
+  },
+  "subs": [
+   "grimoire",
+   "talisman"
+  ],
+  "attack": {
+   "delivery": "projectile",
+   "interval": 0.25,
+   "power": 0.95,
+   "mpGain": 12,
+   "lock": 0.05,
+   "range": 7,
+   "breakPower": 0.6,
+   "projectile": {
+    "count": 1,
+    "spread": 0,
+    "speed": 12,
+    "range": 7,
+    "radius": 0.45,
+    "pierce": 2,
+    "sprite": "note"
+   }
+  },
+  "mechanic": {
+   "type": "rhythm",
+   "bpm": 120,
+   "window": 2,
+   "maxStacks": 10,
+   "perStack": 6,
+   "missLoss": 2,
+   "perfectMul": 1.3
+  }
+ }
 }

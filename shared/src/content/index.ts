@@ -14,6 +14,7 @@ import shops from '../../../data/shops.json';
 import text from '../../../data/text.json';
 import tiles from '../../../data/tiles.json';
 import garden from '../../../data/maps/garden.json';
+import arena from '../../../data/maps/arena.json';
 import type { Content } from './types';
 
 export * from './types';
@@ -22,7 +23,7 @@ export * from './types';
 export const CONTENT = {
   balance, weapons, skills: skills.skills, trees: skills.trees, statuses, monsters, equipment, rarities, options,
   drops, materials, areas, npcs, shops, tiles, text,
-  maps: { garden },
+  maps: { garden, arena },
 } as unknown as Content;
 
 /** data/text.json の文言。{0} {1} を差し込める */

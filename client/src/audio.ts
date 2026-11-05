@@ -44,6 +44,9 @@ const SOUNDS: Record<string, Tone[]> = {
   enrage:  [{ wave: 'saw', freq: 120, freqEnd: 60, sustain: 0.2, decay: 0.6, volume: 0.35, vibrato: 12 }],
   respawn: [{ wave: 'sine', freq: 400, freqEnd: 800, decay: 0.3, volume: 0.25 }],
   equip:   [{ wave: 'tri', freq: 500, freqEnd: 700, decay: 0.08, volume: 0.2 }],
+  reload:  [{ wave: 'square', freq: 300, freqEnd: 200, decay: 0.05, volume: 0.15 }, { wave: 'noise', freq: 2000, decay: 0.04, volume: 0.1, at: 0.08 }],
+  reloadDone: [{ wave: 'square', freq: 500, freqEnd: 800, decay: 0.06, volume: 0.15 }],
+  note:    [{ wave: 'sine', freq: 880, decay: 0.15, volume: 0.2 }, { wave: 'sine', freq: 1320, decay: 0.12, volume: 0.12, at: 0.03 }],
 };
 
 export class Sfx {

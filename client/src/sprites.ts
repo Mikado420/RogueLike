@@ -126,6 +126,35 @@ const DRAWERS: Record<string, Drawer> = {
     g.moveTo(-6, -16).quadraticCurveTo(14, 0, -6, 16).stroke({ width: 5, color: 0xdff4ff, alpha: 0.9 });
     g.moveTo(-12, -12).quadraticCurveTo(6, 0, -12, 12).stroke({ width: 3, color: 0x9fd8ff, alpha: 0.6 });
   }),
+  bullet: () => gfx((g) => {
+    g.moveTo(-8, 0).lineTo(4, 0).stroke({ width: 2, color: 0xffe9a0, alpha: 0.7 });
+    g.circle(5, 0, 2.5).fill(0xfff6d0);
+  }),
+  bullet_big: () => gfx((g) => {
+    g.moveTo(-16, 0).lineTo(6, 0).stroke({ width: 3, color: 0xffd25a, alpha: 0.8 });
+    g.circle(7, 0, 4).fill(0xffffff);
+    g.circle(7, 0, 8).fill({ color: 0xffd25a, alpha: 0.3 });
+  }),
+  note: () => gfx((g) => {
+    g.circle(0, 0, 11).fill({ color: 0xff9ad8, alpha: 0.25 });
+    g.ellipse(-2, 3, 4, 3).fill(0xffe0f4);
+    g.moveTo(1.5, 3).lineTo(1.5, -8).lineTo(6, -6).stroke({ width: 2, color: 0xffe0f4 });
+  }),
+  dagger: () => gfx((g) => {
+    g.poly([10, 0, 0, -3, -6, 0, 0, 3]).fill(0xdfe6ee).stroke({ width: 1, color: 0x4a5060 });
+  }),
+  spear_tip: () => gfx((g) => {
+    g.moveTo(-14, 0).lineTo(6, 0).stroke({ width: 3, color: 0x9a7040 });
+    g.poly([14, 0, 4, -4, 4, 4]).fill(0xe6edf5);
+  }),
+  fist_wave: () => gfx((g) => {
+    g.circle(0, 0, 18).fill({ color: 0xffb06a, alpha: 0.25 });
+    g.moveTo(-6, -18).quadraticCurveTo(18, 0, -6, 18).stroke({ width: 6, color: 0xffd0a0, alpha: 0.9 });
+  }),
+  spark: () => gfx((g) => {
+    g.circle(0, 0, 8).fill({ color: 0xffe14a, alpha: 0.35 });
+    g.poly([6, 0, 0, -6, 2, -1, -6, 0, 0, 6, -2, 1]).fill(0xfff6a0);
+  }),
   crystal: () => gfx((g) => {
     g.poly([12, 0, 0, -6, -10, 0, 0, 6]).fill({ color: 0x9fe8ff, alpha: 0.9 }).stroke({ width: 1.5, color: 0xffffff });
   }),
@@ -162,6 +191,26 @@ const DRAWERS: Record<string, Drawer> = {
   item_armor: () => gfx((g) => {
     g.poly([-9, -8, -4, -10, 0, -7, 4, -10, 9, -8, 7, 9, -7, 9]).fill(0x9a8a6a).stroke({ width: 1.5, color: 0x3a3020 });
   }),
+  item_spear: () => gfx((g) => {
+    g.moveTo(-9, 9).lineTo(7, -7).stroke({ width: 2.5, color: 0x9a7040 });
+    g.poly([10, -10, 4, -8, 8, -4]).fill(0xdfe6ee);
+  }),
+  item_fist: () => gfx((g) => {
+    g.roundRect(-7, -6, 14, 12, 4).fill(0xb0a090).stroke({ width: 1.5, color: 0x4a4030 });
+    g.rect(-6, -6, 12, 3).fill(0x8a7a6a);
+  }),
+  item_gun: () => gfx((g) => {
+    g.rect(-9, -3, 16, 5).fill(0x5a6070);
+    g.rect(-6, 1, 5, 7).fill(0x6a4a2a);
+  }),
+  item_scythe: () => gfx((g) => {
+    g.moveTo(-6, 10).lineTo(4, -8).stroke({ width: 2.5, color: 0x6a4a2a });
+    g.moveTo(4, -8).quadraticCurveTo(-8, -12, -10, -2).stroke({ width: 3, color: 0xc8d0e0 });
+  }),
+  item_lute: () => gfx((g) => {
+    g.ellipse(-2, 3, 7, 6).fill(0xc8843a).stroke({ width: 1.5, color: 0x5a3a1a });
+    g.moveTo(3, -1).lineTo(10, -10).stroke({ width: 2.5, color: 0x6a4a2a });
+  }),
   item_ring: () => gfx((g) => {
     g.circle(0, 0, 6).stroke({ width: 3, color: 0xf3d36a });
     g.circle(0, -6, 3).fill(0x7cf0ff);
@@ -197,15 +246,45 @@ export function makeSprite(name: string): Container {
 /** 武器の見た目（キャラの手元に出す） */
 export function makeWeaponGlyph(weaponType: string | undefined): Graphics {
   const g = new Graphics();
-  if (weaponType === 'bow') {
-    g.moveTo(0, -12).quadraticCurveTo(12, 0, 0, 12).stroke({ width: 3, color: 0xa0703a });
-    g.moveTo(0, -12).lineTo(0, 12).stroke({ width: 1, color: 0xeeeeee });
-  } else if (weaponType === 'staff') {
-    g.moveTo(-4, 12).lineTo(4, -14).stroke({ width: 3, color: 0x8a5a2a });
-    g.circle(4, -16, 4.5).fill(0x8fe0ff);
-  } else {
-    g.moveTo(0, 2).lineTo(18, 0).stroke({ width: 3, color: 0xe6edf5 });
-    g.moveTo(1, -5).lineTo(1, 7).stroke({ width: 3, color: 0x8a6a3a });
+  switch (weaponType) {
+    case 'bow':
+      g.moveTo(0, -12).quadraticCurveTo(12, 0, 0, 12).stroke({ width: 3, color: 0xa0703a });
+      g.moveTo(0, -12).lineTo(0, 12).stroke({ width: 1, color: 0xeeeeee });
+      break;
+    case 'staff':
+      g.moveTo(-4, 12).lineTo(4, -14).stroke({ width: 3, color: 0x8a5a2a });
+      g.circle(4, -16, 4.5).fill(0x8fe0ff);
+      break;
+    case 'twoHandSword':
+      g.moveTo(0, 2).lineTo(26, 0).stroke({ width: 5, color: 0xd0d8e4 });
+      g.moveTo(1, -7).lineTo(1, 10).stroke({ width: 3, color: 0x8a6a3a });
+      break;
+    case 'dualSwords':
+      g.moveTo(0, -2).lineTo(15, -5).stroke({ width: 2.5, color: 0xe6edf5 });
+      g.moveTo(0, 4).lineTo(15, 7).stroke({ width: 2.5, color: 0xe6edf5 });
+      break;
+    case 'spear':
+      g.moveTo(-10, 1).lineTo(26, 0).stroke({ width: 2.5, color: 0x9a7040 });
+      g.poly([32, 0, 24, -4, 24, 4]).fill(0xe6edf5);
+      break;
+    case 'knuckles':
+      g.roundRect(-2, -5, 10, 10, 3).fill(0xb0a090).stroke({ width: 1.5, color: 0x4a4030 });
+      break;
+    case 'gun':
+      g.rect(0, -3, 18, 5).fill(0x5a6070);
+      g.rect(2, 1, 5, 7).fill(0x6a4a2a);
+      break;
+    case 'scythe':
+      g.moveTo(-6, 12).lineTo(6, -16).stroke({ width: 3, color: 0x6a4a2a });
+      g.moveTo(6, -16).quadraticCurveTo(-12, -22, -16, -8).stroke({ width: 4, color: 0xc8d0e0 });
+      break;
+    case 'instrument':
+      g.ellipse(2, 4, 9, 7).fill(0xc8843a).stroke({ width: 1.5, color: 0x5a3a1a });
+      g.moveTo(8, 0).lineTo(18, -12).stroke({ width: 3, color: 0x6a4a2a });
+      break;
+    default:
+      g.moveTo(0, 2).lineTo(18, 0).stroke({ width: 3, color: 0xe6edf5 });
+      g.moveTo(1, -5).lineTo(1, 7).stroke({ width: 3, color: 0x8a6a3a });
   }
   return g;
 }

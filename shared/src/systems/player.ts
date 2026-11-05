@@ -3,7 +3,7 @@ import { moveCircle } from '../map';
 import { derivePlayerStats } from './stats';
 import { cannotAct } from './status';
 import { castSkill, slotSkill, type Aim } from './skills';
-import { updateNormalAttack } from './weapons';
+import { updateNormalAttack, updateWeaponTimers, weaponDef } from './weapons';
 import { applyCommand } from './commands';
 import { heal } from './combat';
 import { interact } from './interact';
@@ -30,6 +30,7 @@ export function updatePlayer(w: World, p: Player, input: PlayerInput) {
     return;
   }
 
+  updateWeaponTimers(w, p);
   if (p.attackCd > 0) p.attackCd--;
   for (const k in p.skillCd) if (p.skillCd[k] > 0) p.skillCd[k]--;
   if (p.lock > 0) p.lock--;
@@ -56,13 +57,14 @@ export function updatePlayer(w: World, p: Player, input: PlayerInput) {
 
   // 回避
   if (input.dodge && !stunned && p.dodgeTicks <= 0) {
-    const cost = pb.dodgeCost * Math.max(0.2, 1 + (p.stats.m.dodgeCostPct ?? 0) / 100);
+    const wd = weaponDef(w, p)?.dodge ?? {};
+    const cost = pb.dodgeCost * (wd.costMul ?? 1) * Math.max(0.2, 1 + (p.stats.m.dodgeCostPct ?? 0) / 100);
     if (p.st >= cost) {
       p.st -= cost;
       p.stDelay = sec(w, pb.staminaRegenDelay);
       p.dodgeTicks = sec(w, pb.dodgeDuration);
-      p.dashSpeed = pb.dodgeSpeed;
-      p.iframes = Math.max(p.iframes, sec(w, pb.dodgeIframes));
+      p.dashSpeed = pb.dodgeSpeed * (wd.speedMul ?? 1);
+      p.iframes = Math.max(p.iframes, Math.round(sec(w, pb.dodgeIframes) * (wd.iframesMul ?? 1)));
       p.lock = 0;
       p.charge = 0;
       p.lastDodgeTick = w.tick;
@@ -85,7 +87,7 @@ export function updatePlayer(w: World, p: Player, input: PlayerInput) {
 
   p.moving = false;
   if (!stunned) {
-    const speed = p.lock > 0 ? 0 : p.stats.moveSpeed * (p.charge > 0 ? chargeMoveMul(w, p) : 1);
+    const speed = p.lock > 0 ? 0 : p.stats.moveSpeed * (p.charge > sec(w, c.balance.combat.chargeMinMove) ? chargeMoveMul(w, p) : 1);
     if (ml > 0.05 && speed > 0) {
       const v = speed * DT(w);
       p.moving = moveCircle(w.area.map, p, p.r, mx * v, my * v);
@@ -113,8 +115,8 @@ export function updatePlayer(w: World, p: Player, input: PlayerInput) {
 }
 
 function chargeMoveMul(w: World, p: Player): number {
-  const wd = w.content.weapons[(p.char.equipment.weapon?.kind ?? 'oneHandSword') as 'oneHandSword'];
-  return wd?.mechanic.type === 'charge' ? wd.mechanic.moveMul : 1;
+  const m = weaponDef(w, p)?.mechanic;
+  return m?.type === 'charge' ? m.moveMul : 1;
 }
 
 export function respawnPlayer(w: World, p: Player) {
