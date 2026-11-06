@@ -188,6 +188,7 @@
   "cond.hpBelow": "HP{0}%以下",
   "cond.afterDodge": "回避後{0}秒",
   "cond.night": "夜",
+  "settings.mouseHelp": "マウス：左クリック＝攻撃（押しっぱなしで連続）／右クリック＝回避／ホイール＝スキルを選ぶ（光る枠）／中クリック＝選んだスキル。左手は WASD で移動、すぐ上の 1〜4 でもスキル。",
   "cond.chargeMax": "溜め最大",
   "cond.combo": "コンボ{0}以上",
   "cond.afterReload": "装填後{0}秒",

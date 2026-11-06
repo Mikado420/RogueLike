@@ -92,3 +92,15 @@ describe('なくなったミッション', () => {
     if (keep) expect(p.char.missions.weekly[1]).toEqual(keep);
   });
 });
+
+describe('杖の自動追従', () => {
+  it('杖の弾は、狙いが少しずれていても敵を追いかけて当たる', async () => {
+    const { makeTraining } = await import('./helpers');
+    const { w, p, m } = makeTraining('staff', 30, 5);
+    const hp = m.hp;
+    // 敵（右）からずらして、斜め上を狙って撃つ
+    for (let t = 0; t < 40; t++) tick(w, p, { attack: t < 2, aim: { x: 0.7, y: -0.7 } });
+    expect(w.area.projectiles.every((pr) => pr.homing > 0) || w.area.projectiles.length === 0).toBe(true);
+    expect(m.hp).toBeLessThan(hp);
+  });
+});

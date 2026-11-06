@@ -30,6 +30,8 @@ export const DEFAULT_KEYS: Record<Action, string[]> = {
 export class InputManager {
   private keys = new Set<string>();
   private mouseHeld = false;
+  /** ホイールで選んだスキル（中クリックで使う） */
+  selectedSkill = 0;
   private uiAttackHeld = false;
   private pendingSkill = -1;
   private pendingDodge = false;
@@ -73,9 +75,17 @@ export class InputManager {
     canvasHost.addEventListener('pointerdown', (e) => {
       if (e.pointerType !== 'mouse') return;
       this.mouse = { x: e.clientX, y: e.clientY, movedAt: performance.now() };
+      // マウス中心の操作：左＝攻撃、右＝回避、中＝選んだスキル
       if (e.button === 0) this.mouseHeld = true;
-      if (e.button === 2) this.pendingSkill = 0;
+      if (e.button === 2 && this.enabled) this.pendingDodge = true;
+      if (e.button === 1 && this.enabled) { e.preventDefault(); this.pendingSkill = this.selectedSkill; }
     });
+    // ホイールでスキルを選ぶ
+    canvasHost.addEventListener('wheel', (e) => {
+      if (!this.enabled || Math.abs(e.deltaY) < 1) return;
+      e.preventDefault();
+      this.selectedSkill = (this.selectedSkill + (e.deltaY > 0 ? 1 : 3)) % 4;
+    }, { passive: false });
     window.addEventListener('pointerup', this.onPointerUp);
     canvasHost.addEventListener('contextmenu', (e) => e.preventDefault());
   }

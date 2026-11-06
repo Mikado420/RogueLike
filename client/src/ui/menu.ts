@@ -509,6 +509,7 @@ export class Menu {
     const kh = h('div', 'set-row');
     kh.append(h('div', 'sec-title', txt('settings.keys')), btn(txt('settings.reset'), () => { s.keys = {}; apply(); this.refresh(); }, 'mini'));
     keys.append(kh);
+    keys.append(h('div', 'mouse-help', txt('settings.mouseHelp')));
     const grid = h('div', 'keys-grid');
     const b = this.ctx.input.currentBindings;
     for (const a of ACTIONS) {

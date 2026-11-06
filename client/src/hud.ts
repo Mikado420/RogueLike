@@ -508,6 +508,8 @@ export class Hud {
     }
     ids.forEach((id, i) => {
       const b = this.skillBtns[i];
+      // マウスのホイールで選んでいるスキル（タッチでは出さない）
+      b.btn.classList.toggle('selected', !this.touch && this.input.selectedSkill === i && !!id);
       if (!id) { b.cd.style.background = ''; b.cdText.textContent = ''; return; }
       const sd = CONTENT.skills[id];
       const cd = p.skillCd[id] ?? 0;
