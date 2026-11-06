@@ -1,15 +1,109 @@
 {
-  "area": "meadow",
-  "steps": [
-    { "id": "move",   "type": "move",  "n": 6, "text": "移動",       "keys": ["up", "left", "down", "right"] },
-    { "id": "attack", "type": "hit",   "n": 3, "text": "攻撃",       "keys": ["attack"] },
-    { "id": "dodge",  "type": "dodge", "n": 1, "text": "回避",       "keys": ["dodge"] },
-    { "id": "learn",  "type": "learn", "n": 1, "text": "スキルを覚える", "keys": ["menu"], "tab": "skills" },
-    { "id": "skill",  "type": "skill", "n": 1, "text": "スキル",     "keys": ["skill1"] },
-    { "id": "stats",  "type": "stats", "n": 1, "text": "ステ振り",   "keys": ["menu"], "tab": "status" },
-    { "id": "equip",  "type": "equip", "n": 1, "text": "装備",       "keys": ["menu"], "tab": "items",
-      "gift": { "base": "w_oneHandSword", "rarity": "rare" } },
-    { "id": "town",   "type": "town",  "n": 1, "text": "街へ",       "keys": [], "dir": "west" }
-  ],
-  "reward": { "gold": 500, "items": { "potion_s": 5, "seal_stone": 2 } }
+ "area": "meadow",
+ "steps": [
+  {
+   "id": "move",
+   "type": "move",
+   "n": 6,
+   "text": "歩いてみよう",
+   "keys": [
+    "up",
+    "left",
+    "down",
+    "right"
+   ],
+   "hint": "WASD か矢印キーで歩きます。",
+   "touch": "左下をなぞると歩けます。指を置いたところがスティックになります。"
+  },
+  {
+   "id": "attack",
+   "type": "hit",
+   "n": 3,
+   "text": "近くのスライムをたたこう",
+   "keys": [
+    "attack"
+   ],
+   "hint": "J キーで攻撃。近くの敵を自動で狙います。",
+   "touch": "右下の「攻撃」を押すと、近くの敵を自動で狙います。"
+  },
+  {
+   "id": "dodge",
+   "type": "dodge",
+   "n": 1,
+   "text": "回避してみよう",
+   "keys": [
+    "dodge"
+   ],
+   "hint": "Space で前に転がります。転がっている間はダメージを受けません。",
+   "touch": "「回避」を押すと前に転がります。転がっている間はダメージを受けません。"
+  },
+  {
+   "id": "learn",
+   "type": "learn",
+   "n": 1,
+   "text": "スキルを覚えよう",
+   "keys": [
+    "menu"
+   ],
+   "tab": "skills",
+   "hint": "メニュー（6）→「スキル」で、ポイントを使って覚えます。",
+   "touch": "右上のメニュー →「スキル」で、ポイントを使って覚えます。"
+  },
+  {
+   "id": "skill",
+   "type": "skill",
+   "n": 1,
+   "text": "スキルを使おう",
+   "keys": [
+    "skill1"
+   ],
+   "hint": "1 キーで、覚えたスキルを使います（MP を使います）。",
+   "touch": "右下の「1」のボタンで、覚えたスキルを使います（MP を使います）。"
+  },
+  {
+   "id": "stats",
+   "type": "stats",
+   "n": 1,
+   "text": "能力値を振ろう",
+   "keys": [
+    "menu"
+   ],
+   "tab": "status",
+   "hint": "メニュー →「ステータス」で、レベルアップでもらったポイントを振ります。",
+   "touch": "右上のメニュー →「ステータス」で、もらったポイントを振ります。迷ったら「おすすめで振る」。"
+  },
+  {
+   "id": "equip",
+   "type": "equip",
+   "n": 1,
+   "text": "もらった武器を装備しよう",
+   "keys": [
+    "menu"
+   ],
+   "tab": "items",
+   "gift": {
+    "base": "w_oneHandSword",
+    "rarity": "rare"
+   },
+   "hint": "メニュー →「持ち物」で、届いた武器を選んで装備します。",
+   "touch": "右上のメニュー →「持ち物」で、届いた武器を選んで装備します。"
+  },
+  {
+   "id": "town",
+   "type": "town",
+   "n": 1,
+   "text": "街へ行こう",
+   "keys": [],
+   "dir": "west",
+   "hint": "画面の矢印の方向（西）へ進むと、街ルミナに着きます。",
+   "touch": "画面の矢印の方向（西）へ進むと、街ルミナに着きます。街では武器の師範から好きな武器を 1 本もらえます。"
+  }
+ ],
+ "reward": {
+  "gold": 500,
+  "items": {
+   "potion_s": 5,
+   "seal_stone": 2
+  }
+ }
 }

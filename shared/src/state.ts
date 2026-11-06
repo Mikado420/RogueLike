@@ -74,6 +74,8 @@ export interface CharacterData {
   lootFilter: { hideBelow: Rarity | null; sellBelow: Rarity | null };
   /** 訪れた街（ファストトラベル先） */
   visitedTowns: string[];
+  /** 武器の師範から受け取った最初の武器（1回だけ） */
+  starterWeapon?: string;
   /** 図鑑：倒した数・手に入れた装備の土台・素材 */
   codex: { monsters: Record<string, number>; items: Record<string, number>; materials: Record<string, number> };
   missions: { day: number; daily: MissionState[]; week: number; weekly: MissionState[] };
@@ -170,6 +172,7 @@ export type Command =
   | { type: 'inheritPet'; base: number; material: number; skill: string; slot: number }
   | { type: 'releasePet'; uid: number }
   | { type: 'skipTutorial' }
+  | { type: 'starterWeapon'; base: string }
   | { type: 'say'; text: string }
   | { type: 'marketList'; uid: number; price: number }
   | { type: 'marketBuy'; id: string; price: number }

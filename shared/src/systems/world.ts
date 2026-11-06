@@ -103,6 +103,8 @@ export function placePlayer(w: World, p: Player, at: { x: number; y: number } | 
     p.char.visitedTowns.push(w.area.id);
     w.events.push({ type: 'notice', playerId: p.id, key: 'notice.townVisited', args: [def.name] });
   }
+  // チュートリアル中は、入口の安全地帯に練習用のスライムを 1 体置く（安全地帯では襲ってこない）
+  spawnPracticeTarget(w, p);
   // 塔の階は入った人を狙ってくる
   if (w.area.instance?.kind === 'tower') {
     for (const m of w.area.monsters) if (m.targetId === -1 && m.ai === 'chase') m.targetId = p.id;
@@ -189,7 +191,7 @@ export function makePlayer(w: World, char: CharacterData, account: AccountData):
     id: newId(w), kind: 'player', char, account, transition: null, partyId: null, guildBase: null, rescuer: false, stall: null, x: 0, y: 0, r: 0.32, facing: Math.PI / 4,
     hp: char.hp > 0 ? Math.min(char.hp, stats.maxHp) : stats.maxHp, stats, team: 0, dead: false, statuses: [],
     stagger: 0, moving: false, statsDirty: false,
-    mp: Math.min(char.mp ?? 0, stats.maxMp), st: stats.maxSt, stDelay: 0, attackCd: 0, chainIndex: 0, chainUntil: 0,
+    mp: char.playTime > 0 ? Math.min(char.mp ?? 0, stats.maxMp) : stats.maxMp, st: stats.maxSt, stDelay: 0, attackCd: 0, chainIndex: 0, chainUntil: 0,
     skillCd: {}, skillCdMax: {}, lock: 0, dodgeTicks: 0, dodgeDir: { x: 0, y: 0 }, dashSpeed: 0, iframes: 0,
     respawnTicks: 0, prevAttack: false, charge: 0, ammo: -1, reloadTicks: 0, combo: 0, comboUntil: 0, rhythm: 0,
     lastDodgeTick: -9999, lastCombatTick: -9999, regenAcc: 0, condKey: '', cheatDeathAt: -1e9, tutPos: { x: 0, y: 0 },
@@ -224,6 +226,23 @@ function extraSpots(def: AreaDef): Record<string, [number, number, number]> {
   return out;
 }
 
+function spawnPracticeTarget(w: World, p: Player) {
+  const c = w.content;
+  const t = p.char.tutorial;
+  const attackStep = c.tutorial.steps.findIndex((s) => s.type === 'hit');
+  if (t.done || w.area.id !== c.tutorial.area || w.area.type !== 'field' || attackStep < 0 || t.step > attackStep || !c.monsters.slime) return;
+  const key = `practice:${p.char.id}`;
+  if (w.area.monsters.some((m) => !m.dead && m.spawnKey === key)) return;
+  const cx = w.area.map.width / 2, cy = w.area.map.height / 2;
+  const base = Math.atan2(cy - p.y, cx - p.x);
+  for (const off of [0, 0.5, -0.5, 1, -1, 1.6, -1.6, Math.PI]) {
+    const x = p.x + Math.cos(base + off) * 3, y = p.y + Math.sin(base + off) * 3;
+    if (circleHitsMap(w.area.map, x, y, 0.6)) continue;
+    spawnMonster(w, { key, monster: 'slime', x, y, level: [1, 1], monsterId: -1, respawnAt: 0 }, { level: 1 });
+    return;
+  }
+}
+
 /** エリアを作る（マップ・NPC・モンスター） */
 export function buildArea(w: World, areaId: string): AreaInstance {
   const c = w.content;
@@ -244,7 +263,7 @@ export function buildArea(w: World, areaId: string): AreaInstance {
       key: `${areaId}:${i}`, monster: s.monster, x: s.x, y: s.y, level: s.level, monsterId: -1, respawnAt: 0,
     })),
     playerSpawn: { ...playerSpawn },
-    safeRadius: def.safeRadius ?? 0,
+    safeRadius: def.safeRadius ?? (def.type === 'field' ? 8 : 0),
     exits: [...(gen?.exits ?? []), ...(def.exits ?? [])],
     spawnPoints,
     spots: { ...(gen?.spots ?? {}) },

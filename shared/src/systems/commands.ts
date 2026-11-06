@@ -9,7 +9,8 @@ import {
   setAppearance, setLootFilter, sortItems, unequipItem, useItem, withdraw, withdrawBag,
 } from './items';
 import { nearRole } from './interact';
-import { notice } from './util';
+import { newUid, notice } from './util';
+import { createItem } from './loot';
 import { setCounterMax } from './counters';
 import { enterDungeon, enterRaid, enterTower, leaveInstance } from './instance';
 import { claimMission, equipTitle } from './quest';
@@ -103,6 +104,7 @@ export function applyCommand(w: World, p: Player, cmd: Command) {
     case 'emote': err = emote(w, p, cmd.emote); break;
     case 'rescue': err = requestRescue(w, p); break;
     case 'matchDungeon': err = requestMatch(w, p, cmd.dungeon, cmd.difficulty, !!cmd.cancel); break;
+    case 'starterWeapon': err = takeStarterWeapon(w, p, cmd.base); break;
     case 'skipTutorial': p.char.tutorial.done = true; w.events.push({ type: 'tutorial', playerId: p.id, step: p.char.tutorial.step, done: true }); break;
     case 'setActivePet': err = setActivePet(p, cmd.uid); break;
     case 'setPetRole': err = setPetRole(p, cmd.uid, cmd.role); break;
@@ -120,4 +122,18 @@ export function applyCommand(w: World, p: Player, cmd: Command) {
     p.statsDirty = true;
     w.events.push({ type: 'charChanged', playerId: p.id });
   }
+}
+
+/** 武器の師範から、最初の武器を 1 本だけ受け取る */
+function takeStarterWeapon(w: World, p: Player, base: string): string | null {
+  const c = w.content;
+  if (!nearRole(w, p, 'starter')) return 'err.notNear';
+  if (p.char.starterWeapon) return 'err.invalid';
+  if (!(c.balance.start.starterWeapons ?? []).includes(base)) return 'err.invalid';
+  if (p.char.inventory.length >= c.balance.player.inventorySize) return 'err.full';
+  const it = createItem(newUid(w), base, 0, 1, 'common', w.rng, c);
+  p.char.inventory.push(it);
+  p.char.starterWeapon = base;
+  w.events.push({ type: 'pickup', playerId: p.id, item: it });
+  return null;
 }

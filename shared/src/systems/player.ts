@@ -141,10 +141,15 @@ export function respawnPlayer(w: World, p: Player) {
   refreshPlayerStats(w, p);
   p.hp = p.stats.maxHp;
   p.st = p.stats.maxSt;
-  p.mp = 0;
+  p.mp = p.stats.maxMp;
   p.x = w.area.playerSpawn.x;
   p.y = w.area.playerSpawn.y;
-  p.iframes = sec(w, 1.5);
+  p.iframes = sec(w, 3);
   p.statuses = [];
   w.events.push({ type: 'respawn', id: p.id });
+  // フィールドで倒れたら、最後に寄った街で起きる
+  if (w.area.type === 'field') {
+    const town = p.char.visitedTowns.at(-1) ?? w.content.balance.world.startTown;
+    if (w.content.areas[town]) p.transition = { to: town, spawn: '' };
+  }
 }

@@ -83,5 +83,11 @@
   "sprite": "npc_cook",
   "role": "kitchen",
   "color": "#ffcf8a"
+ },
+ "weapon_master": {
+  "name": "武器の師範",
+  "sprite": "npc_smith",
+  "role": "starter",
+  "color": "#8fd0ff"
  }
 }

@@ -3,6 +3,8 @@ import { makeEnv, flush } from './runtime';
 import { TestClient, tickAll } from './client';
 import { call } from '../src/util/http';
 import type { AccountData, Item } from '../../shared/src';
+import { createItem } from '../../shared/src/systems/loot';
+import { newUid } from '../../shared/src/systems/util';
 
 const area = (env: any, key: string) => env.AREA.instances.get(key) ?? env.INSTANCE.instances.get(key);
 const playerOf = (env: any, c: TestClient) => area(env, c.key).host.world.players.find((p: any) => p.id === c.you);
@@ -43,7 +45,15 @@ async function setup(n = 2, area0 = 'lumina') {
     await c.play(id);
     cs.push(c);
   }
-  for (const c of cs) { const p = playerOf(env, c); p.char.gold = 10000; p.char.tutorial.done = true; }
+  for (const c of cs) {
+    const p = playerOf(env, c); p.char.gold = 10000; p.char.tutorial.done = true;
+    // 売り買いに使う品（最初の持ち物は空なので、ここで持たせる）
+    const w = area(env, c.key).host.world;
+    for (const base of ['w_twoHandSword', 'w_bow']) p.char.inventory.push(createItem(newUid(w), base, 0, 1, 'common', w.rng, w.content));
+  }
+  // すぐ保存させる（数え始めの時点でアカウントに入っているように）
+  for (const c of cs) for (const conn of area(env, c.key).conns.values()) conn.lastSave = -1e15;
+  await tickAll(env, 2); await flush(10);
   void area0;
   return { env, cs };
 }

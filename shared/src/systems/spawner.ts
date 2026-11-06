@@ -3,7 +3,7 @@ import { circleHitsMap } from '../map';
 import { isNight } from './time';
 import { currentWeather, weatherDef } from './weather';
 import { spawnMonster } from './world';
-import { sec } from './util';
+import { inSafeZone, sec } from './util';
 
 /**
  * フィールドの湧き（数を保つ・夜だけの魔物・霧の奇襲型・精鋭）と、フィールドボスの時間湧き。
@@ -52,6 +52,7 @@ export function spawnFieldMonster(w: World): Monster | null {
     const y = w.rng.int(2, area.map.height - 3) + 0.5;
     if (circleHitsMap(area.map, x, y, 0.6)) continue;
     if (w.players.some((p) => Math.hypot(p.x - x, p.y - y) < wb.spawnMinDist)) continue;
+    if (inSafeZone(w, x, y, 3)) continue;
     if (area.exits.some((e) => x >= e.rect[0] - 4 && x <= e.rect[2] + 4 && y >= e.rect[1] - 4 && y <= e.rect[3] + 4)) continue;
     if (Object.values(area.spots).some((s) => Math.hypot(s.x - x, s.y - y) < 4)) continue;
     const level = levelAt(w, x, y);

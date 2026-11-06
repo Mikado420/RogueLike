@@ -31,7 +31,7 @@ describe('装備の生成', () => {
     const { w, ch } = makeWorld(2);
     const shield = createItem(900, 's_shield', 0, 1, 'common', new Rng(1), C);
     const quiver = createItem(901, 's_quiver', 0, 1, 'common', new Rng(1), C);
-    ch.inventory.push(shield, quiver);
+    ch.inventory.push(shield, quiver, createItem(902, 'w_bow', 0, 1, 'common', new Rng(1), C));
     expect(equipItem(w, ch, 901)).toBe('err.subMismatch');
     expect(equipItem(w, ch, 900)).toBeNull();
     expect(ch.equipment.sub?.uid).toBe(900);
@@ -203,6 +203,7 @@ describe('固有効果とミシック', () => {
 describe('倉庫・並べ替え・ルートフィルター・アバター', () => {
   it('倉庫はアカウントで共有し、広げるとゴールドを使う', () => {
     const { w, ch, acc } = makeWorld(10);
+    ch.inventory.push(createItem(903, 'w_spear', 0, 1, 'common', new Rng(1), C));
     const it = ch.inventory[0];
     expect(deposit(w, ch, it.uid)).toBeNull();
     expect(acc.storage.items[0].uid).toBe(it.uid);

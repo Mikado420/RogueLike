@@ -8,6 +8,8 @@ interface Particle { x: number; y: number; v: number; s: number }
 /** 昼夜・天候の色味、夜と霧の視界、雨・雪などの粒（画面に重ねる） */
 export class Ambience {
   readonly layer = new Container();
+  /** はじめたばかりの人には、天気の暗さと粒を弱めて見せる */
+  soft = false;
   private tint = new Graphics();
   private vision: Sprite;
   private visionFill = new Graphics();
@@ -44,7 +46,8 @@ export class Ambience {
     const layers: { color: string; alpha: number }[] = [];
     if (!indoor) {
       layers.push(amb.phases[phase] ?? { color: '#ffffff', alpha: 0 });
-      if (amb.weather[weather]) layers.push(amb.weather[weather]);
+      const wl = amb.weather[weather];
+      if (wl) layers.push(this.soft ? { color: wl.color, alpha: wl.alpha * 0.35 } : wl);
     }
     if (amb.areaTint[w.area.id]) layers.push(amb.areaTint[w.area.id]);
     for (const l of layers) if (l.alpha > 0) this.tint.rect(0, 0, sw, sh).fill({ color: hex(l.color), alpha: l.alpha });
@@ -78,7 +81,7 @@ export class Ambience {
     // 粒
     const wd = indoor ? undefined : amb.weather[weather];
     const kind = wd?.particles ?? '';
-    const count = Math.round((wd?.count ?? 0) * (this.quality === 'low' ? 0.35 : 1));
+    const count = Math.round((wd?.count ?? 0) * (this.quality === 'low' ? 0.35 : 1) * (this.soft ? 0.4 : 1));
     if (kind !== this.kind || this.parts.length !== count) {
       this.kind = kind;
       this.parts = Array.from({ length: count }, () => ({ x: Math.random() * sw, y: Math.random() * sh, v: 0.6 + Math.random() * 0.8, s: Math.random() }));

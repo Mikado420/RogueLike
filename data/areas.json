@@ -79,7 +79,8 @@
     "npc": "cook",
     "x": 30.5,
     "y": 21.5
-   }
+   },
+    {"npc": "weapon_master", "x": 23.5, "y": 27.5}
   ],
   "travelCost": 100,
   "weather": {
@@ -203,6 +204,7 @@
  "meadow": {
   "name": "翠風の草原",
   "type": "field",
+  "safeRadius": 10,
   "level": [
    1,
    14
@@ -274,10 +276,8 @@
   "weather": {
    "clear": 50,
    "rain": 25,
-   "storm": 8,
    "fog": 15,
-   "aurora": 1,
-   "bloodmoon": 1
+   "aurora": 1
   }
  },
  "marsh": {

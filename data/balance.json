@@ -165,7 +165,7 @@
     "inventorySize": 60,
     "skillSlots": 4,
     "interactRange": 1.8,
-    "mpRegenOutOfCombat": 0,
+    "mpRegenOutOfCombat": 4,
     "hpRegenOutOfCombat": 2,
     "combatTimeout": 5,
     "blockReduce": 50
@@ -242,35 +242,8 @@
         "slot": "body"
       }
     ],
-    "inventory": [
-      {
-        "base": "w_twoHandSword"
-      },
-      {
-        "base": "w_dualSwords"
-      },
-      {
-        "base": "w_spear"
-      },
-      {
-        "base": "w_bow"
-      },
-      {
-        "base": "w_staff"
-      },
-      {
-        "base": "w_knuckles"
-      },
-      {
-        "base": "w_gun"
-      },
-      {
-        "base": "w_scythe"
-      },
-      {
-        "base": "w_instrument"
-      }
-    ]
+    "inventory": [],
+    "starterWeapons": ["w_twoHandSword", "w_dualSwords", "w_spear", "w_bow", "w_staff", "w_knuckles", "w_gun", "w_scythe", "w_instrument"]
   },
   "combat": {
     "backAngle": 110,

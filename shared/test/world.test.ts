@@ -100,7 +100,9 @@ describe('シミュレーション', () => {
     expect(p.skillCd.slash).toBeGreaterThan(0);
     const mp = p.mp;
     tick(w, p, { skill: 0 });
-    expect(p.mp).toBe(mp);
+    // クールダウン中は使えない（戦闘外の自然回復のぶんだけ増えることはある）
+    expect(p.mp).toBeGreaterThanOrEqual(mp);
+    expect(p.mp).toBeLessThan(mp + 1);
   });
 
   it('バフスキルで ATK が上がり、時間で切れる', () => {

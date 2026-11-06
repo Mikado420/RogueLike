@@ -53,10 +53,13 @@ describe('複数人で同じエリア', () => {
   for (const n of [2, 5, 10]) {
     it(`${n}人のボットが同じフィールドで見え合い、戦える`, () => {
       const { srv, bots } = runBots(n, 600);
-      const host = srv.host(bots[0].sid)!;
-      // 全員が同じワールドにいて、お互いが見える
-      for (const b of bots) expect(srv.host(b.sid)).toBe(host);
-      expect(host.world.players.length).toBe(n);
+      // フィールドにいる人は全員同じワールドにいて、お互いが見える（倒れた人は街で起きる）
+      const hosts = bots.map((b) => srv.host(b.sid)!);
+      const field = hosts.filter((h) => h.world.area.type === 'field');
+      expect(field.length).toBeGreaterThan(0);
+      expect(new Set(field).size).toBe(1);
+      expect(field[0].world.players.length).toBe(field.length);
+      for (const h of hosts) expect(['field', 'town']).toContain(h.world.area.type);
       // 魔物を倒した記録がある
       const kills = bots.reduce((s, b) => s + (b.acc.characters[0].counters.kills ?? 0), 0);
       expect(kills).toBeGreaterThan(0);

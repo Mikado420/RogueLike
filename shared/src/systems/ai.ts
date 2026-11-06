@@ -5,7 +5,7 @@ import { lineOfSight, moveCircle } from '../map';
 import { buildSpec, launchAttack } from './combat';
 import { cannotAct, regenPoise } from './status';
 import { monsterStats } from './stats';
-import { DT, findActor, isBoss, sec } from './util';
+import { DT, findActor, inSafeZone, isBoss, sec } from './util';
 import { bossHooks } from './boss';
 import { isNight } from './time';
 
@@ -62,7 +62,7 @@ export function updateMonster(w: World, m: Monster) {
   if (m.ai === 'wander') {
     const aggro = def.aggroRange * (isNight(w) && w.area.type === 'field' ? w.content.time.night.aggroMul : 1);
     for (const p of w.players) {
-      if (p.dead) continue;
+      if (p.dead || inSafeZone(w, p.x, p.y)) continue;
       if (Math.hypot(p.x - m.x, p.y - m.y) <= aggro && lineOfSight(w.area.map, m.x, m.y, p.x, p.y)) {
         m.ai = 'chase'; m.targetId = p.id; m.hidden = false; break;
       }
@@ -81,7 +81,7 @@ export function updateMonster(w: World, m: Monster) {
 
   if (m.ai === 'chase') {
     const target = targetOf(w, m);
-    if (!target || (!m.invader && !m.summonedBy && distHome > def.leashRange) || (m.summonedBy > 0 && distHome > def.leashRange * 3)) { m.ai = 'return'; m.targetId = -1; return; }
+    if (!target || (!def.boss && inSafeZone(w, target.x, target.y)) || (!m.invader && !m.summonedBy && distHome > def.leashRange) || (m.summonedBy > 0 && distHome > def.leashRange * 3)) { m.ai = 'return'; m.targetId = -1; return; }
     const d = Math.hypot(target.x - m.x, target.y - m.y);
     const dir = Math.atan2(target.y - m.y, target.x - m.x);
     m.facing = dir;

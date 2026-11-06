@@ -153,6 +153,8 @@ export class Game {
     this.session.updateDisplay();
     this.view.render(1, t.deltaMS);
     const ps = this.view.playerScreenPos();
+    // 遊び始めて 10 分は、雨や嵐で画面が暗くなりすぎないようにする
+    this.ambience.soft = (this.ctx.me()?.char.playTime ?? 0) < 600;
     this.ambience.update(this.world, ps.x, ps.y + 22 * this.view.camera.scale.x, this.view.camera.scale.x, this.app.screen.width, this.app.screen.height, t.deltaMS / 1000);
     this.hud.update();
     this.musicTimer -= t.deltaMS;

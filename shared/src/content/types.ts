@@ -417,7 +417,7 @@ export interface Balance {
   world: { startArea: string; startTown: string; fieldBossInterval: number; exitCooldown: number; spawnMinDist: number; spawnInterval: number; eliteChance: number; levelSpread: number };
   combat: { backAngle: number; preciseCrit: number; chargeMinMove: number; knockbackMaxRadius: number };
   economy: { killsPerHour: number; levels: number[]; refineTarget: number; craftsPerDay: number };
-  start: { gold: number; bag: Record<string, number>; equipment: { base: string; slot: EquipSlot }[]; inventory: { base: string }[] };
+  start: { gold: number; bag: Record<string, number>; equipment: { base: string; slot: EquipSlot }[]; inventory: { base: string }[]; starterWeapons?: string[] };
 }
 
 export interface DifficultyDef { name: string; hp: number; atk: number; def: number; exp: number; gold: number; rareRatePct: number; extraRolls: number; levelBonus: number }
@@ -528,7 +528,7 @@ export interface Content {
   pets: PetsDef;
   social: SocialDef;
   market: { feePct: number; stallFeePct: number; maxListings: number; minPrice: number; maxPrice: number; durationHours: number; stallMax: number; mailMax: number; searchLimit: number };
-  tutorial: { area: string; steps: { id: string; type: string; n: number; text: string; keys: string[]; tab?: string; dir?: string; gift?: { base: string; rarity: Rarity } }[]; reward: { gold: number; items: Record<string, number> } };
+  tutorial: { area: string; steps: { id: string; type: string; n: number; text: string; hint?: string; touch?: string; keys: string[]; tab?: string; dir?: string; gift?: { base: string; rarity: Rarity } }[]; reward: { gold: number; items: Record<string, number> } };
   tiles: Record<string, { colors: [string, string]; shine?: string }>;
   text: Record<string, string>;
 }
