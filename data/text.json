@@ -266,7 +266,7 @@
   "err.paid": "今日はもう払いました",
   "notice.summon": "{0} が手下を呼んだ",
   "notice.safeZone": "光の円に入れ！",
-  "notice.invasion": "{0} に魔物の大群が攻めてきた",
+  "notice.invasion": "{0} に魔物の大群が攻めてきた（街の中央と入口は安全）",
   "inst.cleared": "CLEAR",
   "inst.failed": "時間切れ",
   "inst.best": "自己ベスト",

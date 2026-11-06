@@ -4,7 +4,7 @@ import { gainExp, expToNext } from './progression';
 import { addToBag } from './items';
 import { createItem, pickBase, tierFor } from './loot';
 import { addCounter } from './counters';
-import { newUid, sec } from './util';
+import { inSafeZone, newUid, sec } from './util';
 
 /**
  * 侵攻イベント：一定時間ごとに街へ魔物が攻めてくる。倒して貢献度を稼ぎ、終わったら報酬。
@@ -42,8 +42,9 @@ export function addContribution(w: World, p: Player, n: number) {
 function spawnWave(w: World) {
   const inv = w.content.invasion;
   const area = w.area;
-  const alive = w.players.filter((x) => !x.dead);
-  const lv = w.players.length ? Math.round(w.players.reduce((s, x) => s + x.char.level, 0) / w.players.length) : 1;
+  // 狙うのは聖域の外にいる人だけ。強さは狙う相手のレベルに合わせる（低いレベルの人が強い魔物に狩られないように）
+  const alive = w.players.filter((x) => !x.dead && !inSafeZone(w, x.x, x.y));
+  const avg = w.players.length ? Math.round(w.players.reduce((s, x) => s + x.char.level, 0) / w.players.length) : 1;
   const n = w.rng.int(inv.perWave[0], inv.perWave[1]);
   for (let i = 0; i < n; i++) {
     for (let t = 0; t < 20; t++) {
@@ -52,12 +53,16 @@ function spawnWave(w: World) {
       const x = edge === 'west' ? 2.5 : edge === 'east' ? W - 2.5 : w.rng.int(3, W - 4) + 0.5;
       const y = edge === 'north' ? 3.5 : edge === 'south' ? H - 2.5 : w.rng.int(3, H - 4) + 0.5;
       if (area.map.solid[Math.floor(y) * W + Math.floor(x)]) continue;
-      const level = Math.max(1, lv + w.rng.int(inv.levelOffset[0], inv.levelOffset[1]));
+      if (inSafeZone(w, x, y, 3)) continue;
+      const target = alive.length ? w.rng.pick(alive) : null;
+      const level = Math.max(1, (target?.char.level ?? avg) + w.rng.int(inv.levelOffset[0], inv.levelOffset[1]));
       const m = spawnMonster(w, { key: 'invasion', monster: w.rng.pick(inv.pool), x, y, level: [level, level], monsterId: -1, respawnAt: 0 }, { level });
       m.invader = true;
       m.ai = 'chase';
-      m.targetId = alive.length ? w.rng.pick(alive).id : -1;
-      m.homeX = area.playerSpawn.x; m.homeY = area.playerSpawn.y;
+      m.targetId = target?.id ?? -1;
+      if (!target) m.ai = 'wander';
+      // 帰る場所は現れた端（街で起きる地点に集まらないように）
+      m.homeX = x; m.homeY = y;
       break;
     }
   }

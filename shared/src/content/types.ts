@@ -429,6 +429,8 @@ export interface TowerDef {
 }
 export interface RaidDef { name: string; boss: string; level: number; arena: number; timeLimit: number; minLevel: number; party: { hpPerPlayer: number; atkPerPlayer: number; maxPlayers: number }; drops: string; crystal: { id: string; chance: number } }
 export interface InvasionDef {
+  /** 襲撃中、街で起きる地点と入口のまわりの聖域（マス）。魔物はここにいる人を狙わない */
+  sanctuary?: number;
   town: string; every: number; duration: number; waves: number; waveEvery: number; perWave: [number, number]; levelOffset: [number, number];
   spawnEdges: string[]; pool: string[]; contribution: { damage: number; kill: number };
   tiers: { min: number; gold: number; exp: number; mats: number; epicChance: number }[]; matPool: string[];

@@ -1,5 +1,6 @@
 {
  "town": "lumina",
+ "sanctuary": 5,
  "every": 30,
  "duration": 5,
  "waves": 4,
