@@ -151,7 +151,9 @@ export class Game {
     }
     if (!this.ctx.me()) return;
     this.session.updateDisplay(this.acc / TICK_MS);
-    this.view.render(1, t.deltaMS);
+    // ヒットストップ：会心・撃破の一瞬だけ画面を止める（計算は止めない）
+    if (this.view.fx.hitstop > 0) this.view.fx.hitstop -= t.deltaMS / 1000;
+    else this.view.render(1, t.deltaMS);
     const ps = this.view.playerScreenPos();
     // 遊び始めて 10 分は、雨や嵐で画面が暗くなりすぎないようにする
     this.ambience.soft = (this.ctx.me()?.char.playTime ?? 0) < 600;

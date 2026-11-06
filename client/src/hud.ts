@@ -460,6 +460,8 @@ export class Hud {
     };
     this.updateTutorial(p);
     set(this.bars.hp, p.hp, p.stats.maxHp);
+    // 残り HP が少ないと、画面の縁が赤く脈打つ
+    this.root.classList.toggle('low-hp', !p.dead && p.hp / p.stats.maxHp < 0.3);
     set(this.bars.mp, p.mp, p.stats.maxMp);
     set(this.bars.st, p.st, p.stats.maxSt);
     if (this.nameText.textContent !== ch.name) this.nameText.textContent = ch.name;

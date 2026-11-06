@@ -63,6 +63,8 @@ export class WorldView {
   private camPos = { x: 0, y: 0 };
   private time = 0;
   private areaRef: unknown = null;
+  private lastPos = { x: 0, y: 0 };
+  private dustT = 0;
   /** 煙突のてっぺん（画面座標）。煙を出す */
   private chimneys: { x: number; y: number }[] = [];
   /** 街のにぎわい（NPC の動き・煙・通行人） */
@@ -74,6 +76,7 @@ export class WorldView {
     this.entities.sortableChildren = true;
     this.camera.addChild(this.ground, this.fx.groundLayer, this.telegraphs, this.entities, this.fx.layer);
     this.setArea();
+    this.fx.target = () => { const p = this.world.players.find((x) => x.id === this.myId); return p ? { x: p.x, y: p.y } : null; };
   }
 
   private me(): Player {
@@ -198,7 +201,7 @@ export class WorldView {
           this.fx.spark(e.x, e.y, col);
           const v = this.actors.get(e.tgt);
           if (v) v.hurt = 0.15;
-          if (e.crit && e.src === this.myId && this.settings.shake) this.fx.shake = Math.max(this.fx.shake, 6);
+          if (e.crit && e.src === this.myId && this.settings.shake) { this.fx.shake = Math.max(this.fx.shake, 6); this.fx.hitstop = Math.max(this.fx.hitstop, 0.06); }
           if (e.tgt === this.myId) { this.sfx.play('hurt'); if (this.settings.shake) this.fx.shake = Math.max(this.fx.shake, 4); }
           else this.sfx.play(e.crit ? 'crit' : 'hit', e.src === this.myId ? 1 : 0.4);
           break;
@@ -245,6 +248,11 @@ export class WorldView {
           this.fx.burst(e.x, e.y, e.player ? 0xff4040 : 0xffffff, e.boss ? 2.5 : 0.8, e.boss ? 0.8 : 0.4);
           this.sfx.play('death', e.boss ? 1 : 0.6);
           if (e.boss && this.settings.shake) this.fx.shake = 16;
+          if (!e.player) {
+            this.fx.orbsTo(e.x, e.y, e.boss ? 18 : 4, 0x9fe8ff);
+            if (this.settings.shake) this.fx.hitstop = Math.max(this.fx.hitstop, e.boss ? 0.16 : 0.05);
+            if (e.boss) { this.fx.ring(e.x, e.y, 0xffe14a, 4, 0.9); this.fx.pillar(e.x, e.y, 0xffe14a); }
+          }
           break;
         case 'drop': {
           if (!e.rarity) break;
@@ -259,6 +267,7 @@ export class WorldView {
           break;
         case 'dodge':
           if (e.id === this.myId) this.sfx.play('dodge');
+          { const a = this.actors.get(e.id); if (a) this.fx.dust(a.cur.x, a.cur.y, 6); }
           break;
         case 'say':
         case 'emote': {
@@ -303,6 +312,8 @@ export class WorldView {
           if (e.playerId === this.myId) {
             const p = this.me();
             this.fx.burst(p.x, p.y, 0xffe14a, 1.6, 0.8);
+            this.fx.ring(p.x, p.y, 0xffe14a, 3.2, 0.8);
+            this.fx.pillar(p.x, p.y, 0xffe14a);
             this.fx.bigText(p.x, p.y, CONTENT.text['hud.levelUp'] ?? 'LEVEL UP', 0xffe14a);
             this.sfx.play('legend');
           }
@@ -387,6 +398,9 @@ export class WorldView {
       v.body.y = flying ? Math.sin(v.float * 4) * 3 : 0;
       const frozen = a.statuses.some((st) => st.id === 'freeze');
       const stunned = a.stagger > 0 || a.statuses.some((st) => st.id === 'stun');
+      // 当たった瞬間につぶれて戻る
+      const sq = v.hurt > 0 ? v.hurt / 0.15 : 0;
+      v.root.scale.set(1 + sq * 0.18, 1 - sq * 0.14);
       v.body.tint = v.hurt > 0 ? 0xff8080 : frozen ? 0x9fe0ff : stunned ? 0xfff0a0 : 0xffffff;
       const facingLeft = Math.cos(a.facing) - Math.sin(a.facing) < 0;
 
@@ -589,6 +603,14 @@ export class WorldView {
     this.camera.y = Math.round(this.app.screen.height / 2 - this.camPos.y * zoom + oy);
 
     this.fx.update(dt, 0.6);
+    // 歩くと足元に土ぼこり
+    const mePos = w.players.find((p) => p.id === this.myId);
+    if (mePos) {
+      const moved = Math.hypot(mePos.x - this.lastPos.x, mePos.y - this.lastPos.y);
+      this.dustT -= dt;
+      if (moved > 0.02 && this.dustT <= 0 && w.area.type !== 'dungeon') { this.fx.dust(mePos.x, mePos.y, 1); this.dustT = 0.2; }
+      this.lastPos = { x: mePos.x, y: mePos.y };
+    }
   }
 
   /** 自分のキャラの画面上の位置（マウスで狙うときの基準） */

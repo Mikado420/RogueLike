@@ -38,6 +38,12 @@ export class Effects {
   private bursts: { g: Graphics; age: number; life: number; grow: number }[] = [];
   private time = 0;
   shake = 0;
+  /** ヒットストップ（秒）。残っている間は画面を止める（見た目だけ） */
+  hitstop = 0;
+  /** 経験値の光の玉が吸い込まれる先（自分の位置） */
+  target: () => { x: number; y: number } | null = () => null;
+  private orbs: { g: Graphics; x: number; y: number; vx: number; vy: number; age: number }[] = [];
+  private rings: { g: Graphics; age: number; life: number; color: number; r: number }[] = [];
 
   private makeText(text: string, style: TextStyleOptions): Text {
     const t = new Text({ text, style: { fontFamily: FONT, fontWeight: '900', stroke: { color: 0x000000, width: 4, join: 'round' }, ...style } });
@@ -161,6 +167,49 @@ export class Effects {
     }
   }
 
+  /** 倒した敵から飛び出して、自分に吸い込まれる光の玉 */
+  orbsTo(wx: number, wy: number, n: number, color: number) {
+    const s = toScreenH(wx, wy);
+    for (let k = 0; k < n; k++) {
+      const g = new Graphics();
+      g.circle(0, 0, 6).fill({ color, alpha: 0.25 }).circle(0, 0, 3).fill(color).circle(-1, -1, 1.2).fill(0xffffff);
+      const a = Math.random() * Math.PI * 2, v = 140 + Math.random() * 120;
+      this.layer.addChild(g);
+      this.orbs.push({ g, x: s.x, y: s.y - 20, vx: Math.cos(a) * v, vy: Math.sin(a) * v - 120, age: 0 });
+    }
+  }
+
+  /** 地面を広がる衝撃波の輪 */
+  ring(wx: number, wy: number, color: number, radius = 2.4, life = 0.6) {
+    const s = toScreenH(wx, wy);
+    const g = new Graphics();
+    g.x = s.x; g.y = s.y;
+    this.groundLayer.addChild(g);
+    this.rings.push({ g, age: 0, life, color, r: radius });
+  }
+
+  /** 光の柱（レベルアップ・強敵撃破） */
+  pillar(wx: number, wy: number, color: number) {
+    const s = toScreenH(wx, wy);
+    const g = new Graphics();
+    g.rect(-14, -220, 28, 220).fill({ color, alpha: 0.28 }).rect(-5, -220, 10, 220).fill({ color: 0xffffff, alpha: 0.5 });
+    g.x = s.x; g.y = s.y;
+    this.layer.addChild(g);
+    this.bursts.push({ g, age: 0, life: 0.7, grow: 0 });
+  }
+
+  /** 足元の土ぼこり */
+  dust(wx: number, wy: number, n = 2) {
+    const s = toScreenH(wx, wy);
+    for (let k = 0; k < n; k++) {
+      const g = new Graphics();
+      g.circle(0, 0, 3 + Math.random() * 3).fill({ color: 0xd8ccb0, alpha: 0.45 });
+      g.x = s.x + (Math.random() - 0.5) * 14; g.y = s.y - 2;
+      this.groundLayer.addChild(g);
+      this.floaters.push({ obj: g, vx: (Math.random() - 0.5) * 30, vy: -20 - Math.random() * 20, floor: Infinity, age: 0, life: 0.45, bounce: false, pop: 1 });
+    }
+  }
+
   /** 攻撃範囲の一瞬の光（扇形・円形） */
   flashShape(wx: number, wy: number, shape: Shape, dir: number, color: number, alpha = 0.35) {
     const g = new Graphics();
@@ -172,6 +221,31 @@ export class Effects {
 
   update(dt: number, comboTimeout: number) {
     this.time += dt;
+    // 光の玉：はじけたあと、自分に向かって加速して吸い込まれる
+    const tg = this.target();
+    this.orbs = this.orbs.filter((o) => {
+      o.age += dt;
+      if (tg && o.age > 0.25) {
+        const s = toScreenH(tg.x, tg.y);
+        const dx = s.x - o.x, dy = s.y - 24 - o.y, d = Math.hypot(dx, dy);
+        if (d < 14 || o.age > 2) { o.g.destroy(); return false; }
+        const acc = 1600 + o.age * 2400;
+        o.vx = o.vx * 0.9 + (dx / d) * acc * dt; o.vy = o.vy * 0.9 + (dy / d) * acc * dt;
+      } else { o.vx *= 0.92; o.vy = o.vy * 0.92 + 200 * dt; }
+      if (!tg && o.age > 1) { o.g.destroy(); return false; }
+      o.x += o.vx * dt; o.y += o.vy * dt;
+      o.g.x = o.x; o.g.y = o.y;
+      return true;
+    });
+    // 衝撃波の輪
+    this.rings = this.rings.filter((r) => {
+      r.age += dt;
+      const k = r.age / r.life;
+      if (k >= 1) { r.g.destroy(); return false; }
+      const { rx, ry } = isoRadii(r.r * (0.2 + k * 0.8));
+      r.g.clear().ellipse(0, 0, rx, ry).stroke({ width: 4 * (1 - k) + 1, color: r.color, alpha: 1 - k });
+      return true;
+    });
     for (const st of [...this.combos.values()]) if (this.time - st.lastAt > comboTimeout) this.finishCombo(st);
     this.floaters = this.floaters.filter((f) => {
       f.age += dt;
