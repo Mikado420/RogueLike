@@ -1,7 +1,7 @@
 import type { CharSummary, Removed } from '../../../shared/src';
 
 /** 接続先（ビルド時の VITE_SERVER_URL。なければ手元の wrangler dev） */
-export const SERVER_URL: string = (import.meta.env.VITE_SERVER_URL as string | undefined)?.replace(/\/$/, '') || 'http://localhost:8787';
+export const SERVER_URL: string = (import.meta.env.VITE_SERVER_URL as string | undefined)?.trim().replace(/\/$/, '') || 'http://localhost:8787';
 export const WS_URL = SERVER_URL.replace(/^http/, 'ws');
 
 const TOKEN_KEY = 'endless-garden.token';
