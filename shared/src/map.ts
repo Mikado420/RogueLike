@@ -1,3 +1,5 @@
+import { shapeTerrain, TERRAIN } from './terrain';
+
 /**
  * 建物（何マスかを占める 1 軒）。床は通れない。扉は南（s：j が大きい側）か東（e：i が大きい側）の、画面で見える面に付く。
  * at は扉の位置（南なら x からのずれ、東なら y からのずれ）。
@@ -16,7 +18,7 @@ export interface BuildingDef {
   awning?: string;
 }
 
-export interface MapDef { legend: Record<string, { tile: string; solid: boolean; sprite?: string }>; rows: string[]; buildings?: BuildingDef[] }
+export interface MapDef { legend: Record<string, { tile: string; solid: boolean; sprite?: string }>; rows: string[]; buildings?: BuildingDef[]; terrain?: string }
 
 /** タイルマップ。タイル (i, j) はワールド座標 [i, i+1) × [j, j+1) を占める。 */
 export interface GameMap {
@@ -55,7 +57,10 @@ export function buildMap(id: string, def: MapDef): GameMap {
       sprites[j * width + i] = null;
     }
   }
-  return { id, width, height, tiles, solid, sprites, buildings };
+  const m: GameMap = { id, width, height, tiles, solid, sprites, buildings };
+  const prof = def.terrain ? TERRAIN[def.terrain] : undefined;
+  if (prof) { let seed = 7; for (const ch of id) seed = (seed * 31 + ch.charCodeAt(0)) >>> 0; shapeTerrain(m, seed, prof); }
+  return m;
 }
 
 export function isSolid(m: GameMap, i: number, j: number): boolean {

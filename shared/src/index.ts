@@ -47,3 +47,4 @@ export * from './validate';
 export * from './systems/social';
 export * from './net/social';
 export * from './systems/trade';
+export * from './terrain';

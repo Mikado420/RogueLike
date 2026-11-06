@@ -120,8 +120,7 @@ export class WorldView {
         if (piece.smoke) this.chimneys.push(piece.smoke);
       }
     }
-    const tl = toScreen(0, 0), tr = toScreen(m.width, 0), br = toScreen(m.width, m.height), bl = toScreen(0, m.height);
-    g.poly([tl.x, tl.y, tr.x, tr.y, br.x, br.y, bl.x, bl.y]).stroke({ width: 4, color: 0x0a0c10 });
+    // 外枠の線は引かない（外周がせり上がるので、平らな線は地形を横切ってしまう）
     // 出口の光
     for (const e of this.world.area.exits) {
       for (let j = e.rect[1]; j < e.rect[3]; j++) for (let i = e.rect[0]; i < e.rect[2]; i++) {
@@ -717,9 +716,24 @@ function mix(a: number, b: number, t: number): number {
  * 地面の 1 マス。中心と 4 辺で 4 つの三角形に分け、角の高さにそって描く。
  * 辺のところは隣のマスの色と混ぜて、マスの境目がカクカクに見えないようにする。斜面は向きで明暗をつける。
  */
+const isLiquid = (t: string | undefined) => !!t && (!!CONTENT.tiles[t]?.shine || t === 'lava');
+const tileName = (m: GameMap, i: number, j: number) => m.tiles[Math.max(0, Math.min(m.height - 1, j)) * m.width + Math.max(0, Math.min(m.width - 1, i))];
+/** 角のまわり 4 マスのうち 2 マス以上が水（溶岩）なら、その角は水 */
+function liquidCorner(m: GameMap, x: number, y: number): string | null {
+  let n = 0, name: string | null = null;
+  for (const [dx, dy] of [[-1, -1], [0, -1], [-1, 0], [0, 0]]) {
+    const t = tileName(m, x + dx, y + dy);
+    if (isLiquid(t)) { n++; name = t; }
+  }
+  return n >= 2 ? name : null;
+}
+
 function drawGroundTile(g: Graphics, m: GameMap, i: number, j: number) {
-  const c = groundColor(m, i, j);
-  const td = CONTENT.tiles[m.tiles[j * m.width + i]];
+  const own = tileName(m, i, j);
+  // 水のマスの下地は、まわりの陸の色（岸を滑らかに描くため）
+  let c = groundColor(m, i, j);
+  if (isLiquid(own)) for (const [di, dj] of [[0, -1], [1, 0], [0, 1], [-1, 0]]) if (!isLiquid(tileName(m, i + di, j + dj))) { c = groundColor(m, i + di, j + dj); break; }
+  const td = isLiquid(own) ? undefined : CONTENT.tiles[own];
   const P = (x: number, y: number) => { const s = toScreen(x, y); return [s.x, s.y - terrainHeight(x, y)]; };
   const cx = i + 0.5, cy = j + 0.5;
   const tris: [number, number, number, number, number, number][] = [
@@ -729,17 +743,35 @@ function drawGroundTile(g: Graphics, m: GameMap, i: number, j: number) {
     [i, j + 1, i, j, i - 1, j],          // 左の辺（隣は i-1）
   ];
   for (const [ax, ay, bx, by, ni, nj] of tris) {
-    const col = mix(c, groundColor(m, ni, nj), 0.32);
+    const col = isLiquid(tileName(m, ni, nj)) ? c : mix(c, groundColor(m, ni, nj), 0.32);
     const za = terrainHeight(ax, ay), zb = terrainHeight(bx, by), zc = terrainHeight(cx, cy);
     // 斜面の向き：左上（-x・-y）へ向いた面は明るく、右下へ向いた面は暗く
     const ux = bx - ax, uy = by - ay, vx = cx - ax, vy = cy - ay, uz = zb - za, vz = zc - za;
     const det = ux * vy - uy * vx;
     const gx = det ? (uz * vy - vz * uy) / det : 0, gy = det ? (ux * vz - vx * uz) / det : 0;
     const k = Math.max(0.66, Math.min(1.25, 1 + (gx + gy) * 0.011));
-    g.poly([...P(ax, ay), ...P(bx, by), ...P(cx, cy)]).fill(shade(col, k));
+    // 急な斜面は岩肌に、高いところは少し明るく（現実の山のように）
+    const steep = Math.hypot(gx, gy), alt = (za + zb + zc) / 3;
+    const snowy = (td?.colors[0] ?? '').startsWith('#d') || (td?.colors[0] ?? '').startsWith('#e');
+    let col2 = mix(col, snowy ? 0x8a96a8 : 0x7c7466, Math.min(0.7, Math.max(0, (steep - 16) / 30)));
+    if (alt > 50) col2 = shade(col2, 1 + Math.min(0.12, (alt - 50) / 500));
+    g.poly([...P(ax, ay), ...P(bx, by), ...P(cx, cy)]).fill(shade(col2, k));
   }
-  if (td?.shine) {
-    const a = P(i + 0.5, j + 0.15), b = P(i + 0.85, j + 0.5), d = P(i + 0.5, j + 0.85), e = P(i + 0.15, j + 0.5);
-    g.poly([...a, ...b, ...d, ...e]).fill({ color: hex(td.shine), alpha: 0.16 });
+  // 水・溶岩：角が水かどうかで形を決め、角を斜めに切って岸を滑らかに（マーチングスクエア）
+  const corners: [number, number][] = [[i, j], [i + 1, j], [i + 1, j + 1], [i, j + 1]];
+  const wet = corners.map(([x, y]) => liquidCorner(m, x, y));
+  const liq = wet.find((x) => x);
+  if (liq) {
+    const pts: number[] = [];
+    for (let k = 0; k < 4; k++) {
+      const a = corners[k], b = corners[(k + 1) % 4];
+      if (wet[k]) pts.push(...P(a[0], a[1]));
+      if (!!wet[k] !== !!wet[(k + 1) % 4]) pts.push(...P((a[0] + b[0]) / 2, (a[1] + b[1]) / 2));
+    }
+    const ld = CONTENT.tiles[liq];
+    if (pts.length >= 6) {
+      g.poly(pts).fill(hex(ld.colors[(i + j) % 2]));
+      if (ld.shine) g.poly(pts).fill({ color: hex(ld.shine), alpha: 0.14 });
+    }
   }
 }

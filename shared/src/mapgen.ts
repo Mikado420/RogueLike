@@ -1,5 +1,6 @@
 import { Rng } from './rng';
 import type { GameMap } from './map';
+import { shapeTerrain, TERRAIN } from './terrain';
 
 /**
  * マップの自動生成（シード固定なので、サーバーでもクライアントでも同じ地形になる）。
@@ -137,50 +138,8 @@ export function generateField(id: string, def: FieldGenDef, pal: Palette, exits:
     }
   }
 
-  // なだらかな丘（見た目の高さ。どこでも歩いて登れる）。マスの角ごとの高さ
-  const VW = W + 1, VH = H + 1;
-  let hc = new Array<number>(VW * VH).fill(0);
-  const hills = Math.round((W * H) / 260);
-  for (let n = 0; n < hills; n++) {
-    const cx = rng.range(3, W - 3), cy = rng.range(3, H - 3), r = rng.range(4, 9), a = rng.range(20, 52);
-    for (let y = Math.max(0, Math.floor(cy - r * 2.2)); y <= Math.min(H, Math.ceil(cy + r * 2.2)); y++) {
-      for (let x = Math.max(0, Math.floor(cx - r * 2.2)); x <= Math.min(W, Math.ceil(cx + r * 2.2)); x++) {
-        hc[y * VW + x] += a * Math.exp(-(((x - cx) ** 2 + (y - cy) ** 2) / (r * r)));
-      }
-    }
-  }
-  // 水辺は低く、外周も低く。なじませるために少しぼかす
-  const low = new Uint8Array(VW * VH);
-  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
-    if (m.tiles[y * W + x] === pal.liquid.tile) for (const [dx, dy] of [[0, 0], [1, 0], [0, 1], [1, 1]]) low[(y + dy) * VW + x + dx] = 1;
-  }
-  // 水辺・外周からの距離（角の数）で、丘をなだらかに下げる（池のまわりが穴にならないように）
-  const dist = new Array<number>(VW * VH).fill(1e9);
-  const q: number[] = [];
-  for (let y = 0; y < VH; y++) for (let x = 0; x < VW; x++) {
-    const k = y * VW + x;
-    if (low[k] || x === 0 || y === 0 || x === W || y === H) { dist[k] = 0; q.push(k); }
-  }
-  for (let h = 0; h < q.length; h++) {
-    const k = q[h], x = k % VW, y = (k - x) / VW;
-    for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
-      const nx = x + dx, ny = y + dy;
-      if (nx < 0 || ny < 0 || nx >= VW || ny >= VH) continue;
-      const nk = ny * VW + nx;
-      if (dist[nk] > dist[k] + 1) { dist[nk] = dist[k] + 1; q.push(nk); }
-    }
-  }
-  for (let k = 0; k < VW * VH; k++) { const t = Math.min(1, dist[k] / 6); hc[k] *= t * t * (3 - 2 * t); }
-  for (let pass = 0; pass < 3; pass++) {
-    const nx = hc.slice();
-    for (let y = 0; y < VH; y++) for (let x = 0; x < VW; x++) {
-      const k = y * VW + x;
-      if (low[k] || x === 0 || y === 0 || x === W || y === H) { nx[k] = 0; continue; }
-      nx[k] = (hc[k] * 2 + hc[k - 1] + hc[k + 1] + hc[k - VW] + hc[k + VW]) / 6;
-    }
-    hc = nx;
-  }
-  m.heights = hc.map((v) => Math.round(v * 10) / 10);
+  // 高低差（見た目だけ。マップの性格は palette ごと）
+  shapeTerrain(m, def.seed, TERRAIN[def.palette] ?? TERRAIN.meadow, pal.liquid.tile);
 
   // 障害物（木・岩など）
   const weights: Record<string, number> = {};
@@ -291,6 +250,7 @@ export function generateDungeon(id: string, seed: number, roomCount: number, flo
     }
   }
   finishWalls(m, 'wall', 'wall');
+  shapeTerrain(m, seed, TERRAIN.dungeon);
   return { map: m, rooms, start: rooms[0], boss };
 }
 
@@ -312,5 +272,6 @@ export function generateArena(id: string, seed: number, size: number, floor: [st
     m.solid[k] = true; m.sprites[k] = 'pillar';
   }
   finishWalls(m, 'wall', 'wall');
+  shapeTerrain(m, seed, TERRAIN.arena);
   return m;
 }

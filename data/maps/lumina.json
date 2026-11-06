@@ -348,5 +348,6 @@
    "wall": "#e0d4b8",
    "chimney": true
   }
- ]
+ ],
+ "terrain": "town"
 }

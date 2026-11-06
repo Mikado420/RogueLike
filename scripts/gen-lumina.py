@@ -175,7 +175,7 @@ for k in range(18, 22):
     assert grid[k][39] == 'r' and walkable(38, k), '東の門（出口）が開いていない'
 
 rows = [''.join(r) for r in grid]
-out = {'legend': legend, 'rows': rows, 'buildings': buildings}
+out = {'legend': legend, 'rows': rows, 'buildings': buildings, 'terrain': 'town'}
 with open(os.path.join(ROOT, 'data/maps/lumina.json'), 'w') as f:
     json.dump(out, f, ensure_ascii=False, indent=1)
     f.write('\n')
