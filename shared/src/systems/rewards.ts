@@ -1,4 +1,5 @@
 import type { Item, Monster, Player, World, Drop, Actor } from '../state';
+import type { Content } from '../content/types';
 import { circleHitsMap } from '../map';
 import { gainExp, levelDiffMul, monsterExp } from './progression';
 import { rollEquipDrops, sellPrice } from './loot';
@@ -76,6 +77,11 @@ export function onMonsterKilled(w: World, m: Monster, by: Actor | null) {
   if (def.crystal && w.rng.chance(def.crystal.chance * (1 + (mods.dropRatePct ?? 0) / 100))) {
     placeDrop(w, m, { bag: { id: def.crystal.id, n: 1 } }, nextOwner().id);
   }
+  // 魔石：全モンスター共通の式（人形・練習用・呼び出された取り巻きは除く）
+  if (!m.spawnKey.startsWith('practice:') && !(m.summonedBy > 0)) {
+    const n = rollMagicStones(w, m.defId, m.level, { elite: m.elite }, mods.dropRatePct ?? 0);
+    if (n > 0) placeDrop(w, m, { bag: { id: c.balance.magicStone!.id, n } }, nextOwner().id);
+  }
   for (const mat of def.mats ?? []) {
     const chance = Math.min(1, mat.chance * (1 + (mods.dropRatePct ?? 0) / 100));
     if (!w.rng.chance(chance)) continue;
@@ -105,4 +111,24 @@ export function onPlayerKilled(w: World, p: Player) {
   p.charge = 0;
   w.events.push({ type: 'death', id: p.id, x: p.x, y: p.y, boss: false, player: true });
   addCounter(w, p, 'deaths', 1);
+}
+
+/** 魔石の期待値（1 体あたり）。式と係数は balance.magicStone */
+export function magicStoneExpected(c: Content, defId: string, level: number, o: { elite?: boolean }): number {
+  const ms = c.balance.magicStone;
+  const def = c.monsters[defId];
+  if (!ms || !def || (def.tags ?? []).some((t) => ms.excludeTags.includes(t))) return 0;
+  const lv = ms.base * (1 + level * ms.perLevel);
+  if (def.boss) return lv * (def.drops === 'raid' ? ms.raidBoss : ms.boss);
+  let e = lv * Math.pow(def.hp, ms.hpExp);
+  if (ms.golems.includes(defId)) e *= ms.golem;
+  if (o.elite) e *= ms.elite;
+  return e;
+}
+
+/** 魔石の数：期待値の整数部は必ず、端数は確率で 1 個足す（ドロップ率の補正込み） */
+export function rollMagicStones(w: World, defId: string, level: number, o: { elite?: boolean }, dropRatePct: number): number {
+  const e = magicStoneExpected(w.content, defId, level, o) * (1 + dropRatePct / 100);
+  const n = Math.floor(e);
+  return n + (w.rng.chance(e - n) ? 1 : 0);
 }

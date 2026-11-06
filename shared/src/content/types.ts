@@ -275,7 +275,7 @@ export interface CrystalDef {
 export interface RefineDef {
   max: number;
   stone: string;
-  goldTierMul: number;
+  goldTierMul: number; stoneTierMul?: number;
   pityPerFail: number;
   levels: { rate: number; gold: number; stones: number; drop: number }[];
 }
@@ -417,6 +417,8 @@ export interface Balance {
   world: { startArea: string; startTown: string; fieldBossInterval: number; exitCooldown: number; spawnMinDist: number; spawnInterval: number; eliteChance: number; levelSpread: number };
   combat: { backAngle: number; preciseCrit: number; chargeMinMove: number; knockbackMaxRadius: number };
   economy: { killsPerHour: number; levels: number[]; refineTarget: number; craftsPerDay: number };
+  /** 魔石（refine_stone）のドロップ：期待値 = base ×（1 + Lv × perLevel）× hp^hpExp × 倍率（ボスは hp の項なし） */
+  magicStone?: { id: string; base: number; perLevel: number; hpExp: number; elite: number; golem: number; golems: string[]; boss: number; raidBoss: number; excludeTags: string[] };
   start: { gold: number; bag: Record<string, number>; equipment: { base: string; slot: EquipSlot }[]; inventory: { base: string }[]; starterWeapons?: string[] };
 }
 

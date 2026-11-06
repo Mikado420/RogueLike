@@ -123,10 +123,6 @@
    {
     "id": "golem_core",
     "chance": 0.3
-   },
-   {
-    "id": "refine_stone",
-    "chance": 0.15
    }
   ],
   "capturable": true,
@@ -1172,10 +1168,6 @@
    {
     "id": "magma_core",
     "chance": 0.3
-   },
-   {
-    "id": "refine_stone",
-    "chance": 0.2
    }
   ],
   "capturable": true
@@ -2007,10 +1999,6 @@
    {
     "id": "frost_core",
     "chance": 0.3
-   },
-   {
-    "id": "refine_stone",
-    "chance": 0.25
    }
   ],
   "capturable": true

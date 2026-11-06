@@ -227,6 +227,10 @@
     "eliteChance": 0.04,
     "levelSpread": 1
   },
+  "magicStone": {
+    "id": "refine_stone", "base": 0.22, "perLevel": 0.01, "hpExp": 0.7, "elite": 4, "golem": 3,
+    "golems": ["golem", "magma_golem", "ice_golem"], "boss": 40, "raidBoss": 120, "excludeTags": ["dummy"]
+  },
   "start": {
     "gold": 100,
     "bag": {

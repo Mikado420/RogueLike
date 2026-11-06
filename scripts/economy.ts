@@ -2,7 +2,7 @@
  * 経済の入出量：1時間あたりの稼ぎ（ゴールド・売却・素材）と、主なゴールドの出口の値段。
  * 出口は「何時間ぶんの稼ぎか」で並べる。
  */
-import { CONTENT, Rng, RARITIES, refineCost, respecCost, sellPrice, createItem, tierFor, facilityCost, storageExpandCost, newAccount, newCharacter } from '../shared/src';
+import { CONTENT, magicStoneExpected, Rng, RARITIES, refineCost, respecCost, sellPrice, createItem, tierFor, facilityCost, storageExpandCost, newAccount, newCharacter } from '../shared/src';
 
 const C = CONTENT;
 
@@ -31,7 +31,45 @@ function incomePerHour(level: number) {
   };
 }
 
-/** 精錬で +0 → +target にするまでの平均費用（ゴールド＋精錬石の購入費） */
+/**
+ * 1時間あたりの魔石（refine_stone）。その Lv 帯のフィールドで狩り続けたとき（エリート込み）。
+ * balance.magicStone があればその式、なければ各モンスターの mats の設定から数える（調整前の比較用）。
+ */
+export function stonesPerHour(level: number): number {
+  const e = C.balance.economy;
+  const area = C.areas[fieldFor(level)];
+  const list = area.monsters ?? [];
+  const wsum = list.reduce((s, m) => s + m.w, 0);
+  const elite = C.balance.world.eliteChance;
+  let perKill = 0;
+  for (const m of list) {
+    const d = C.monsters[m.id];
+    const share = m.w / wsum;
+    if (C.balance.magicStone) perKill += share * ((1 - elite) * magicStoneExpected(C, m.id, level, {}) + elite * magicStoneExpected(C, m.id, level, { elite: true }));
+    else for (const x of d.mats ?? []) if (x.id === C.refine.stone) perKill += share * x.chance * (((x.min ?? 1) + (x.max ?? 1)) / 2);
+  }
+  return perKill * e.killsPerHour;
+}
+
+/** 精錬で +0 → +target にするまでに使う魔石の平均（失敗込み） */
+function stonesTo(level: number, target: number): number {
+  const rng = new Rng(level * 17);
+  let total = 0;
+  const N = 200;
+  for (let n = 0; n < N; n++) {
+    const it = createItem(1, 'w_oneHandSword', tierFor(level, C), level, 'rare', rng, C);
+    let guard = 0;
+    while (it.refine < target && guard++ < 5000) {
+      const cost = refineCost(it, C)!;
+      total += cost.stones;
+      if (rng.next() * 100 < cost.rate) { it.refine++; it.refinePity = 0; }
+      else { it.refine = Math.max(0, it.refine - C.refine.levels[it.refine].drop); it.refinePity += C.refine.pityPerFail; }
+    }
+  }
+  return total / N;
+}
+
+/** 精錬で +0 → +target にするまでの平均費用（ゴールド＋魔石の購入費） */
 function refineTo(level: number, target: number): number {
   const rng = new Rng(level * 31);
   const stonePrice = C.materials[C.refine.stone].price;
@@ -107,6 +145,11 @@ export function economyReport() {
   console.log('\n■ ゴールドの出口（かっこ内はその Lv の稼ぎで何時間ぶんか）');
   console.table(sinkRows);
   const last = rows.at(-1)!['合計G/時'] as number;
+  console.log('\n■ 魔石（1時間あたりの入手と、+' + e.refineTarget + ' までに使う数）');
+  console.table(e.levels.map((lv) => {
+    const per = stonesPerHour(lv), need = stonesTo(lv, e.refineTarget);
+    return { Lv: lv, 'フィールド': C.areas[fieldFor(lv)].name, '魔石/時': Math.round(per * 10) / 10, [`+${e.refineTarget}までの魔石`]: Math.round(need), '狩りの時間(h)': per > 0 ? Math.round((need / per) * 10) / 10 : '∞' };
+  }));
   console.log(`  拠点を全部最大まで：${base.build.toLocaleString()}G (${(base.build / last).toFixed(1)}h @Lv${e.levels.at(-1)})`);
   console.log(`  倉庫を最大まで：${storage.toLocaleString()}G (${(storage / last).toFixed(1)}h @Lv${e.levels.at(-1)})`);
   const m = C.missions;

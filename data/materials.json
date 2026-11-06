@@ -66,11 +66,11 @@
   "rarity": "epic"
  },
  "refine_stone": {
-  "name": "精錬石",
+  "name": "魔石",
   "kind": "material",
   "icon": "stone",
   "color": "#9fd8ff",
-  "price": 50
+  "price": 100
  },
  "boar_hide": {
   "name": "猪の毛皮",

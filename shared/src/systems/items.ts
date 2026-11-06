@@ -215,7 +215,8 @@ export function refineCost(it: Item, c: Content, bonus = 0): { gold: number; sto
   const lv = r.levels[it.refine];
   return {
     gold: Math.round(lv.gold * (1 + it.tier * r.goldTierMul)),
-    stones: lv.stones,
+    // 高いティアほど魔石も多く（魔石はレベルとともに多く落ちるので、どの帯でも同じくらいの手間に）
+    stones: Math.round(lv.stones * (1 + it.tier * (r.stoneTierMul ?? 0))),
     rate: Math.min(100, lv.rate + it.refinePity + bonus),
   };
 }
