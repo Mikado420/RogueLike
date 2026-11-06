@@ -234,12 +234,23 @@ export interface RarityDef {
   glow: boolean; pillar: boolean; sfx: boolean; optionRoll: [number, number]; sellMul: number;
 }
 
+/** 銘入り装備のレシピ（data/crafted.json） */
+export interface CraftedDef {
+  id: string; name: string; region: string; stage: number; base: string; tier: number; smithLevel: number;
+  element: Element; mats: Record<string, number>; gold: number; crystals: number; family: string;
+  effect: Pick<UniqueDef, 'mods' | 'when' | 'whenMods' | 'proc'>;
+}
+
 export interface UniqueDef {
   name: string;
   slots: EquipSlot[];
   mods?: Mods;
   /** 条件つきの効果 */
-  when?: { hpBelow?: number; afterDodge?: number; vsBoss?: boolean; night?: boolean; fullHp?: boolean };
+  when?: {
+    hpBelow?: number; afterDodge?: number; vsBoss?: boolean; night?: boolean; fullHp?: boolean;
+    /** 武器の仕組みに合わせた条件（銘入り装備）：溜めが最大・コンボ n 以上・再装填のあと n 秒・リズム n 段以上・防いだあと n 秒 */
+    chargeMax?: boolean; comboAtLeast?: number; afterReload?: number; rhythmAtLeast?: number; afterBlock?: number;
+  };
   whenMods?: Mods;
   proc?: { on: 'hit' | 'kill' | 'dodge' | 'hurt'; chance: number; effect: 'extraHit' | 'heal' | 'mp' | 'status' | 'explode'; value: number; status?: string };
   cheatDeath?: number;
@@ -478,6 +489,7 @@ export interface Content {
     flatTierGrowth: number;
   };
   uniques: Record<string, UniqueDef>;
+  crafted: { regions: { id: string; name: string }[]; recipes: CraftedDef[] };
   mythics: Record<string, MythicDef>;
   sets: Record<string, SetDef>;
   crystals: Record<string, CrystalDef>;

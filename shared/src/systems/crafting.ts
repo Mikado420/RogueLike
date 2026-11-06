@@ -138,6 +138,38 @@ export function craftItem(w: World, p: Player, tier: number, baseId: string): st
   return null;
 }
 
+/**
+ * 銘入り装備を作る。レシピ id は信用せず、ここで材料・ゴールド・鍛冶 Lv・持ち物の空きを確かめる（サーバーでも同じ処理）。
+ * レアリティはレジェンド相当で固定。ランダムなのはオプションの値だけ。固定効果・名前・属性・結晶スロットはレシピどおり。
+ */
+export function craftNamed(w: World, p: Player, recipeId: string): string | null {
+  const c = w.content;
+  const r = c.crafted.recipes.find((x) => x.id === recipeId);
+  if (!r || !c.equipment.bases[r.base]) return 'err.invalid';
+  const ch = p.char;
+  if (ch.sub.smith.level < r.smithLevel) return 'err.subLevel';
+  if (ch.inventory.length >= c.balance.player.inventorySize) return 'err.full';
+  if (ch.gold < r.gold) return 'err.gold';
+  for (const [m, n] of Object.entries(r.mats)) if ((ch.bag[m] ?? 0) < n) return 'err.noMaterial';
+  ch.gold -= r.gold;
+  for (const [m, n] of Object.entries(r.mats)) takeFromBag(ch, m, n);
+  const ilvl = c.equipment.tiers[r.tier]?.level ?? 1;
+  const it = createItem(newUid(w), r.base, r.tier, ilvl, 'legend', w.rng, c, { trade: 'free' });
+  it.name = r.name;
+  it.unique = `crafted.${r.id}`;
+  it.crafted = r.id;
+  it.element = r.element;
+  it.crystals = Array(r.crystals).fill(null);
+  ch.inventory.push(it);
+  ch.appearance.looks.includes(it.look) || ch.appearance.looks.push(it.look);
+  recordCodex(w, p, 'items', r.base);
+  gainSubExp(w, p, 'smith', c.subjobs.gain.smith * (1 + r.tier * 0.3));
+  addCounter(w, p, 'crafts', 1);
+  addCounter(w, p, 'craftsNamed', 1);
+  w.events.push({ type: 'crafted', playerId: p.id, kind: 'smith', uid: it.uid });
+  return null;
+}
+
 // ───────── 料理 ─────────
 
 export function cook(w: World, p: Player, recipe: string): string | null {

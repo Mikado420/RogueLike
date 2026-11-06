@@ -112,6 +112,12 @@
   "title": "tamer"
  },
  {
+  "id": "named10",
+  "name": "銘工",
+  "counter": "craftsNamed",
+  "n": 10
+ },
+ {
   "id": "craft30",
   "name": "生産30回",
   "counter": "crafts",

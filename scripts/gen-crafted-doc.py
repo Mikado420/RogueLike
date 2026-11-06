@@ -167,7 +167,8 @@ for r, R in enumerate(REGIONS):
         it['gold'] = int(round((300 + tier * tier * 900) * (1 + s * 0.4) / 100) * 100)
         it['el'] = R['el'][k % 2]
         it['val'] = value(it['fam'], r, s)
-        it['n'] = 3 + r * 4 + s * 3   # コンボ数・リズム段数の条件
+        # コンボ数・リズム段数の条件（リズムは最大 10 段なので 3〜9）
+        it['n'] = (3 + r + s) if it.get('wt') == 'instrument' else (3 + r * 4 + s * 3)
     rows_by_region.append(items)
 
 # 他の地域の素材を少し混ぜる（未使用素材を必ず複数回にするための調整は上の割り当てで足りる）
@@ -200,10 +201,58 @@ def effect_text(it):
     return d[1].format(a=fmt(v.get('a', 0)), b=fmt(v.get('b', 0)), el=EL[it['el']], st=ST[REGIONS[[x for x in range(5) if it in rows_by_region[x]][0]]['st']], n=it['n'])
 
 
+# ───── data/crafted.json（実装で使うレシピ） ─────
+ELKEY = {'fire': 'fireDmgPct', 'water': 'waterDmgPct', 'wind': 'windDmgPct', 'earth': 'earthDmgPct', 'light': 'lightDmgPct', 'dark': 'darkDmgPct'}
+STATUS_DUR = {'poison': 4, 'burn': 4, 'shock': 4, 'freeze': 1.5}
+
+
+def effect_json(it, st):
+    a, b, n = it['val'].get('a', 0), it['val'].get('b', 0), it['n']
+    f = it['fam']
+    W = lambda cond, mods: {'when': cond, 'whenMods': mods}
+    return {
+        'night': lambda: W({'night': True}, {'atkPct': a, 'matkPct': a}),
+        'last': lambda: W({'hpBelow': 50}, {'atkPct': a, 'critRate': b}),
+        'wall': lambda: W({'hpBelow': 30}, {'defPct': a, 'dmgReductionPct': b}),
+        'full': lambda: W({'fullHp': True}, {'physDmgPct': a, 'magDmgPct': a}),
+        'dodge': lambda: W({'afterDodge': 3}, {'atkPct': a, 'matkPct': a}),
+        'element': lambda: {'mods': {ELKEY[it['el']]: a, 'statusChancePct': b}},
+        'drain': lambda: {'mods': {'lifestealPct': a}},
+        'echo': lambda: {'proc': {'on': 'hit', 'chance': a, 'effect': 'extraHit', 'value': b}},
+        'status': lambda: {'proc': {'on': 'hit', 'chance': a, 'effect': 'status', 'value': STATUS_DUR[st], 'status': st}},
+        'reap': lambda: {'proc': {'on': 'kill', 'chance': 100, 'effect': 'heal', 'value': a}},
+        'hurt': lambda: {'proc': {'on': 'hurt', 'chance': a, 'effect': 'heal', 'value': b}},
+        'mana': lambda: {'mods': {'mpOnHit': a}},
+        'hunter': lambda: {'mods': {'bossDmgPct': a}},
+        'luck': lambda: {'mods': {'dropRatePct': a, 'rareRatePct': b}},
+        'resist': lambda: {'mods': {'statusResistPct': a, 'healPct': b}},
+        'charge': lambda: W({'chargeMax': True}, {'atkPct': a, 'breakPct': b}),
+        'combo': lambda: W({'comboAtLeast': n}, {'atkPct': a, 'critRate': b}),
+        'reload': lambda: W({'afterReload': 3}, {'atkPct': a, 'critRate': b}),
+        'rhythm': lambda: W({'rhythmAtLeast': n}, {'matkPct': a, 'mpOnHit': b}),
+        'guard': lambda: W({'afterBlock': 2}, {'atkPct': a, 'dmgReductionPct': b}),
+        'spacing': lambda: {'mods': {'sweetDmgPct': a}},
+    }[f]()
+
+
+recipes = []
+for r, R in enumerate(REGIONS):
+    for k, it in enumerate(sorted(rows_by_region[r], key=lambda x: (x['stage'], x['kind'] != 'weapon'))):
+        nm = f'{it["motif"]}の{LABEL[it["base"]]}' if it['motif'].startswith(R['pre']) else f'{R["pre"]}・{it["motif"]}の{LABEL[it["base"]]}'
+        recipes.append({
+            'id': f'{R["id"]}_{k + 1:02d}', 'name': nm, 'region': R['id'], 'stage': it['stage'], 'base': it['base'],
+            'tier': it['tier'], 'smithLevel': it['lv'], 'element': it['el'] if it['kind'] == 'weapon' else 'neutral',
+            'mats': {m: n for m, n in it['mats']}, 'gold': it['gold'], 'crystals': 2 if it['stage'] == 2 else 1,
+            'family': it['fam'], 'effect': effect_json(it, R['st']),
+        })
+with open(os.path.join(ROOT, 'data/crafted.json'), 'w') as f:
+    json.dump({'regions': [{'id': R['id'], 'name': R['name']} for R in REGIONS], 'recipes': recipes}, f, ensure_ascii=False, indent=1)
+    f.write('\n')
+
 out = []
-out.append('# 銘入り装備（一覧案・80 品）\n')
+out.append('# 銘入り装備（80 品）\n')
 out.append('素材で作る、名前・部位・属性・固定の効果が決まった装備。今の鍛冶とは別に、鍛冶屋の新しいタブ「銘入り」から作る。\n')
-out.append('> これは案です。確認をいただいてから実装します（data/crafted.json・鍛冶屋の画面・サーバーの検証・テスト）。'
+out.append('> 実装済み。'
            'この文書は `scripts/gen-crafted-doc.py` で組み立てています（条件を満たしているかもスクリプトで確かめています）。\n')
 out.append('## 共通のきまり\n')
 out.append('- **強さ**：レジェンド相当（基礎能力の倍率 1.48）。ランダムなのはオプションの値だけで、数はレジェンドと同じ 3 つ。ミシックには届かない。')
@@ -245,11 +294,12 @@ out.append('|---|---|')
 for m in sorted(all_mats, key=lambda x: (-uses[x], x)):
     out.append(f'| {"★" if m in UNUSED else ""}{name(m)} | {uses[m]} |')
 out.append('')
-out.append('## 決めてほしいこと\n')
-out.append('1. **取引**：作った銘入り装備は取引できるか。案は「一度だけ」（精錬済みの装備と同じ扱い）。')
-out.append('2. **属性**：今の装備には属性の項目がない。案は、武器の属性は攻撃の属性に、防具・アクセサリーの属性は表示だけ。')
-out.append('3. **作れる数**：同じものを何本でも作れるか。案は何本でも（オプションの値を厳選できる）。')
-out.append('4. **新しい条件**：武器の仕組みに合わせて、条件を 5 つ（溜め・コンボ・再装填・リズム・防いだあと）と、効果を 1 つ（槍の最適な間合いのダメージ）足す。')
+out.append('## 決まったこと\n')
+out.append('1. **取引**：何度でも取引できる（精錬すると、今の装備と同じく「一度だけ」になる）。')
+out.append('2. **属性**：武器の属性は攻撃の属性になる。防具・アクセサリーは属性なし。')
+out.append('3. **作れる数**：同じものを何本でも作れる（オプションの値を厳選できる）。')
+out.append('4. **新しい条件**：溜め最大・コンボ・再装填のあと・リズム・防いだあと の 5 つと、槍の最適な間合いのダメージ（sweetDmgPct）を足した。')
+out.append('\n実装：レシピは `data/crafted.json`（このスクリプトが書き出す）。固定効果は `uniques` に `crafted.<id>` として登録し、今の効果処理を通す。作成はサーバーで材料・ゴールド・鍛冶 Lv・鍛冶屋のそばかを確かめる。')
 with open(os.path.join(ROOT, 'docs/CRAFTED.md'), 'w') as f:
     f.write('\n'.join(out) + '\n')
 print('ok', sum(len(x) for x in rows_by_region), 'items;', 'unused-16 min uses', min(uses[m] for m in UNUSED))

@@ -257,6 +257,7 @@ export function applyHit(w: World, src: Actor, tgt: Actor, spec: HitSpec, combo:
     const br = tgt.stats.m.blockRate ?? 0;
     if (br > 0 && w.rng.next() * 100 < br) {
       bonus *= 1 - c.balance.player.blockReduce / 100;
+      tgt.lastBlockTick = w.tick;
       w.events.push({ type: 'evade', tgt: tgt.id, x: tgt.x, y: tgt.y, block: true });
     }
   }

@@ -53,6 +53,11 @@ export function checkItem(it: Item, c: Content = CONTENT): string | null {
   if (!Array.isArray(it.crystals) || it.crystals.length > rd.slots[1]) return 'crystal';
   for (const cr of it.crystals) if (cr !== null && !c.crystals[cr]) return 'crystal';
   if (it.unique && !c.uniques[it.unique]) return 'unknown';
+  // 銘入り装備：レシピがあり、ベース・固定効果がレシピどおりであること
+  if (it.crafted !== undefined) {
+    const r = c.crafted.recipes.find((x) => x.id === it.crafted);
+    if (!r || r.base !== it.base || it.unique !== `crafted.${r.id}`) return 'unknown';
+  } else if (it.unique?.startsWith('crafted.')) return 'unknown';
   if (it.mythic && !c.mythics[it.mythic]) return 'unknown';
   if (it.set && !c.sets[it.set]) return 'unknown';
   if (!['free', 'once', 'none'].includes(it.trade)) return 'unknown';

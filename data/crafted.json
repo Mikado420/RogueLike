@@ -1,0 +1,2147 @@
+{
+ "regions": [
+  {
+   "id": "meadow",
+   "name": "翠風の草原"
+  },
+  {
+   "id": "marsh",
+   "name": "蒼雫の湖沼"
+  },
+  {
+   "id": "volcano",
+   "name": "紅蓮の火山"
+  },
+  {
+   "id": "forest",
+   "name": "黄昏の古森"
+  },
+  {
+   "id": "snow",
+   "name": "白銀の雪原"
+  }
+ ],
+ "recipes": [
+  {
+   "id": "meadow_01",
+   "name": "翠風・風切りの片手剣",
+   "region": "meadow",
+   "stage": 0,
+   "base": "w_oneHandSword",
+   "tier": 0,
+   "smithLevel": 2,
+   "element": "wind",
+   "mats": {
+    "slime_gel": 4,
+    "boar_hide": 3,
+    "hornet_needle": 2
+   },
+   "gold": 300,
+   "crystals": 1,
+   "family": "guard",
+   "effect": {
+    "when": {
+     "afterBlock": 2
+    },
+    "whenMods": {
+     "atkPct": 12,
+     "dmgReductionPct": 5
+    }
+   }
+  },
+  {
+   "id": "meadow_02",
+   "name": "翠風・大嵐の両手剣",
+   "region": "meadow",
+   "stage": 0,
+   "base": "w_twoHandSword",
+   "tier": 0,
+   "smithLevel": 2,
+   "element": "earth",
+   "mats": {
+    "spore": 4,
+    "copper_ore": 3,
+    "wisp_ember": 2
+   },
+   "gold": 300,
+   "crystals": 1,
+   "family": "charge",
+   "effect": {
+    "when": {
+     "chargeMax": true
+    },
+    "whenMods": {
+     "atkPct": 15,
+     "breakPct": 10
+    }
+   }
+  },
+  {
+   "id": "meadow_03",
+   "name": "翠風・蜂舞いの双剣",
+   "region": "meadow",
+   "stage": 0,
+   "base": "w_dualSwords",
+   "tier": 0,
+   "smithLevel": 2,
+   "element": "wind",
+   "mats": {
+    "iron_ore": 4,
+    "herb_green": 3,
+    "snake_skin": 2
+   },
+   "gold": 300,
+   "crystals": 1,
+   "family": "dodge",
+   "effect": {
+    "when": {
+     "afterDodge": 3
+    },
+    "whenMods": {
+     "atkPct": 10,
+     "matkPct": 10
+    }
+   }
+  },
+  {
+   "id": "meadow_04",
+   "name": "翠風・若葉の槍",
+   "region": "meadow",
+   "stage": 0,
+   "base": "w_spear",
+   "tier": 0,
+   "smithLevel": 2,
+   "element": "earth",
+   "mats": {
+    "oak_wood": 4,
+    "river_fish": 3,
+    "rain_trout": 2
+   },
+   "gold": 300,
+   "crystals": 1,
+   "family": "spacing",
+   "effect": {
+    "mods": {
+     "sweetDmgPct": 10
+    }
+   }
+  },
+  {
+   "id": "meadow_05",
+   "name": "翠風・蛇鱗の頭巾",
+   "region": "meadow",
+   "stage": 0,
+   "base": "h_hood",
+   "tier": 0,
+   "smithLevel": 2,
+   "element": "neutral",
+   "mats": {
+    "slime_gel": 4,
+    "boar_hide": 3,
+    "hornet_needle": 2
+   },
+   "gold": 300,
+   "crystals": 1,
+   "family": "wall",
+   "effect": {
+    "when": {
+     "hpBelow": 30
+    },
+    "whenMods": {
+     "defPct": 25,
+     "dmgReductionPct": 6
+    }
+   }
+  },
+  {
+   "id": "meadow_06",
+   "name": "翠風・宵闇の軽鎧",
+   "region": "meadow",
+   "stage": 0,
+   "base": "a_light",
+   "tier": 0,
+   "smithLevel": 2,
+   "element": "neutral",
+   "mats": {
+    "spore": 4,
+    "copper_ore": 3,
+    "wisp_ember": 2
+   },
+   "gold": 300,
+   "crystals": 1,
+   "family": "hurt",
+   "effect": {
+    "proc": {
+     "on": "hurt",
+     "chance": 6,
+     "effect": "heal",
+     "value": 5
+    }
+   }
+  },
+  {
+   "id": "meadow_07",
+   "name": "翠風・蜂針の弓",
+   "region": "meadow",
+   "stage": 1,
+   "base": "w_bow",
+   "tier": 1,
+   "smithLevel": 5,
+   "element": "wind",
+   "mats": {
+    "golem_core": 6,
+    "moon_herb": 5,
+    "hornet_needle": 4,
+    "wisp_ember": 3
+   },
+   "gold": 1700,
+   "crystals": 1,
+   "family": "hunter",
+   "effect": {
+    "mods": {
+     "bossDmgPct": 7
+    }
+   }
+  },
+  {
+   "id": "meadow_08",
+   "name": "翠風・宵灯の杖",
+   "region": "meadow",
+   "stage": 1,
+   "base": "w_staff",
+   "tier": 1,
+   "smithLevel": 5,
+   "element": "earth",
+   "mats": {
+    "slime_gel": 6,
+    "boar_hide": 5,
+    "snake_skin": 4,
+    "rain_trout": 3
+   },
+   "gold": 1700,
+   "crystals": 1,
+   "family": "last",
+   "effect": {
+    "when": {
+     "hpBelow": 50
+    },
+    "whenMods": {
+     "atkPct": 17,
+     "critRate": 5
+    }
+   }
+  },
+  {
+   "id": "meadow_09",
+   "name": "翠風・嵐呼びの手甲",
+   "region": "meadow",
+   "stage": 1,
+   "base": "w_knuckles",
+   "tier": 1,
+   "smithLevel": 5,
+   "element": "wind",
+   "mats": {
+    "spore": 6,
+    "copper_ore": 5,
+    "hornet_needle": 4,
+    "wisp_ember": 3
+   },
+   "gold": 1700,
+   "crystals": 1,
+   "family": "combo",
+   "effect": {
+    "when": {
+     "comboAtLeast": 6
+    },
+    "whenMods": {
+     "atkPct": 12,
+     "critRate": 4
+    }
+   }
+  },
+  {
+   "id": "meadow_10",
+   "name": "翠風・野茨の法衣",
+   "region": "meadow",
+   "stage": 1,
+   "base": "a_cloth",
+   "tier": 1,
+   "smithLevel": 5,
+   "element": "neutral",
+   "mats": {
+    "iron_ore": 6,
+    "herb_green": 5,
+    "snake_skin": 4,
+    "rain_trout": 3
+   },
+   "gold": 1700,
+   "crystals": 1,
+   "family": "resist",
+   "effect": {
+    "mods": {
+     "statusResistPct": 14,
+     "healPct": 5
+    }
+   }
+  },
+  {
+   "id": "meadow_11",
+   "name": "翠風・樫守りの矢筒",
+   "region": "meadow",
+   "stage": 1,
+   "base": "s_quiver",
+   "tier": 1,
+   "smithLevel": 5,
+   "element": "neutral",
+   "mats": {
+    "oak_wood": 6,
+    "river_fish": 5,
+    "hornet_needle": 4,
+    "wisp_ember": 3
+   },
+   "gold": 1700,
+   "crystals": 1,
+   "family": "luck",
+   "effect": {
+    "mods": {
+     "dropRatePct": 7,
+     "rareRatePct": 5
+    }
+   }
+  },
+  {
+   "id": "meadow_12",
+   "name": "翠風・蜂蜜の指輪",
+   "region": "meadow",
+   "stage": 1,
+   "base": "x_ring",
+   "tier": 1,
+   "smithLevel": 5,
+   "element": "neutral",
+   "mats": {
+    "golem_core": 6,
+    "moon_herb": 5,
+    "snake_skin": 4,
+    "rain_trout": 3
+   },
+   "gold": 1700,
+   "crystals": 1,
+   "family": "full",
+   "effect": {
+    "when": {
+     "fullHp": true
+    },
+    "whenMods": {
+     "physDmgPct": 7,
+     "magDmgPct": 7
+    }
+   }
+  },
+  {
+   "id": "meadow_13",
+   "name": "翠風・草笛の銃",
+   "region": "meadow",
+   "stage": 2,
+   "base": "w_gun",
+   "tier": 1,
+   "smithLevel": 8,
+   "element": "earth",
+   "mats": {
+    "iron_ore": 8,
+    "herb_green": 7,
+    "snake_skin": 6,
+    "rain_trout": 4,
+    "storm_crystal": 1
+   },
+   "gold": 2200,
+   "crystals": 2,
+   "family": "reload",
+   "effect": {
+    "when": {
+     "afterReload": 3
+    },
+    "whenMods": {
+     "atkPct": 16,
+     "critRate": 5
+    }
+   }
+  },
+  {
+   "id": "meadow_14",
+   "name": "翠風・蛇牙の鎌",
+   "region": "meadow",
+   "stage": 2,
+   "base": "w_scythe",
+   "tier": 1,
+   "smithLevel": 8,
+   "element": "wind",
+   "mats": {
+    "oak_wood": 8,
+    "river_fish": 7,
+    "hornet_needle": 6,
+    "catalyst": 1,
+    "storm_crystal": 1
+   },
+   "gold": 2200,
+   "crystals": 2,
+   "family": "drain",
+   "effect": {
+    "mods": {
+     "lifestealPct": 2.0
+    }
+   }
+  },
+  {
+   "id": "meadow_15",
+   "name": "翠風・雨音のリュート",
+   "region": "meadow",
+   "stage": 2,
+   "base": "w_instrument",
+   "tier": 1,
+   "smithLevel": 8,
+   "element": "earth",
+   "mats": {
+    "golem_core": 8,
+    "moon_herb": 7,
+    "snake_skin": 6,
+    "rain_trout": 4,
+    "storm_crystal": 1
+   },
+   "gold": 2200,
+   "crystals": 2,
+   "family": "rhythm",
+   "effect": {
+    "when": {
+     "rhythmAtLeast": 5
+    },
+    "whenMods": {
+     "matkPct": 13,
+     "mpOnHit": 1.5
+    }
+   }
+  },
+  {
+   "id": "meadow_16",
+   "name": "翠風・雨粒の首飾り",
+   "region": "meadow",
+   "stage": 2,
+   "base": "x_amulet",
+   "tier": 1,
+   "smithLevel": 8,
+   "element": "neutral",
+   "mats": {
+    "slime_gel": 8,
+    "boar_hide": 7,
+    "hornet_needle": 6,
+    "wisp_ember": 4,
+    "storm_crystal": 1
+   },
+   "gold": 2200,
+   "crystals": 2,
+   "family": "night",
+   "effect": {
+    "when": {
+     "night": true
+    },
+    "whenMods": {
+     "atkPct": 12,
+     "matkPct": 12
+    }
+   }
+  },
+  {
+   "id": "marsh_01",
+   "name": "蒼雫・水妖の槍",
+   "region": "marsh",
+   "stage": 0,
+   "base": "w_spear",
+   "tier": 2,
+   "smithLevel": 10,
+   "element": "water",
+   "mats": {
+    "toad_oil": 5,
+    "crab_shell": 4,
+    "eel_slime": 2
+   },
+   "gold": 3900,
+   "crystals": 1,
+   "family": "spacing",
+   "effect": {
+    "mods": {
+     "sweetDmgPct": 14
+    }
+   }
+  },
+  {
+   "id": "marsh_02",
+   "name": "蒼雫・雨鱒の弓",
+   "region": "marsh",
+   "stage": 0,
+   "base": "w_bow",
+   "tier": 2,
+   "smithLevel": 10,
+   "element": "dark",
+   "mats": {
+    "lizard_scale": 5,
+    "ectoplasm": 4,
+    "shade_herb": 2
+   },
+   "gold": 3900,
+   "crystals": 1,
+   "family": "element",
+   "effect": {
+    "mods": {
+     "darkDmgPct": 12,
+     "statusChancePct": 7
+    }
+   }
+  },
+  {
+   "id": "marsh_03",
+   "name": "蒼雫・影草の杖",
+   "region": "marsh",
+   "stage": 0,
+   "base": "w_staff",
+   "tier": 2,
+   "smithLevel": 10,
+   "element": "water",
+   "mats": {
+    "marsh_wood": 5,
+    "swamp_eel": 4,
+    "rain_trout": 2
+   },
+   "gold": 3900,
+   "crystals": 1,
+   "family": "drain",
+   "effect": {
+    "mods": {
+     "lifestealPct": 2.0
+    }
+   }
+  },
+  {
+   "id": "marsh_04",
+   "name": "蒼雫・泡沫の手甲",
+   "region": "marsh",
+   "stage": 0,
+   "base": "w_knuckles",
+   "tier": 2,
+   "smithLevel": 10,
+   "element": "dark",
+   "mats": {
+    "iron_ore": 5,
+    "copper_ore": 4,
+    "wisp_ember": 2
+   },
+   "gold": 3900,
+   "crystals": 1,
+   "family": "combo",
+   "effect": {
+    "when": {
+     "comboAtLeast": 7
+    },
+    "whenMods": {
+     "atkPct": 14,
+     "critRate": 4
+    }
+   }
+  },
+  {
+   "id": "marsh_05",
+   "name": "蒼雫・影草の帽子",
+   "region": "marsh",
+   "stage": 0,
+   "base": "h_hat",
+   "tier": 2,
+   "smithLevel": 10,
+   "element": "neutral",
+   "mats": {
+    "marsh_wood": 5,
+    "swamp_eel": 4,
+    "eel_slime": 2
+   },
+   "gold": 3900,
+   "crystals": 1,
+   "family": "resist",
+   "effect": {
+    "mods": {
+     "statusResistPct": 17,
+     "healPct": 6
+    }
+   }
+  },
+  {
+   "id": "marsh_06",
+   "name": "蒼雫・霧雨の重鎧",
+   "region": "marsh",
+   "stage": 0,
+   "base": "a_heavy",
+   "tier": 2,
+   "smithLevel": 10,
+   "element": "neutral",
+   "mats": {
+    "iron_ore": 5,
+    "copper_ore": 4,
+    "shade_herb": 2
+   },
+   "gold": 3900,
+   "crystals": 1,
+   "family": "luck",
+   "effect": {
+    "mods": {
+     "dropRatePct": 8,
+     "rareRatePct": 6
+    }
+   }
+  },
+  {
+   "id": "marsh_07",
+   "name": "蒼雫・水撃ちの銃",
+   "region": "marsh",
+   "stage": 1,
+   "base": "w_gun",
+   "tier": 3,
+   "smithLevel": 13,
+   "element": "water",
+   "mats": {
+    "toad_oil": 7,
+    "crab_shell": 6,
+    "eel_slime": 4,
+    "shade_herb": 3
+   },
+   "gold": 11800,
+   "crystals": 1,
+   "family": "reload",
+   "effect": {
+    "when": {
+     "afterReload": 3
+    },
+    "whenMods": {
+     "atkPct": 19,
+     "critRate": 6
+    }
+   }
+  },
+  {
+   "id": "marsh_08",
+   "name": "蒼雫・沼刈りの鎌",
+   "region": "marsh",
+   "stage": 1,
+   "base": "w_scythe",
+   "tier": 3,
+   "smithLevel": 13,
+   "element": "dark",
+   "mats": {
+    "lizard_scale": 7,
+    "ectoplasm": 6,
+    "rain_trout": 4,
+    "wisp_ember": 3
+   },
+   "gold": 11800,
+   "crystals": 1,
+   "family": "night",
+   "effect": {
+    "when": {
+     "night": true
+    },
+    "whenMods": {
+     "atkPct": 14,
+     "matkPct": 14
+    }
+   }
+  },
+  {
+   "id": "marsh_09",
+   "name": "蒼雫・雫歌のリュート",
+   "region": "marsh",
+   "stage": 1,
+   "base": "w_instrument",
+   "tier": 3,
+   "smithLevel": 13,
+   "element": "water",
+   "mats": {
+    "marsh_wood": 7,
+    "swamp_eel": 6,
+    "eel_slime": 4,
+    "shade_herb": 3
+   },
+   "gold": 11800,
+   "crystals": 1,
+   "family": "rhythm",
+   "effect": {
+    "when": {
+     "rhythmAtLeast": 5
+    },
+    "whenMods": {
+     "matkPct": 16,
+     "mpOnHit": 1.5
+    }
+   }
+  },
+  {
+   "id": "marsh_10",
+   "name": "蒼雫・鰻皮の軽鎧",
+   "region": "marsh",
+   "stage": 1,
+   "base": "a_light",
+   "tier": 3,
+   "smithLevel": 13,
+   "element": "neutral",
+   "mats": {
+    "toad_oil": 7,
+    "crab_shell": 6,
+    "rain_trout": 4,
+    "wisp_ember": 3
+   },
+   "gold": 11800,
+   "crystals": 1,
+   "family": "full",
+   "effect": {
+    "when": {
+     "fullHp": true
+    },
+    "whenMods": {
+     "physDmgPct": 10,
+     "magDmgPct": 10
+    }
+   }
+  },
+  {
+   "id": "marsh_11",
+   "name": "蒼雫・甲羅の盾",
+   "region": "marsh",
+   "stage": 1,
+   "base": "s_shield",
+   "tier": 3,
+   "smithLevel": 13,
+   "element": "neutral",
+   "mats": {
+    "lizard_scale": 7,
+    "ectoplasm": 6,
+    "eel_slime": 4,
+    "shade_herb": 3
+   },
+   "gold": 11800,
+   "crystals": 1,
+   "family": "mana",
+   "effect": {
+    "mods": {
+     "mpOnHit": 2.0
+    }
+   }
+  },
+  {
+   "id": "marsh_12",
+   "name": "蒼雫・水月の耳飾り",
+   "region": "marsh",
+   "stage": 1,
+   "base": "x_earring",
+   "tier": 3,
+   "smithLevel": 13,
+   "element": "neutral",
+   "mats": {
+    "marsh_wood": 7,
+    "swamp_eel": 6,
+    "rain_trout": 4,
+    "wisp_ember": 3
+   },
+   "gold": 11800,
+   "crystals": 1,
+   "family": "hunter",
+   "effect": {
+    "mods": {
+     "bossDmgPct": 10
+    }
+   }
+  },
+  {
+   "id": "marsh_13",
+   "name": "蒼雫・水鏡の片手剣",
+   "region": "marsh",
+   "stage": 2,
+   "base": "w_oneHandSword",
+   "tier": 3,
+   "smithLevel": 16,
+   "element": "dark",
+   "mats": {
+    "iron_ore": 9,
+    "copper_ore": 8,
+    "rain_trout": 6,
+    "wisp_ember": 4,
+    "hydra_fang": 2
+   },
+   "gold": 15100,
+   "crystals": 2,
+   "family": "guard",
+   "effect": {
+    "when": {
+     "afterBlock": 2
+    },
+    "whenMods": {
+     "atkPct": 21,
+     "dmgReductionPct": 9
+    }
+   }
+  },
+  {
+   "id": "marsh_14",
+   "name": "蒼雫・沼底の両手剣",
+   "region": "marsh",
+   "stage": 2,
+   "base": "w_twoHandSword",
+   "tier": 3,
+   "smithLevel": 16,
+   "element": "water",
+   "mats": {
+    "toad_oil": 9,
+    "crab_shell": 8,
+    "eel_slime": 6,
+    "catalyst": 1,
+    "hydra_fang": 2
+   },
+   "gold": 15100,
+   "crystals": 2,
+   "family": "charge",
+   "effect": {
+    "when": {
+     "chargeMax": true
+    },
+    "whenMods": {
+     "atkPct": 26,
+     "breakPct": 21
+    }
+   }
+  },
+  {
+   "id": "marsh_15",
+   "name": "蒼雫・鰻流しの双剣",
+   "region": "marsh",
+   "stage": 2,
+   "base": "w_dualSwords",
+   "tier": 3,
+   "smithLevel": 16,
+   "element": "dark",
+   "mats": {
+    "lizard_scale": 9,
+    "ectoplasm": 8,
+    "rain_trout": 6,
+    "wisp_ember": 4,
+    "hydra_fang": 2
+   },
+   "gold": 15100,
+   "crystals": 2,
+   "family": "dodge",
+   "effect": {
+    "when": {
+     "afterDodge": 3
+    },
+    "whenMods": {
+     "atkPct": 18,
+     "matkPct": 18
+    }
+   }
+  },
+  {
+   "id": "marsh_16",
+   "name": "蒼雫・雫の指輪",
+   "region": "marsh",
+   "stage": 2,
+   "base": "x_ring",
+   "tier": 3,
+   "smithLevel": 16,
+   "element": "neutral",
+   "mats": {
+    "iron_ore": 9,
+    "copper_ore": 8,
+    "eel_slime": 6,
+    "shade_herb": 4,
+    "hydra_fang": 1
+   },
+   "gold": 15100,
+   "crystals": 2,
+   "family": "reap",
+   "effect": {
+    "proc": {
+     "on": "kill",
+     "chance": 100,
+     "effect": "heal",
+     "value": 6
+    }
+   }
+  },
+  {
+   "id": "volcano_01",
+   "name": "灰燼・地獄の手甲",
+   "region": "volcano",
+   "stage": 0,
+   "base": "w_knuckles",
+   "tier": 4,
+   "smithLevel": 20,
+   "element": "fire",
+   "mats": {
+    "fire_scale": 6,
+    "magma_core": 5,
+    "bat_wing": 2
+   },
+   "gold": 14700,
+   "crystals": 1,
+   "family": "combo",
+   "effect": {
+    "when": {
+     "comboAtLeast": 11
+    },
+    "whenMods": {
+     "atkPct": 18,
+     "critRate": 6
+    }
+   }
+  },
+  {
+   "id": "volcano_02",
+   "name": "灰燼・火砲の銃",
+   "region": "volcano",
+   "stage": 0,
+   "base": "w_gun",
+   "tier": 4,
+   "smithLevel": 20,
+   "element": "earth",
+   "mats": {
+    "ash_wood": 6,
+    "fire_herb": 5,
+    "hell_fang": 2
+   },
+   "gold": 14700,
+   "crystals": 1,
+   "family": "reload",
+   "effect": {
+    "when": {
+     "afterReload": 3
+    },
+    "whenMods": {
+     "atkPct": 22,
+     "critRate": 7
+    }
+   }
+  },
+  {
+   "id": "volcano_03",
+   "name": "灰燼・地獄犬の鎌",
+   "region": "volcano",
+   "stage": 0,
+   "base": "w_scythe",
+   "tier": 4,
+   "smithLevel": 20,
+   "element": "fire",
+   "mats": {
+    "lava_crab": 6,
+    "iron_ore": 5,
+    "storm_crystal": 2
+   },
+   "gold": 14700,
+   "crystals": 1,
+   "family": "drain",
+   "effect": {
+    "mods": {
+     "lifestealPct": 3.0
+    }
+   }
+  },
+  {
+   "id": "volcano_04",
+   "name": "灰燼・炎の調べのリュート",
+   "region": "volcano",
+   "stage": 0,
+   "base": "w_instrument",
+   "tier": 4,
+   "smithLevel": 20,
+   "element": "earth",
+   "mats": {
+    "mithril_ore": 6,
+    "golem_core": 5,
+    "bat_wing": 2
+   },
+   "gold": 14700,
+   "crystals": 1,
+   "family": "rhythm",
+   "effect": {
+    "when": {
+     "rhythmAtLeast": 5
+    },
+    "whenMods": {
+     "matkPct": 18,
+     "mpOnHit": 2.0
+    }
+   }
+  },
+  {
+   "id": "volcano_05",
+   "name": "灰燼・灰の兜",
+   "region": "volcano",
+   "stage": 0,
+   "base": "h_helm",
+   "tier": 4,
+   "smithLevel": 20,
+   "element": "neutral",
+   "mats": {
+    "lava_crab": 6,
+    "iron_ore": 5,
+    "hell_fang": 2
+   },
+   "gold": 14700,
+   "crystals": 1,
+   "family": "full",
+   "effect": {
+    "when": {
+     "fullHp": true
+    },
+    "whenMods": {
+     "physDmgPct": 12,
+     "magDmgPct": 12
+    }
+   }
+  },
+  {
+   "id": "volcano_06",
+   "name": "灰燼・炎衣の重鎧",
+   "region": "volcano",
+   "stage": 0,
+   "base": "a_heavy",
+   "tier": 4,
+   "smithLevel": 20,
+   "element": "neutral",
+   "mats": {
+    "mithril_ore": 6,
+    "golem_core": 5,
+    "storm_crystal": 2
+   },
+   "gold": 14700,
+   "crystals": 1,
+   "family": "night",
+   "effect": {
+    "when": {
+     "night": true
+    },
+    "whenMods": {
+     "atkPct": 16,
+     "matkPct": 16
+    }
+   }
+  },
+  {
+   "id": "volcano_07",
+   "name": "灰燼の片手剣",
+   "region": "volcano",
+   "stage": 1,
+   "base": "w_oneHandSword",
+   "tier": 5,
+   "smithLevel": 24,
+   "element": "fire",
+   "mats": {
+    "fire_scale": 8,
+    "magma_core": 7,
+    "hell_fang": 4,
+    "storm_crystal": 3
+   },
+   "gold": 31900,
+   "crystals": 1,
+   "family": "guard",
+   "effect": {
+    "when": {
+     "afterBlock": 2
+    },
+    "whenMods": {
+     "atkPct": 24,
+     "dmgReductionPct": 10
+    }
+   }
+  },
+  {
+   "id": "volcano_08",
+   "name": "灰燼・溶岩の両手剣",
+   "region": "volcano",
+   "stage": 1,
+   "base": "w_twoHandSword",
+   "tier": 5,
+   "smithLevel": 24,
+   "element": "earth",
+   "mats": {
+    "ash_wood": 8,
+    "fire_herb": 7,
+    "bat_wing": 4,
+    "hell_fang": 3
+   },
+   "gold": 31900,
+   "crystals": 1,
+   "family": "charge",
+   "effect": {
+    "when": {
+     "chargeMax": true
+    },
+    "whenMods": {
+     "atkPct": 30,
+     "breakPct": 25
+    }
+   }
+  },
+  {
+   "id": "volcano_09",
+   "name": "灰燼・炎蝙蝠の双剣",
+   "region": "volcano",
+   "stage": 1,
+   "base": "w_dualSwords",
+   "tier": 5,
+   "smithLevel": 24,
+   "element": "fire",
+   "mats": {
+    "lava_crab": 8,
+    "iron_ore": 7,
+    "storm_crystal": 4,
+    "bat_wing": 3
+   },
+   "gold": 31900,
+   "crystals": 1,
+   "family": "dodge",
+   "effect": {
+    "when": {
+     "afterDodge": 3
+    },
+    "whenMods": {
+     "atkPct": 20,
+     "matkPct": 20
+    }
+   }
+  },
+  {
+   "id": "volcano_10",
+   "name": "灰燼・溶岩鎧の法衣",
+   "region": "volcano",
+   "stage": 1,
+   "base": "a_cloth",
+   "tier": 5,
+   "smithLevel": 24,
+   "element": "neutral",
+   "mats": {
+    "fire_scale": 8,
+    "magma_core": 7,
+    "bat_wing": 4,
+    "hell_fang": 3
+   },
+   "gold": 31900,
+   "crystals": 1,
+   "family": "mana",
+   "effect": {
+    "mods": {
+     "mpOnHit": 2.5
+    }
+   }
+  },
+  {
+   "id": "volcano_11",
+   "name": "灰燼・火守りの護符",
+   "region": "volcano",
+   "stage": 1,
+   "base": "s_talisman",
+   "tier": 5,
+   "smithLevel": 24,
+   "element": "neutral",
+   "mats": {
+    "ash_wood": 8,
+    "fire_herb": 7,
+    "storm_crystal": 4,
+    "bat_wing": 3
+   },
+   "gold": 31900,
+   "crystals": 1,
+   "family": "hunter",
+   "effect": {
+    "mods": {
+     "bossDmgPct": 13
+    }
+   }
+  },
+  {
+   "id": "volcano_12",
+   "name": "灰燼・蝙蝠の首飾り",
+   "region": "volcano",
+   "stage": 1,
+   "base": "x_amulet",
+   "tier": 5,
+   "smithLevel": 24,
+   "element": "neutral",
+   "mats": {
+    "lava_crab": 8,
+    "iron_ore": 7,
+    "hell_fang": 4,
+    "storm_crystal": 3
+   },
+   "gold": 31900,
+   "crystals": 1,
+   "family": "reap",
+   "effect": {
+    "proc": {
+     "on": "kill",
+     "chance": 100,
+     "effect": "heal",
+     "value": 6
+    }
+   }
+  },
+  {
+   "id": "volcano_13",
+   "name": "灰燼・火竜の槍",
+   "region": "volcano",
+   "stage": 2,
+   "base": "w_spear",
+   "tier": 5,
+   "smithLevel": 28,
+   "element": "earth",
+   "mats": {
+    "mithril_ore": 10,
+    "golem_core": 9,
+    "hell_fang": 6,
+    "storm_crystal": 4,
+    "ember_scale": 2
+   },
+   "gold": 41000,
+   "crystals": 2,
+   "family": "spacing",
+   "effect": {
+    "mods": {
+     "sweetDmgPct": 22
+    }
+   }
+  },
+  {
+   "id": "volcano_14",
+   "name": "灰燼・火矢の弓",
+   "region": "volcano",
+   "stage": 2,
+   "base": "w_bow",
+   "tier": 5,
+   "smithLevel": 28,
+   "element": "fire",
+   "mats": {
+    "fire_scale": 10,
+    "magma_core": 9,
+    "bat_wing": 6,
+    "catalyst": 1,
+    "ember_scale": 2
+   },
+   "gold": 41000,
+   "crystals": 2,
+   "family": "echo",
+   "effect": {
+    "proc": {
+     "on": "hit",
+     "chance": 10,
+     "effect": "extraHit",
+     "value": 0.5
+    }
+   }
+  },
+  {
+   "id": "volcano_15",
+   "name": "灰燼・熾火の杖",
+   "region": "volcano",
+   "stage": 2,
+   "base": "w_staff",
+   "tier": 5,
+   "smithLevel": 28,
+   "element": "earth",
+   "mats": {
+    "ash_wood": 10,
+    "fire_herb": 9,
+    "storm_crystal": 6,
+    "bat_wing": 4,
+    "ember_scale": 2
+   },
+   "gold": 41000,
+   "crystals": 2,
+   "family": "status",
+   "effect": {
+    "proc": {
+     "on": "hit",
+     "chance": 10,
+     "effect": "status",
+     "value": 4,
+     "status": "burn"
+    }
+   }
+  },
+  {
+   "id": "volcano_16",
+   "name": "灰燼・熾りの耳飾り",
+   "region": "volcano",
+   "stage": 2,
+   "base": "x_earring",
+   "tier": 5,
+   "smithLevel": 28,
+   "element": "neutral",
+   "mats": {
+    "mithril_ore": 10,
+    "golem_core": 9,
+    "bat_wing": 6,
+    "hell_fang": 4,
+    "ember_scale": 1
+   },
+   "gold": 41000,
+   "crystals": 2,
+   "family": "element",
+   "effect": {
+    "mods": {
+     "earthDmgPct": 18,
+     "statusChancePct": 11
+    }
+   }
+  },
+  {
+   "id": "forest_01",
+   "name": "黄昏・夕暮れのリュート",
+   "region": "forest",
+   "stage": 0,
+   "base": "w_instrument",
+   "tier": 5,
+   "smithLevel": 30,
+   "element": "dark",
+   "mats": {
+    "fairy_dust": 7,
+    "dark_silk": 6,
+    "ancient_bark": 3
+   },
+   "gold": 22800,
+   "crystals": 1,
+   "family": "rhythm",
+   "effect": {
+    "when": {
+     "rhythmAtLeast": 6
+    },
+    "whenMods": {
+     "matkPct": 22,
+     "mpOnHit": 2.0
+    }
+   }
+  },
+  {
+   "id": "forest_02",
+   "name": "黄昏の片手剣",
+   "region": "forest",
+   "stage": 0,
+   "base": "w_oneHandSword",
+   "tier": 5,
+   "smithLevel": 30,
+   "element": "earth",
+   "mats": {
+    "wolf_fang": 7,
+    "elder_wood": 6,
+    "shade_herb": 3
+   },
+   "gold": 22800,
+   "crystals": 1,
+   "family": "guard",
+   "effect": {
+    "when": {
+     "afterBlock": 2
+    },
+    "whenMods": {
+     "atkPct": 26,
+     "dmgReductionPct": 11
+    }
+   }
+  },
+  {
+   "id": "forest_03",
+   "name": "黄昏・古樹の両手剣",
+   "region": "forest",
+   "stage": 0,
+   "base": "w_twoHandSword",
+   "tier": 5,
+   "smithLevel": 30,
+   "element": "dark",
+   "mats": {
+    "mithril_ore": 7,
+    "star_ore": 6,
+    "wisp_ember": 3
+   },
+   "gold": 22800,
+   "crystals": 1,
+   "family": "charge",
+   "effect": {
+    "when": {
+     "chargeMax": true
+    },
+    "whenMods": {
+     "atkPct": 34,
+     "breakPct": 29
+    }
+   }
+  },
+  {
+   "id": "forest_04",
+   "name": "黄昏・妖精の双剣",
+   "region": "forest",
+   "stage": 0,
+   "base": "w_dualSwords",
+   "tier": 5,
+   "smithLevel": 30,
+   "element": "earth",
+   "mats": {
+    "ectoplasm": 7,
+    "moon_herb": 6,
+    "ancient_bark": 3
+   },
+   "gold": 22800,
+   "crystals": 1,
+   "family": "dodge",
+   "effect": {
+    "when": {
+     "afterDodge": 3
+    },
+    "whenMods": {
+     "atkPct": 22,
+     "matkPct": 22
+    }
+   }
+  },
+  {
+   "id": "forest_05",
+   "name": "黄昏・影草の頭巾",
+   "region": "forest",
+   "stage": 0,
+   "base": "h_hood",
+   "tier": 5,
+   "smithLevel": 30,
+   "element": "neutral",
+   "mats": {
+    "mithril_ore": 7,
+    "star_ore": 6,
+    "shade_herb": 3
+   },
+   "gold": 22800,
+   "crystals": 1,
+   "family": "hunter",
+   "effect": {
+    "mods": {
+     "bossDmgPct": 15
+    }
+   }
+  },
+  {
+   "id": "forest_06",
+   "name": "黄昏・闇糸の法衣",
+   "region": "forest",
+   "stage": 0,
+   "base": "a_cloth",
+   "tier": 5,
+   "smithLevel": 30,
+   "element": "neutral",
+   "mats": {
+    "ectoplasm": 7,
+    "moon_herb": 6,
+    "wisp_ember": 3
+   },
+   "gold": 22800,
+   "crystals": 1,
+   "family": "reap",
+   "effect": {
+    "proc": {
+     "on": "kill",
+     "chance": 100,
+     "effect": "heal",
+     "value": 7
+    }
+   }
+  },
+  {
+   "id": "forest_07",
+   "name": "黄昏・影縫いの槍",
+   "region": "forest",
+   "stage": 1,
+   "base": "w_spear",
+   "tier": 6,
+   "smithLevel": 33,
+   "element": "dark",
+   "mats": {
+    "fairy_dust": 9,
+    "dark_silk": 8,
+    "shade_herb": 5,
+    "wisp_ember": 3
+   },
+   "gold": 45800,
+   "crystals": 1,
+   "family": "spacing",
+   "effect": {
+    "mods": {
+     "sweetDmgPct": 24
+    }
+   }
+  },
+  {
+   "id": "forest_08",
+   "name": "黄昏・夜梟の弓",
+   "region": "forest",
+   "stage": 1,
+   "base": "w_bow",
+   "tier": 6,
+   "smithLevel": 33,
+   "element": "earth",
+   "mats": {
+    "wolf_fang": 9,
+    "elder_wood": 8,
+    "ancient_bark": 5,
+    "shade_herb": 3
+   },
+   "gold": 45800,
+   "crystals": 1,
+   "family": "mana",
+   "effect": {
+    "mods": {
+     "mpOnHit": 3.0
+    }
+   }
+  },
+  {
+   "id": "forest_09",
+   "name": "黄昏・古樹の杖",
+   "region": "forest",
+   "stage": 1,
+   "base": "w_staff",
+   "tier": 6,
+   "smithLevel": 33,
+   "element": "dark",
+   "mats": {
+    "mithril_ore": 9,
+    "star_ore": 8,
+    "wisp_ember": 5,
+    "ancient_bark": 3
+   },
+   "gold": 45800,
+   "crystals": 1,
+   "family": "full",
+   "effect": {
+    "when": {
+     "fullHp": true
+    },
+    "whenMods": {
+     "physDmgPct": 16,
+     "magDmgPct": 16
+    }
+   }
+  },
+  {
+   "id": "forest_10",
+   "name": "黄昏・妖精の軽鎧",
+   "region": "forest",
+   "stage": 1,
+   "base": "a_light",
+   "tier": 6,
+   "smithLevel": 33,
+   "element": "neutral",
+   "mats": {
+    "fairy_dust": 9,
+    "dark_silk": 8,
+    "ancient_bark": 5,
+    "shade_herb": 3
+   },
+   "gold": 45800,
+   "crystals": 1,
+   "family": "element",
+   "effect": {
+    "mods": {
+     "darkDmgPct": 20,
+     "statusChancePct": 12
+    }
+   }
+  },
+  {
+   "id": "forest_11",
+   "name": "黄昏・古樹の魔導書",
+   "region": "forest",
+   "stage": 1,
+   "base": "s_grimoire",
+   "tier": 6,
+   "smithLevel": 33,
+   "element": "neutral",
+   "mats": {
+    "wolf_fang": 9,
+    "elder_wood": 8,
+    "wisp_ember": 5,
+    "ancient_bark": 3
+   },
+   "gold": 45800,
+   "crystals": 1,
+   "family": "last",
+   "effect": {
+    "when": {
+     "hpBelow": 50
+    },
+    "whenMods": {
+     "atkPct": 29,
+     "critRate": 10
+    }
+   }
+  },
+  {
+   "id": "forest_12",
+   "name": "黄昏・宵星の指輪",
+   "region": "forest",
+   "stage": 1,
+   "base": "x_ring",
+   "tier": 6,
+   "smithLevel": 33,
+   "element": "neutral",
+   "mats": {
+    "mithril_ore": 9,
+    "star_ore": 8,
+    "shade_herb": 5,
+    "wisp_ember": 3
+   },
+   "gold": 45800,
+   "crystals": 1,
+   "family": "wall",
+   "effect": {
+    "when": {
+     "hpBelow": 30
+    },
+    "whenMods": {
+     "defPct": 50,
+     "dmgReductionPct": 14
+    }
+   }
+  },
+  {
+   "id": "forest_13",
+   "name": "黄昏・狼の手甲",
+   "region": "forest",
+   "stage": 2,
+   "base": "w_knuckles",
+   "tier": 6,
+   "smithLevel": 36,
+   "element": "earth",
+   "mats": {
+    "ectoplasm": 11,
+    "moon_herb": 10,
+    "shade_herb": 7,
+    "wisp_ember": 4,
+    "ancient_bark": 2
+   },
+   "gold": 58900,
+   "crystals": 2,
+   "family": "combo",
+   "effect": {
+    "when": {
+     "comboAtLeast": 21
+    },
+    "whenMods": {
+     "atkPct": 26,
+     "critRate": 9
+    }
+   }
+  },
+  {
+   "id": "forest_14",
+   "name": "黄昏・闇撃ちの銃",
+   "region": "forest",
+   "stage": 2,
+   "base": "w_gun",
+   "tier": 6,
+   "smithLevel": 36,
+   "element": "dark",
+   "mats": {
+    "fairy_dust": 11,
+    "dark_silk": 10,
+    "ancient_bark": 7,
+    "golden_fish": 1
+   },
+   "gold": 58900,
+   "crystals": 2,
+   "family": "reload",
+   "effect": {
+    "when": {
+     "afterReload": 3
+    },
+    "whenMods": {
+     "atkPct": 30,
+     "critRate": 10
+    }
+   }
+  },
+  {
+   "id": "forest_15",
+   "name": "黄昏・影刈りの鎌",
+   "region": "forest",
+   "stage": 2,
+   "base": "w_scythe",
+   "tier": 6,
+   "smithLevel": 36,
+   "element": "earth",
+   "mats": {
+    "wolf_fang": 11,
+    "elder_wood": 10,
+    "wisp_ember": 7,
+    "ancient_bark": 4
+   },
+   "gold": 58900,
+   "crystals": 2,
+   "family": "drain",
+   "effect": {
+    "mods": {
+     "lifestealPct": 4.5
+    }
+   }
+  },
+  {
+   "id": "forest_16",
+   "name": "黄昏・狼牙の耳飾り",
+   "region": "forest",
+   "stage": 2,
+   "base": "x_earring",
+   "tier": 6,
+   "smithLevel": 36,
+   "element": "neutral",
+   "mats": {
+    "ectoplasm": 11,
+    "moon_herb": 10,
+    "ancient_bark": 7,
+    "shade_herb": 4
+   },
+   "gold": 58900,
+   "crystals": 2,
+   "family": "hurt",
+   "effect": {
+    "proc": {
+     "on": "hurt",
+     "chance": 12,
+     "effect": "heal",
+     "value": 11
+    }
+   }
+  },
+  {
+   "id": "snow_01",
+   "name": "白銀・吹雪の双剣",
+   "region": "snow",
+   "stage": 0,
+   "base": "w_dualSwords",
+   "tier": 7,
+   "smithLevel": 38,
+   "element": "water",
+   "mats": {
+    "wyvern_scale": 8,
+    "snow_lotus": 7,
+    "frost_core": 3
+   },
+   "gold": 44400,
+   "crystals": 1,
+   "family": "dodge",
+   "effect": {
+    "when": {
+     "afterDodge": 3
+    },
+    "whenMods": {
+     "atkPct": 27,
+     "matkPct": 27
+    }
+   }
+  },
+  {
+   "id": "snow_02",
+   "name": "白銀・氷柱の槍",
+   "region": "snow",
+   "stage": 0,
+   "base": "w_spear",
+   "tier": 7,
+   "smithLevel": 38,
+   "element": "wind",
+   "mats": {
+    "frost_wood": 8,
+    "star_ore": 7,
+    "yeti_fur": 3
+   },
+   "gold": 44400,
+   "crystals": 1,
+   "family": "spacing",
+   "effect": {
+    "mods": {
+     "sweetDmgPct": 27
+    }
+   }
+  },
+  {
+   "id": "snow_03",
+   "name": "白銀・氷魚の弓",
+   "region": "snow",
+   "stage": 0,
+   "base": "w_bow",
+   "tier": 7,
+   "smithLevel": 38,
+   "element": "water",
+   "mats": {
+    "mithril_ore": 8,
+    "wolf_fang": 7,
+    "ice_fish": 3
+   },
+   "gold": 44400,
+   "crystals": 1,
+   "family": "night",
+   "effect": {
+    "when": {
+     "night": true
+    },
+    "whenMods": {
+     "atkPct": 22,
+     "matkPct": 22
+    }
+   }
+  },
+  {
+   "id": "snow_04",
+   "name": "白銀・氷結の杖",
+   "region": "snow",
+   "stage": 0,
+   "base": "w_staff",
+   "tier": 7,
+   "smithLevel": 38,
+   "element": "wind",
+   "mats": {
+    "ectoplasm": 8,
+    "wyvern_scale": 7,
+    "storm_crystal": 3
+   },
+   "gold": 44400,
+   "crystals": 1,
+   "family": "reap",
+   "effect": {
+    "proc": {
+     "on": "kill",
+     "chance": 100,
+     "effect": "heal",
+     "value": 9
+    }
+   }
+  },
+  {
+   "id": "snow_05",
+   "name": "白銀・嵐晶の兜",
+   "region": "snow",
+   "stage": 0,
+   "base": "h_helm",
+   "tier": 7,
+   "smithLevel": 38,
+   "element": "neutral",
+   "mats": {
+    "ectoplasm": 8,
+    "wyvern_scale": 7,
+    "frost_core": 3
+   },
+   "gold": 44400,
+   "crystals": 1,
+   "family": "element",
+   "effect": {
+    "mods": {
+     "waterDmgPct": 22,
+     "statusChancePct": 13
+    }
+   }
+  },
+  {
+   "id": "snow_06",
+   "name": "白銀・雪男の重鎧",
+   "region": "snow",
+   "stage": 0,
+   "base": "a_heavy",
+   "tier": 7,
+   "smithLevel": 38,
+   "element": "neutral",
+   "mats": {
+    "snow_lotus": 8,
+    "frost_wood": 7,
+    "yeti_fur": 3
+   },
+   "gold": 44400,
+   "crystals": 1,
+   "family": "last",
+   "effect": {
+    "when": {
+     "hpBelow": 50
+    },
+    "whenMods": {
+     "atkPct": 32,
+     "critRate": 11
+    }
+   }
+  },
+  {
+   "id": "snow_07",
+   "name": "白銀・雪男の手甲",
+   "region": "snow",
+   "stage": 1,
+   "base": "w_knuckles",
+   "tier": 8,
+   "smithLevel": 42,
+   "element": "water",
+   "mats": {
+    "snow_lotus": 10,
+    "frost_wood": 9,
+    "frost_core": 5,
+    "yeti_fur": 3
+   },
+   "gold": 81100,
+   "crystals": 1,
+   "family": "combo",
+   "effect": {
+    "when": {
+     "comboAtLeast": 22
+    },
+    "whenMods": {
+     "atkPct": 28,
+     "critRate": 9
+    }
+   }
+  },
+  {
+   "id": "snow_08",
+   "name": "白銀・嵐撃ちの銃",
+   "region": "snow",
+   "stage": 1,
+   "base": "w_gun",
+   "tier": 8,
+   "smithLevel": 42,
+   "element": "wind",
+   "mats": {
+    "star_ore": 10,
+    "mithril_ore": 9,
+    "ice_fish": 5,
+    "storm_crystal": 3
+   },
+   "gold": 81100,
+   "crystals": 1,
+   "family": "reload",
+   "effect": {
+    "when": {
+     "afterReload": 3
+    },
+    "whenMods": {
+     "atkPct": 33,
+     "critRate": 11
+    }
+   }
+  },
+  {
+   "id": "snow_09",
+   "name": "白銀・霜刈りの鎌",
+   "region": "snow",
+   "stage": 1,
+   "base": "w_scythe",
+   "tier": 8,
+   "smithLevel": 42,
+   "element": "water",
+   "mats": {
+    "wolf_fang": 10,
+    "ectoplasm": 9,
+    "frost_core": 5,
+    "yeti_fur": 3
+   },
+   "gold": 81100,
+   "crystals": 1,
+   "family": "drain",
+   "effect": {
+    "mods": {
+     "lifestealPct": 4.5
+    }
+   }
+  },
+  {
+   "id": "snow_10",
+   "name": "白銀・竜鱗の軽鎧",
+   "region": "snow",
+   "stage": 1,
+   "base": "a_light",
+   "tier": 8,
+   "smithLevel": 42,
+   "element": "neutral",
+   "mats": {
+    "star_ore": 10,
+    "mithril_ore": 9,
+    "ice_fish": 5,
+    "storm_crystal": 3
+   },
+   "gold": 81100,
+   "crystals": 1,
+   "family": "wall",
+   "effect": {
+    "when": {
+     "hpBelow": 30
+    },
+    "whenMods": {
+     "defPct": 57,
+     "dmgReductionPct": 17
+    }
+   }
+  },
+  {
+   "id": "snow_11",
+   "name": "白銀・霜の拡張弾倉",
+   "region": "snow",
+   "stage": 1,
+   "base": "s_magazine",
+   "tier": 8,
+   "smithLevel": 42,
+   "element": "neutral",
+   "mats": {
+    "wolf_fang": 10,
+    "ectoplasm": 9,
+    "frost_core": 5,
+    "yeti_fur": 3
+   },
+   "gold": 81100,
+   "crystals": 1,
+   "family": "hurt",
+   "effect": {
+    "proc": {
+     "on": "hurt",
+     "chance": 13,
+     "effect": "heal",
+     "value": 11
+    }
+   }
+  },
+  {
+   "id": "snow_12",
+   "name": "白銀・氷結核の首飾り",
+   "region": "snow",
+   "stage": 1,
+   "base": "x_amulet",
+   "tier": 8,
+   "smithLevel": 42,
+   "element": "neutral",
+   "mats": {
+    "wyvern_scale": 10,
+    "snow_lotus": 9,
+    "ice_fish": 5,
+    "storm_crystal": 3
+   },
+   "gold": 81100,
+   "crystals": 1,
+   "family": "resist",
+   "effect": {
+    "mods": {
+     "statusResistPct": 33,
+     "healPct": 14
+    }
+   }
+  },
+  {
+   "id": "snow_13",
+   "name": "白銀・雪の調べのリュート",
+   "region": "snow",
+   "stage": 2,
+   "base": "w_instrument",
+   "tier": 8,
+   "smithLevel": 45,
+   "element": "wind",
+   "mats": {
+    "wyvern_scale": 12,
+    "snow_lotus": 11,
+    "ice_fish": 7,
+    "storm_crystal": 4,
+    "dragon_scale": 2
+   },
+   "gold": 104200,
+   "crystals": 2,
+   "family": "rhythm",
+   "effect": {
+    "when": {
+     "rhythmAtLeast": 9
+    },
+    "whenMods": {
+     "matkPct": 30,
+     "mpOnHit": 3.0
+    }
+   }
+  },
+  {
+   "id": "snow_14",
+   "name": "白銀竜の片手剣",
+   "region": "snow",
+   "stage": 2,
+   "base": "w_oneHandSword",
+   "tier": 8,
+   "smithLevel": 45,
+   "element": "water",
+   "mats": {
+    "frost_wood": 12,
+    "star_ore": 11,
+    "frost_core": 7,
+    "golden_fish": 1,
+    "dragon_scale": 2
+   },
+   "gold": 104200,
+   "crystals": 2,
+   "family": "guard",
+   "effect": {
+    "when": {
+     "afterBlock": 2
+    },
+    "whenMods": {
+     "atkPct": 35,
+     "dmgReductionPct": 15
+    }
+   }
+  },
+  {
+   "id": "snow_15",
+   "name": "白銀・氷河の両手剣",
+   "region": "snow",
+   "stage": 2,
+   "base": "w_twoHandSword",
+   "tier": 8,
+   "smithLevel": 45,
+   "element": "wind",
+   "mats": {
+    "mithril_ore": 12,
+    "wolf_fang": 11,
+    "ice_fish": 7,
+    "storm_crystal": 4,
+    "dragon_scale": 2
+   },
+   "gold": 104200,
+   "crystals": 2,
+   "family": "charge",
+   "effect": {
+    "when": {
+     "chargeMax": true
+    },
+    "whenMods": {
+     "atkPct": 45,
+     "breakPct": 40
+    }
+   }
+  },
+  {
+   "id": "snow_16",
+   "name": "白銀・雪華の指輪",
+   "region": "snow",
+   "stage": 2,
+   "base": "x_ring",
+   "tier": 8,
+   "smithLevel": 45,
+   "element": "neutral",
+   "mats": {
+    "frost_wood": 12,
+    "star_ore": 11,
+    "frost_core": 7,
+    "yeti_fur": 4,
+    "dragon_scale": 1
+   },
+   "gold": 104200,
+   "crystals": 2,
+   "family": "luck",
+   "effect": {
+    "mods": {
+     "dropRatePct": 18,
+     "rareRatePct": 12
+    }
+   }
+  }
+ ]
+}

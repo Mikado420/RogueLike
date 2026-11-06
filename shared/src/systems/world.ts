@@ -193,7 +193,7 @@ export function makePlayer(w: World, char: CharacterData, account: AccountData):
     mp: char.playTime > 0 ? Math.min(char.mp ?? 0, stats.maxMp) : stats.maxMp, st: stats.maxSt, stDelay: 0, attackCd: 0, chainIndex: 0, chainUntil: 0,
     skillCd: {}, skillCdMax: {}, lock: 0, dodgeTicks: 0, dodgeDir: { x: 0, y: 0 }, dashSpeed: 0, iframes: 0,
     respawnTicks: 0, prevAttack: false, charge: 0, ammo: -1, reloadTicks: 0, combo: 0, comboUntil: 0, rhythm: 0,
-    lastDodgeTick: -9999, lastCombatTick: -9999, regenAcc: 0, condKey: '', cheatDeathAt: -1e9, tutPos: { x: 0, y: 0 },
+    lastDodgeTick: -9999, lastReloadTick: -9999, lastBlockTick: -9999, lastCombatTick: -9999, regenAcc: 0, condKey: '', cheatDeathAt: -1e9, tutPos: { x: 0, y: 0 },
   };
 }
 

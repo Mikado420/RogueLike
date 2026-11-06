@@ -64,7 +64,8 @@ export function createItem(uid: number, baseId: string, tierArg: number, ilvl: n
     const mys = Object.keys(c.mythics).filter((id) => c.mythics[id].slots.includes(base.slot));
     if (rarity === 'mythic' && mys.length) mythic = rng.pick(mys);
     else {
-      const us = Object.keys(c.uniques).filter((id) => c.uniques[id].slots.includes(base.slot));
+      // 銘入り装備の固定効果（crafted.）は、拾う装備には付けない
+      const us = Object.keys(c.uniques).filter((id) => !id.startsWith('crafted.') && c.uniques[id].slots.includes(base.slot));
       if (us.length) unique = rng.pick(us);
     }
   }

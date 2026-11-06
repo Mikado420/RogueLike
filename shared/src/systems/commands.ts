@@ -15,7 +15,7 @@ import { setCounterMax } from './counters';
 import { enterDungeon, enterRaid, enterTower, leaveInstance } from './instance';
 import { claimMission, equipTitle } from './quest';
 import { buildFacility, payUpkeep } from './base';
-import { alchemy, cook, craftItem } from './crafting';
+import { alchemy, cook, craftItem, craftNamed } from './crafting';
 import { capture, inheritPet, releasePet, setActivePet, setPetRole } from './pets';
 
 /**
@@ -90,6 +90,7 @@ export function applyCommand(w: World, p: Player, cmd: Command) {
     case 'buildFacility': err = nearRole(w, p, 'base') ? buildFacility(w, p, cmd.facility) : 'err.notNear'; break;
     case 'payUpkeep': err = nearRole(w, p, 'base') ? payUpkeep(w, p) : 'err.notNear'; break;
     case 'craft': err = nearRole(w, p, 'smith') ? craftItem(w, p, cmd.tier, cmd.base) : 'err.notNear'; break;
+    case 'craftNamed': err = nearRole(w, p, 'smith') ? craftNamed(w, p, String(cmd.recipe)) : 'err.notNear'; break;
     case 'cook': err = nearRole(w, p, 'kitchen') ? cook(w, p, cmd.recipe) : 'err.notNear'; break;
     case 'alchemy': err = nearRole(w, p, 'smith') ? alchemy(w, p, cmd.uid, cmd.mode, cmd.index) : 'err.notNear'; break;
     case 'capture': err = capture(w, p, cmd.item); break;

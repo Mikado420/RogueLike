@@ -47,7 +47,7 @@ export const MOD_KEYS = [
   'fireResPct', 'waterResPct', 'windResPct', 'earthResPct', 'lightResPct', 'darkResPct',
   'lifestealPct', 'mpOnHit', 'hpRegen', 'mpRegen', 'healPct',
   'cooldownPct', 'mpCostPct', 'dodgeCostPct', 'staRegenPct',
-  'breakPct', 'statusChancePct', 'statusResistPct',
+  'breakPct', 'statusChancePct', 'statusResistPct', 'sweetDmgPct',
   'dropRatePct', 'rareRatePct', 'goldPct', 'expPct', 'gatherPct',
   'dmgReductionPct', 'evasion', 'blockRate',
   'rangePct', 'chargePct', 'comboMax', 'magazine', 'reloadPct', 'rhythmPct', 'drainPct',

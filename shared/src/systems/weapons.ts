@@ -50,6 +50,12 @@ export function isOnBeat(w: World, m: Extract<WeaponMechanic, { type: 'rhythm' }
 
 // ───────── 両手剣：溜め ─────────
 
+/** 溜めが最大の段階まで来ているか（銘入り装備の条件） */
+export function chargeMaxed(w: World, p: Player): boolean {
+  const m = mechanicOf(w, p);
+  return m.type === 'charge' && chargeLevel(w, p) >= m.levels.length;
+}
+
 export function chargeLevel(w: World, p: Player): number {
   const m = mechanicOf(w, p);
   if (m.type !== 'charge' || p.charge <= 0) return 0;
@@ -66,6 +72,7 @@ export function updateWeaponTimers(w: World, p: Player) {
     if (p.ammo < 0) p.ammo = magazineSize(w, p);
     if (p.reloadTicks > 0 && --p.reloadTicks === 0) {
       p.ammo = magazineSize(w, p);
+      p.lastReloadTick = w.tick;
       w.events.push({ type: 'reload', playerId: p.id, done: true });
     }
   } else {
@@ -123,7 +130,7 @@ export function weaponHitMods(w: World, src: Player, tgt: Actor, spec: HitSpec):
   if (m.type === 'combo') mul *= 1 + (src.combo * m.perStack) / 100;
   if (m.type === 'spacing' && spec.reach) {
     const d = Math.hypot(tgt.x - src.x, tgt.y - src.y) - tgt.r;
-    if (d >= spec.reach * m.sweetFrom) { mul *= m.bonus; sweet = true; }
+    if (d >= spec.reach * m.sweetFrom) { mul *= m.bonus * (1 + (src.stats.m.sweetDmgPct ?? 0) / 100); sweet = true; }
   }
   if (m.type === 'ammo') {
     const fromTgt = Math.atan2(src.y - tgt.y, src.x - tgt.x);

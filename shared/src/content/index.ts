@@ -14,6 +14,7 @@ import shops from '../../../data/shops.json';
 import text from '../../../data/text.json';
 import tiles from '../../../data/tiles.json';
 import uniques from '../../../data/uniques.json';
+import crafted from '../../../data/crafted.json';
 import mythics from '../../../data/mythics.json';
 import sets from '../../../data/sets.json';
 import crystals from '../../../data/crystals.json';
@@ -51,7 +52,7 @@ export * from './types';
 /** /data の JSON をまとめたもの。サーバーでもそのまま読み込める。 */
 export const CONTENT = {
   balance, weapons, skills: skills.skills, trees: skills.trees, statuses, monsters, equipment, rarities, options,
-  drops, materials, areas, npcs, shops, tiles, text, uniques, mythics, sets, crystals, refine, storage, looks, time,
+  drops, materials, areas, npcs, shops, tiles, text, uniques, mythics, crafted, sets, crystals, refine, storage, looks, time,
   maps: { lumina, ember, arena },
   palettes, weather, ambience, music,
   difficulties, dungeons, tower, raids: raid.raids, missions, titles, achievements, codex, base, gathering, subjobs, recipes, pets, tutorial, social, market,
@@ -71,4 +72,10 @@ export function txt(key: string, ...args: (string | number)[]): string {
   let s = CONTENT.text[key] ?? key;
   args.forEach((a, i) => { s = s.replace(`{${i}}`, String(a)); });
   return s;
+}
+
+// 銘入り装備の固定効果は、ユニーク効果と同じ形で登録する（効果の処理と表示をそのまま使うため）
+for (const r of (CONTENT as unknown as { crafted: { recipes: { id: string; name: string; base: string; effect: object }[] } }).crafted.recipes) {
+  const slot = (CONTENT as unknown as { equipment: { bases: Record<string, { slot: string }> } }).equipment.bases[r.base]?.slot;
+  (CONTENT.uniques as Record<string, unknown>)[`crafted.${r.id}`] = { name: r.name, slots: [slot], ...r.effect };
 }

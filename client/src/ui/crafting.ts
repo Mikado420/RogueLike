@@ -2,7 +2,7 @@ import { CONTENT, alchemyCost, bagInfo, smithRecipe, subExpToNext, txt, type Ite
 import { btn, h, kv } from './dom';
 import type { Ctx } from './ctx';
 import { extraSmithTabs, type NpcPanels, type NpcState } from './npc';
-import { itemCell, itemInfo } from './itemview';
+import { itemCell, itemInfo, uniqueLines } from './itemview';
 
 /** M6 の画面（鍛冶・錬成・料理） */
 
@@ -21,6 +21,7 @@ function matLine(ch: { bag: Record<string, number> }, mats: [string, number][], 
 export function registerCraftPanels(npc: NpcPanels) {
   extraSmithTabs.push({ id: 'craft', label: txt('smith.craft'), render: (c, body, st) => renderCraft(c, body, st) });
   extraSmithTabs.push({ id: 'alchemy', label: txt('smith.alchemy'), render: (c, body, st) => renderAlchemy(c, body, st) });
+  extraSmithTabs.push({ id: 'named', label: txt('smith.named'), render: (c, body, st) => renderNamed(c, body, st) });
   npc.register('kitchen', (c, body) => {
     const ch = c.me().char;
     body.append(kv(txt('sub.cook'), `Lv ${ch.sub.cook.level}`));
@@ -131,4 +132,35 @@ export function subJobsBox(c: Ctx): HTMLElement {
     box.append(r);
   }
   return box;
+}
+
+/** 銘入り装備：地域ごとのレシピ。足りないもの（鍛冶 Lv・材料・ゴールド）は赤で出す */
+let namedRegion = '';
+function renderNamed(ctx: Ctx, body: HTMLElement, st: NpcState) {
+  const ch = ctx.me().char;
+  const cr = CONTENT.crafted;
+  if (!namedRegion) namedRegion = cr.regions[0].id;
+  const seg = h('div', 'seg');
+  for (const r of cr.regions) seg.append(btn(r.name, () => { namedRegion = r.id; st.refresh(); }, `seg-btn${namedRegion === r.id ? ' on' : ''}`));
+  body.append(seg, kv(txt('sub.smith'), `Lv ${ch.sub.smith.level}`));
+  const list = h('div', 'named-list');
+  for (const r of cr.recipes.filter((x) => x.region === namedRegion)) {
+    const row = h('div', `named-row${r.stage === 2 ? ' final' : ''}`);
+    const base = CONTENT.equipment.bases[r.base];
+    const head = h('div', 'named-head');
+    head.append(h('b', '', `${r.stage === 2 ? '★' : ''}${r.name}`), h('span', 'muted', `${base?.name ?? r.base}・${CONTENT.equipment.tiers[r.tier]?.prefix ?? ''}`));
+    const lvOk = ch.sub.smith.level >= r.smithLevel;
+    head.append(h('span', lvOk ? 'muted' : 'bad', `${txt('sub.smith')} Lv${r.smithLevel}`));
+    row.append(head);
+    const eff = h('div', 'named-eff');
+    for (const l of uniqueLines(CONTENT.uniques[`crafted.${r.id}`])) eff.append(h('div', 'u-line', l));
+    row.append(eff);
+    const cost = matLine(ch, Object.entries(r.mats), r.gold, ch.gold);
+    row.append(cost.el);
+    const b = btn(txt('smith.namedMake'), () => ctx.send({ type: 'craftNamed', recipe: r.id }), 'btn primary');
+    b.disabled = !cost.ok || !lvOk;
+    row.append(b);
+    list.append(row);
+  }
+  body.append(list);
 }

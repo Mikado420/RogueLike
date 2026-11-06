@@ -12,7 +12,9 @@ export function uniqueLines(u: UniqueDef): string[] {
   if (u.when && u.whenMods) {
     const c = u.when;
     const cond = c.hpBelow !== undefined ? txt('cond.hpBelow', c.hpBelow) : c.afterDodge !== undefined ? txt('cond.afterDodge', c.afterDodge)
-      : c.night ? txt('cond.night') : c.fullHp ? txt('cond.fullHp') : '';
+      : c.night ? txt('cond.night') : c.fullHp ? txt('cond.fullHp') : c.chargeMax ? txt('cond.chargeMax')
+      : c.comboAtLeast !== undefined ? txt('cond.combo', c.comboAtLeast) : c.afterReload !== undefined ? txt('cond.afterReload', c.afterReload)
+      : c.rhythmAtLeast !== undefined ? txt('cond.rhythm', c.rhythmAtLeast) : c.afterBlock !== undefined ? txt('cond.afterBlock', c.afterBlock) : '';
     for (const [k, v] of Object.entries(u.whenMods)) out.push(`${cond}  ${modText(k as ModKey, v as number)}`);
   }
   if (u.proc) {
@@ -36,6 +38,7 @@ export function itemInfo(it: Item, ch: CharacterData | null): HTMLElement {
   const rt = h('span', 'tag', rd.name);
   rt.style.borderColor = rd.color; rt.style.color = rd.color;
   tags.append(rt, h('span', 'tag', it.slot === 'weapon' ? CONTENT.weapons[it.kind as WeaponType]?.name ?? it.kind : txt(`slot.${it.slot}`)));
+  if (it.crafted) tags.append(h('span', 'tag named', txt('item.named')));
   if (it.element !== 'neutral') tags.append(h('span', `tag el-${it.element}`, elName(it.element)));
   tags.append(h('span', 'tag muted', txt(`trade.${it.trade}`)));
   box.append(tags);

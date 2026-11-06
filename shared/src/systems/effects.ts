@@ -7,6 +7,7 @@ import { isNight } from './time';
 import { currentWeather, weatherDef } from './weather';
 import { baseActive, baseOf } from './base';
 import { sec } from './util';
+import { chargeMaxed } from './weapons';
 
 /**
  * 装備の固有効果（レジェンド）と、スキルの挙動を変える効果（ミシック）。
@@ -41,6 +42,11 @@ export function conditionalMods(w: World, p: Player): { key: string; mods: Mods 
     if (c.afterDodge !== undefined && w.tick - p.lastDodgeTick > sec(w, c.afterDodge)) ok = false;
     if (c.night && !isNight(w)) ok = false;
     if (c.fullHp && p.hp < p.stats.maxHp) ok = false;
+    if (c.chargeMax && !chargeMaxed(w, p)) ok = false;
+    if (c.comboAtLeast !== undefined && p.combo < c.comboAtLeast) ok = false;
+    if (c.afterReload !== undefined && w.tick - p.lastReloadTick > sec(w, c.afterReload)) ok = false;
+    if (c.rhythmAtLeast !== undefined && p.rhythm < c.rhythmAtLeast) ok = false;
+    if (c.afterBlock !== undefined && w.tick - p.lastBlockTick > sec(w, c.afterBlock)) ok = false;
     if (ok) { addMods(mods, u.whenMods); on.push(it.unique!); }
   });
   // 天候による補正（雪で足が遅いなど）

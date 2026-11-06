@@ -570,3 +570,11 @@ details.fold[open] { padding-bottom: 10px; }
 
 /* タイトルの版 */
 .title-ver { position: absolute; left: 0; right: 0; bottom: calc(10px + var(--safe-b)); text-align: center; font-size: 11px; color: rgba(255,255,255,0.45); pointer-events: none; }
+/* 銘入り装備 */
+.named-list { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
+.named-row { padding: 10px; border-radius: 10px; border: 1px solid var(--line); background: var(--panel2); display: flex; flex-direction: column; gap: 6px; }
+.named-row.final { border-color: rgba(255,176,46,0.6); }
+.named-head { display: flex; flex-wrap: wrap; gap: 8px; align-items: baseline; }
+.named-head b { color: #ffb02e; }
+.named-eff { font-size: 12px; color: #9fe8ff; }
+.tag.named { color: #ffb02e; border-color: #ffb02e; }

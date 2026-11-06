@@ -26,6 +26,8 @@ export interface Item {
   crystals: (string | null)[];
   element: Element;
   unique?: string;
+  /** 銘入り装備のレシピ id */
+  crafted?: string;
   mythic?: string;
   set?: string;
   trade: TradeFlag;
@@ -172,6 +174,7 @@ export type Command =
   | { type: 'inheritPet'; base: number; material: number; skill: string; slot: number }
   | { type: 'releasePet'; uid: number }
   | { type: 'skipTutorial' }
+  | { type: 'craftNamed'; recipe: string }
   | { type: 'starterWeapon'; base: string }
   | { type: 'say'; text: string }
   | { type: 'marketList'; uid: number; price: number }
@@ -269,6 +272,9 @@ export interface Player extends ActorBase {
   comboUntil: number;
   rhythm: number;
   lastDodgeTick: number;
+  /** 再装填が終わった tick・攻撃を防いだ tick（銘入り装備の条件） */
+  lastReloadTick: number;
+  lastBlockTick: number;
   lastCombatTick: number;
   regenAcc: number;
   /** 固有効果の条件（HP・回避直後など）の今の状態 */
