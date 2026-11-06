@@ -567,3 +567,6 @@ details.fold[open] { padding-bottom: 10px; }
   background: radial-gradient(ellipse at center, rgba(0,0,0,0) 55%, rgba(220,30,30,0.55) 100%); }
 #ui.low-hp::after { animation: lowHp 1s ease-in-out infinite; }
 @keyframes lowHp { 0%, 100% { opacity: 0.35; } 50% { opacity: 0.9; } }
+
+/* タイトルの版 */
+.title-ver { position: absolute; left: 0; right: 0; bottom: calc(10px + var(--safe-b)); text-align: center; font-size: 11px; color: rgba(255,255,255,0.45); pointer-events: none; }

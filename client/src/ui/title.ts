@@ -2,6 +2,7 @@ import { CONTENT, txt } from '../../../shared/src';
 import { BODY_COLORS, HAIR_COLORS } from '../colors';
 import { api, ApiError, getToken, setToken, type Me } from '../net/api';
 import { btn, h } from './dom';
+import { VERSION_LABEL } from '../update';
 
 export interface TitleHooks {
   /** 古いセーブの引き継ぎ画面（O4） */
@@ -27,7 +28,7 @@ export function showTitle(hooks: TitleHooks = {}): Promise<string> {
     }
     root.append(sky);
     const box = h('div', 'title-box');
-    root.append(box);
+    root.append(box, h('div', 'title-ver', VERSION_LABEL));
     document.body.append(root);
     let me: Me | null = null;
     let reason = hooks.reason ?? null;

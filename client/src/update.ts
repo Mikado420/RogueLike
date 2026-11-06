@@ -3,6 +3,9 @@ import { txt } from '../../shared/src';
 /** ビルドごとの版（vite.config.ts で埋め込む。開発中は 'dev'） */
 declare const __BUILD_ID__: string;
 export const BUILD_ID: string = typeof __BUILD_ID__ === 'string' ? __BUILD_ID__ : 'dev';
+declare const __APP_VERSION__: string;
+/** タイトルに出す版（package.json の version とビルドの番号） */
+export const VERSION_LABEL = `ver ${typeof __APP_VERSION__ === 'string' ? __APP_VERSION__ : '?'} (${BUILD_ID.slice(0, 7)})`;
 
 const CHECK_EVERY_MS = 10 * 60 * 1000;
 let inGame = false;

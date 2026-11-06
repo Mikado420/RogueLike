@@ -18,6 +18,10 @@ export class AreaHost {
   world: World;
   readonly sessions = new Map<string, number>();
   private inputs = new Map<string, PlayerInput>();
+  /** 最後に届いた入力で、攻撃ボタンを今押しているか（tick のあとは押下のまとめではなく、これに戻す） */
+  private attackHeld = new Map<string, boolean>();
+  /** この tick の間に攻撃ボタンが一度でも押されたか（押してすぐ離した一瞬も取りこぼさない） */
+  private attackTapped = new Set<string>();
   lastEvents: GameEvent[] = [];
 
   constructor(readonly key: string, readonly areaId: string, readonly channel: number, opts: AreaWorldOptions) {
@@ -43,6 +47,8 @@ export class AreaHost {
     if (id === undefined) return null;
     this.sessions.delete(sessionId);
     this.inputs.delete(sessionId);
+    this.attackHeld.delete(sessionId);
+    this.attackTapped.delete(sessionId);
     return removePlayer(this.world, id);
   }
 
@@ -50,10 +56,12 @@ export class AreaHost {
    * 入力を受け取る。次の tick までに何度来ても、押した瞬間の入力（スキル・回避・調べる）とコマンドは消えないようにまとめる
    */
   setInput(sessionId: string, input: PlayerInput) {
+    this.attackHeld.set(sessionId, input.attack);
+    if (input.attack) this.attackTapped.add(sessionId);
     const prev = this.inputs.get(sessionId);
     if (!prev) { this.inputs.set(sessionId, { ...input, commands: [...input.commands] }); return; }
     this.inputs.set(sessionId, {
-      move: input.move, aim: input.aim, attack: input.attack || prev.attack,
+      move: input.move, aim: input.aim, attack: input.attack || this.attackTapped.has(sessionId),
       skill: input.skill >= 0 ? input.skill : prev.skill,
       dodge: input.dodge || prev.dodge, interact: input.interact || prev.interact,
       commands: [...prev.commands, ...input.commands],
@@ -67,7 +75,9 @@ export class AreaHost {
       const inp = this.inputs.get(sid);
       map.set(pid, inp ?? emptyInput());
       // 移動ベクトルなどは次の入力が来るまで続ける。押した瞬間のものは使ったら消す
-      if (inp) this.inputs.set(sid, { ...inp, skill: -1, dodge: false, interact: false, commands: [] });
+      // 攻撃は「この tick の間に一度でも押されたか」でまとめているので、使ったら今の押下状態に戻す（戻さないと離しても攻撃し続ける）
+      if (inp) this.inputs.set(sid, { ...inp, attack: this.attackHeld.get(sid) ?? false, skill: -1, dodge: false, interact: false, commands: [] });
+      this.attackTapped.delete(sid);
     }
     const events = step(this.world, map, now);
     this.lastEvents = events;

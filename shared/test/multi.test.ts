@@ -210,3 +210,24 @@ describe('パーティの分配', () => {
     if (owners.size > 0) expect([...owners].every((o) => o === pa.id || o === pb.id)).toBe(true);
   });
 });
+
+describe('攻撃ボタンの押しっぱなし', () => {
+  it('離したら次の tick で攻撃をやめる。押してすぐ離した一瞬の入力も取りこぼさない', () => {
+    const srv = new LocalServer({ seed: 9 });
+    const a = makeAccount(31, 'lumina');
+    const sid = srv.connect(a.acc, a.charId);
+    const p = () => srv.host(sid)!.player(sid)!;
+    const inp = (attack: boolean) => ({ move: { x: 0, y: 0 }, aim: null, attack, skill: -1, dodge: false, interact: false, commands: [] });
+    srv.input(sid, inp(true)); srv.tick();
+    expect(p().prevAttack).toBe(true);
+    srv.input(sid, inp(false)); srv.tick();
+    expect(p().prevAttack).toBe(false);
+    srv.tick(); srv.tick();
+    expect(p().prevAttack).toBe(false);
+    // 同じ tick の間に押して離した → その tick だけ攻撃
+    srv.input(sid, inp(true)); srv.input(sid, inp(false)); srv.tick();
+    expect(p().prevAttack).toBe(true);
+    srv.tick();
+    expect(p().prevAttack).toBe(false);
+  });
+});
