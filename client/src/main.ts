@@ -44,7 +44,10 @@ async function boot() {
       // 開発用：?area=lumina で始めるエリア、?noon で昼・晴れにする（見た目の確認用）
       const q = new URLSearchParams(location.search);
       const ch = account.characters.find((c) => c.id === charId);
-      if (ch && q.get('area')) { ch.location = { area: q.get('area')!, x: 0, y: 0 }; ch.tutorial.done = true; }
+      if (ch && q.get('area')) {
+        const [px, py] = (q.get('pos') ?? '0,0').split(',').map(Number);
+        ch.location = { area: q.get('area')!, x: px, y: py }; ch.tutorial.done = true;
+      }
       const clockOffset = q.has('offset') ? Number(q.get('offset')) : q.has('noon') ? noonOffset(q.get('area') ?? ch?.location.area ?? CONTENT.balance.world.startArea) : 0;
       session = new NetSession(charId, { account, onSave: (a) => void store.save(a), clockOffset });
     } else {

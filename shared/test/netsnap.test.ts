@@ -70,3 +70,14 @@ describe('関心範囲の端', () => {
     expect(v.diff(frame(10 + KEEP_MARGIN + 1), me, base, []).gone).toEqual([7]);
   });
 });
+
+describe('ダンジョンの写し', () => {
+  it('インスタンス（id が instance で地図を持たない）でも、受け取った地図で写しを作れる', async () => {
+    const { createMirrorWorld } = await import('../src/net/mirror');
+    const { generateDungeon } = await import('../src/mapgen');
+    const g = generateDungeon('dungeon', 5, 6);
+    const spec = { kind: 'dungeon', id: 'dg_meadow', difficulty: 'normal', seed: 5, floor: 0 } as never;
+    const w = createMirrorWorld('instance', { map: g.map, spec });
+    expect(w.area.map).toBe(g.map);
+  });
+});

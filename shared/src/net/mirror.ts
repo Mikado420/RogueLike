@@ -11,7 +11,9 @@ export function createMirrorWorld(areaId: string, opts: { map?: GameMap; spec?: 
   const content = opts.content ?? CONTENT;
   let w: World;
   if (opts.spec && opts.map) {
-    w = createAreaWorld({ areaId: content.areas[areaId] ? areaId : content.balance.world.startArea, seed: 1, content });
+    // インスタンス（ダンジョン・塔・レイド）は地図をサーバーから受け取る。仮のワールドは地図のある開始エリアで作る
+    // （'instance' などの地図を持たないエリア id で作ると、地図の組み立てで落ちてダンジョンに入れない）
+    w = createAreaWorld({ areaId: content.balance.world.startArea, seed: 1, content });
     const kind = opts.spec.kind;
     w.area = makeArea(w, kind, '', opts.map, { x: opts.map.width / 2, y: opts.map.height / 2 }, [1, 1]);
   } else {
