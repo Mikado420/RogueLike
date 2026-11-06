@@ -142,10 +142,14 @@ export type Command =
   | { type: 'rebirth' }
   | { type: 'useItem'; id: string }
   | { type: 'sell'; uid: number }
+  /** 道具屋でまとめて売る（ロック中・見つからないものは飛ばす） */
+  | { type: 'sellMany'; uids: number[] }
   | { type: 'sellBag'; id: string; n: number }
   | { type: 'buy'; shop: string; id: string; n: number }
   | { type: 'lock'; uid: number; locked: boolean }
   | { type: 'refine'; uid: number }
+  /** 目標の精錬値まで続けて精錬する（魔石か金が尽きたら止まる） */
+  | { type: 'refineTo'; uid: number; target: number }
   | { type: 'insertCrystal'; uid: number; socket: number; crystal: string }
   | { type: 'removeCrystal'; uid: number; socket: number; recover: boolean }
   | { type: 'deposit'; uid: number }

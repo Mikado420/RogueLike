@@ -23,6 +23,8 @@ export interface Ctx {
   session: NetSession;
   /** タイトルに戻る */
   logout(): void;
+  /** そばにいる役割の NPC の画面を、決めた画面・選んだアイテムで開く（いなければ何もしない） */
+  openNpc?(role: string, tab?: string, sel?: number | string | null): void;
 }
 
 const PCT_KEYS = new Set<string>(['critRate', 'critDamage', 'lifestealPct', 'evasion', 'blockRate']);

@@ -1,5 +1,5 @@
 import type { Application, Ticker } from 'pixi.js';
-import { CONTENT, type Command, type GameEvent, type World } from '../../shared/src';
+import { CONTENT, nearRole, type Command, type GameEvent, type World } from '../../shared/src';
 import type { NetSession } from './net/session';
 import { InputManager } from './input';
 import { WorldView } from './view';
@@ -13,6 +13,7 @@ import { Menu } from './ui/menu';
 import { NpcPanels } from './ui/npc';
 import { registerContentPanels } from './ui/content';
 import { registerCraftPanels } from './ui/crafting';
+import { pushRefineLog } from './ui/npc';
 import { registerPetTab } from './ui/pets';
 import { registerOnlineTab } from './ui/online';
 import { ChatPanel } from './ui/chat';
@@ -75,6 +76,11 @@ export class Game {
     this.npc = new NpcPanels(this.ctx);
     registerContentPanels(this.npc, this.menu, this.ctx);
     registerCraftPanels(this.npc);
+    this.ctx.openNpc = (role, tab, sel) => {
+      const p = this.ctx.me();
+      const n = this.world.area.npcs.find((x) => CONTENT.npcs[x.npc]?.role === role && nearRole(this.world, p, role));
+      if (n) this.npc.open(n.npc, n.id, tab ?? '', sel ?? null);
+    };
     registerPetTab(this.menu, this.ctx);
     // チャットとオンラインの窓口（手元の疑似サーバーでは使えない）
     this.social = session.isLocal ? null : new SocialClient(session.charId);
@@ -179,6 +185,7 @@ export class Game {
       if (e.type === 'levelUp' && e.playerId === this.ctx.myId) refresh = true;
       if (e.type === 'areaChanged' && e.playerId === this.ctx.myId) this.modal.close();
       if (e.type === 'say') this.chat.addArea(e.name, e.text);
+      if (e.type === 'refine' && e.playerId === this.ctx.myId) { pushRefineLog(e); refresh = true; }
     }
     if (refresh) { this.menu.refresh(); this.npc.refresh(); }
   }

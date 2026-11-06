@@ -5,7 +5,7 @@ import {
   allocateStat, choosePersonal, learnSkill, loadBuild, rebirth, respec, saveBuild, setSkillSlot,
 } from './progression';
 import {
-  buy, deposit, depositBag, equipItem, expandStorage, insertCrystal, refineItem, removeCrystal, sellBag, sellItem,
+  buy, deposit, depositBag, equipItem, expandStorage, insertCrystal, refineItem, refineTo, removeCrystal, sellBag, sellItem, sellMany,
   setAppearance, setLootFilter, sortItems, unequipItem, useItem, withdraw, withdrawBag,
 } from './items';
 import { nearRole } from './interact';
@@ -54,9 +54,11 @@ export function applyCommand(w: World, p: Player, cmd: Command) {
       break;
     case 'useItem': err = useItem(w, p, cmd.id); break;
     case 'sell': err = sellItem(w, p, cmd.uid); break;
+    case 'sellMany': err = sellMany(w, p, cmd.uids); break;
     case 'sellBag': err = sellBag(w, p, cmd.id, cmd.n); break;
     case 'buy': err = buy(w, p, cmd.shop, cmd.id, cmd.n); break;
     case 'refine': err = nearRole(w, p, 'smith') ? refineItem(w, p, cmd.uid) : 'err.notNear'; break;
+    case 'refineTo': err = nearRole(w, p, 'smith') ? refineTo(w, p, cmd.uid, cmd.target) : 'err.notNear'; break;
     case 'insertCrystal': err = nearRole(w, p, 'smith') ? insertCrystal(ch, cmd.uid, cmd.socket, cmd.crystal, c) : 'err.notNear'; break;
     case 'removeCrystal': err = nearRole(w, p, 'smith') ? removeCrystal(ch, cmd.uid, cmd.socket, cmd.recover, c) : 'err.notNear'; break;
     case 'deposit': err = nearRole(w, p, 'storage') ? deposit(w, ch, cmd.uid) : 'err.notNear'; break;

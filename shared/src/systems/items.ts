@@ -103,6 +103,30 @@ export function sellItem(w: World, p: Player, uid: number): string | null {
   return null;
 }
 
+/** 道具屋でまとめて売る。ロック中や見つからないものは飛ばし、1つも売れなければ断る */
+export function sellMany(w: World, p: Player, uids: unknown): string | null {
+  if (!nearRole(w, p, 'shop')) return 'err.notNear';
+  if (!Array.isArray(uids) || uids.length === 0) return 'err.invalid';
+  const ch = p.char;
+  const want = new Set(uids.slice(0, MAX_SELL_MANY).filter((u): u is number => typeof u === 'number' && Number.isFinite(u)));
+  let total = 0;
+  let sold = 0;
+  ch.inventory = ch.inventory.filter((it) => {
+    if (!want.has(it.uid) || it.locked) return true;
+    total += sellPrice(it, w.content);
+    sold++;
+    return false;
+  });
+  if (sold === 0) return 'err.none';
+  ch.gold += total;
+  w.events.push({ type: 'gold', playerId: p.id, amount: total });
+  notice(w, p.id, 'notice.soldMany', sold, total.toLocaleString());
+  return null;
+}
+
+/** 一度にまとめて売れる数 */
+export const MAX_SELL_MANY = 200;
+
 export function sellBag(w: World, p: Player, id: string, n: number): string | null {
   if (!nearRole(w, p, 'shop')) return 'err.notNear';
   const d = w.content.materials[id];
@@ -250,6 +274,27 @@ export function refineItem(w: World, p: Player, uid: number): string | null {
   w.events.push({ type: 'refine', playerId: p.id, uid, success: ok, level: it.refine });
   return null;
 }
+
+/**
+ * 目標の精錬値まで続けて精錬する。1回ごとに refineItem と同じ処理（成功・失敗・天井）を通す。
+ * 魔石か金が尽きたら、そこで止める。1回目から足りなければ、その理由を返す
+ */
+export function refineTo(w: World, p: Player, uid: number, target: number): string | null {
+  const it = findOwnedItem(p.char, uid);
+  if (!it) return 'err.invalid';
+  const max = w.content.refine.levels.length;
+  const goal = Math.max(it.refine + 1, Math.min(max, Math.floor(Number(target) || 0)));
+  let tries = 0;
+  while (it.refine < goal && tries < MAX_REFINE_TRIES) {
+    const err = refineItem(w, p, uid);
+    if (err) return tries === 0 ? err : null;
+    tries++;
+  }
+  return null;
+}
+
+/** 続けて精錬するときの1回の上限 */
+export const MAX_REFINE_TRIES = 100;
 
 export function findOwnedItem(ch: CharacterData, uid: number): Item | undefined {
   return ch.inventory.find((x) => x.uid === uid) ?? (Object.values(ch.equipment).find((x) => x?.uid === uid) ?? undefined);

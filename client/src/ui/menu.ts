@@ -1,10 +1,13 @@
 import {
   CONTENT, EQUIP_SLOTS, PERSONAL_STATS, PRIMARY_STATS, RARITIES, bagInfo, canLearnSkill, expToNext, freeSkillPoints,
-  freeStatPoints, derivePlayerStats, itemMods, lookSlotOf, primaryStats, scaled, slotsFor, staticMods, txt, weaponTypeOf,
+  ensureMissions, freeStatPoints, missionProgress, derivePlayerStats, itemMods, lookSlotOf, primaryStats, scaled, slotsFor, staticMods, txt, weaponTypeOf,
   type EquipSlot, type Item, type ModKey, type PrimaryStat, type Rarity, type SkillDef, type WeaponType,
 } from '../../../shared/src';
 import { lookInfo } from '../colors';
-import { itemCell, itemInfo } from './itemview';
+import { bagCell, itemCell, itemInfo } from './itemview';
+import { bagIconUrl, iconImg } from './icons';
+import { itemPower } from './itemkit';
+import { bagDetail, itemActions } from './itemactions';
 import { subJobsBox } from './crafting';
 import { btn, h, kv } from './dom';
 import { elName, modLabel, modText, type Ctx } from './ctx';
@@ -13,10 +16,18 @@ import { ACTIONS } from '../input';
 import { keyLabel } from '../keys';
 
 export type MenuTab = 'status' | 'skills' | 'items' | 'settings';
+
+type ItemFilter = 'all' | 'weapon' | 'armor' | 'sub' | 'accessory';
+const ITEM_FILTERS: ItemFilter[] = ['all', 'weapon', 'armor', 'sub', 'accessory'];
+function filterItem(it: Item, f: ItemFilter): boolean {
+  if (f === 'all') return true;
+  if (f === 'armor') return it.slot === 'body' || it.slot === 'head';
+  return it.slot === f;
+}
 const TABS: MenuTab[] = ['status', 'skills', 'items', 'settings'];
 
 export class Menu {
-  tab: MenuTab = 'status';
+  tab: MenuTab = 'home' as MenuTab;
   tree = 'oneHandSword';
   skillSel: string | null = null;
   itemSel: number | string | null = null;
@@ -55,40 +66,34 @@ export class Menu {
 
   private render(body: HTMLElement) {
     body.classList.add('menu-body');
-    const ch = this.ctx.me().char;
     const all = this.allTabs();
+    if ((this.tab as string) === 'more') this.tab = 'home' as MenuTab;
     const main = all.filter((t) => Menu.MAIN.includes(t.id));
-    const inMore = !Menu.MAIN.includes(this.tab);
+    const isHome = (this.tab as string) === 'home';
+    const inSub = !isHome && !Menu.MAIN.includes(this.tab);
     const nav = h('div', 'menu-nav');
     const icon: Record<string, string> = {
+      home: '<path d="M4 11l8-7 8 7v9a1 1 0 0 1-1 1h-4v-6H9v6H5a1 1 0 0 1-1-1z"/>',
       status: '<circle cx="12" cy="8" r="4"/><path d="M4 21c1-5 15-5 16 0"/>',
       skills: '<path d="M13 2 4 14h7l-1 8 9-12h-7z"/>',
       items: '<rect x="4" y="7" width="16" height="13" rx="2"/><path d="M9 7V4h6v3"/>',
       missions: '<rect x="4" y="4" width="16" height="16" rx="3"/><path d="M9 12l2 2 4-4"/>',
-      more: '<circle cx="6" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="18" cy="12" r="1.6"/>',
     };
     const navBtn = (id: string, label: string, on: boolean, go: () => void, dot = false) => {
       const b = btn('', go, `nav-btn${on ? ' on' : ''}${dot ? ' has-dot' : ''}`);
-      b.innerHTML = `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${icon[id] ?? icon.more}</svg><span>${label}</span>`;
+      b.innerHTML = `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${icon[id] ?? icon.home}</svg><span>${label}</span>`;
       nav.append(b);
     };
+    const todo = this.todo();
+    navBtn('home', txt('menu.home'), isHome || inSub, () => { this.tab = 'home' as MenuTab; this.refresh(); });
     for (const t of main) {
-      const dot = (t.id === 'status' && freeStatPoints(ch, CONTENT) > 0) || (t.id === 'skills' && freeSkillPoints(ch, CONTENT) > 0);
+      const dot = (t.id === 'status' && todo.stat > 0) || (t.id === 'skills' && todo.skill > 0) || (t.id === 'missions' && todo.missions > 0);
       navBtn(t.id, t.label, this.tab === t.id, () => { this.tab = t.id as MenuTab; this.refresh(); }, dot);
     }
-    navBtn('more', txt('menu.more'), inMore, () => { this.tab = 'more' as MenuTab; this.refresh(); });
     const content = h('div', 'tab-body');
     body.append(content, nav);
-    if ((this.tab as string) === 'more') {
-      const grid = h('div', 'more-grid');
-      for (const t of all.filter((x) => !Menu.MAIN.includes(x.id))) grid.append(btn(t.label, () => { this.tab = t.id as MenuTab; this.refresh(); }, 'more-btn'));
-      content.append(h('div', 'sub-title', txt('menu.more')), grid);
-      return;
-    }
-    if (inMore) {
-      const back = btn(`‹ ${txt('menu.more')}`, () => { this.tab = 'more' as MenuTab; this.refresh(); }, 'back-btn');
-      content.append(back);
-    }
+    if (isHome) { this.renderHome(content, all); return; }
+    if (inSub) content.append(btn(`‹ ${txt('menu.home')}`, () => { this.tab = 'home' as MenuTab; this.refresh(); }, 'back-btn'));
     const extra = this.extraTabs.find((t) => t.id === this.tab);
     if (extra) extra.render(content);
     else if (this.tab === 'status') this.renderStatus(content);
@@ -96,6 +101,64 @@ export class Menu {
     else if (this.tab === 'items') this.renderItems(content);
     else if ((this.tab as string) === 'look') this.renderLook(content);
     else this.renderSettings(content);
+  }
+
+  /** やることの数（振れるポイント・SP・受け取れる依頼） */
+  private todo(): { stat: number; skill: number; missions: number } {
+    const p = this.ctx.me();
+    const ch = p.char;
+    let missions = 0;
+    try {
+      ensureMissions(this.ctx.world, p);
+      for (const m of [...ch.missions.daily, ...ch.missions.weekly]) if (!m.claimed && missionProgress(ch, m) >= m.n) missions++;
+    } catch { /* 依頼がまだない */ }
+    return { stat: freeStatPoints(ch, CONTENT), skill: freeSkillPoints(ch, CONTENT), missions };
+  }
+
+  /** メニューのホーム：キャラの要約と、やること・ほかの画面のタイル */
+  private renderHome(el: HTMLElement, all: { id: string; label: string }[]) {
+    const p = this.ctx.me();
+    const ch = p.char;
+    const card = h('div', 'me-card');
+    const top = h('div', 'me-top');
+    const wpn = CONTENT.weapons[weaponTypeOf(ch)]?.name ?? '';
+    const name = h('div', 'me-name');
+    name.append(h('b', '', ch.name), h('span', 'muted small', `${wpn}・Lv ${ch.level}`));
+    top.append(name, h('span', 'gold-chip', `${ch.gold.toLocaleString()} G`));
+    card.append(top);
+    const need = expToNext(ch.level, CONTENT);
+    const max = ch.level >= CONTENT.balance.progression.maxLevel;
+    const bar = h('div', 'mbar');
+    const fill = h('div', 'mfill exp');
+    fill.style.width = `${max ? 100 : Math.min(1, ch.exp / Math.max(1, need)) * 100}%`;
+    bar.append(fill);
+    card.append(bar);
+    const ps = p.stats;
+    card.append(h('div', 'muted small', `${max ? 'MAX' : txt('home.next', Math.round((ch.exp / Math.max(1, need)) * 100))}　ATK ${Math.round(ps.atk)}・MATK ${Math.round(ps.matk)}・DEF ${Math.round(ps.def)}・HP ${Math.round(ps.maxHp)}`));
+    el.append(card);
+    const todo = this.todo();
+    const size = CONTENT.balance.player.inventorySize;
+    el.append(h('div', 'sub-title', txt('home.todo')));
+    const grid = h('div', 'hub-grid');
+    const tile = (id: string, title: string, sub: string, hot: boolean, badge = 0) => {
+      const b = btn('', () => { this.tab = id as MenuTab; this.refresh(); }, `hub-tile small${hot ? ' hot' : ''}`);
+      b.append(h('span', 'hub-title', title), h('span', 'hub-sub', sub));
+      if (badge > 0) b.append(h('span', 'hub-badge', String(badge)));
+      grid.append(b);
+    };
+    tile('status', txt('menu.status'), todo.stat ? txt('home.statPoints', todo.stat) : txt('home.statNone'), todo.stat > 0, todo.stat);
+    tile('skills', txt('menu.skills'), todo.skill ? txt('home.skillPoints', todo.skill) : txt('home.skillNone'), todo.skill > 0, todo.skill);
+    if (all.some((t) => t.id === 'missions')) tile('missions', all.find((t) => t.id === 'missions')!.label, todo.missions ? txt('home.claimable', todo.missions) : txt('home.missionsNone'), todo.missions > 0, todo.missions);
+    const full = ch.inventory.length >= size - 5;
+    tile('items', txt('menu.items'), `${ch.inventory.length} / ${size}${full ? `　${txt('home.almostFull')}` : ''}`, full);
+    el.append(grid);
+    const others = all.filter((t) => !Menu.MAIN.includes(t.id) && t.id !== 'missions');
+    if (others.length) {
+      el.append(h('div', 'sub-title', txt('home.others')));
+      const og = h('div', 'hub-grid three');
+      for (const t of others) og.append(btn(t.label, () => { this.tab = t.id as MenuTab; this.refresh(); }, 'hub-tile mini'));
+      el.append(og);
+    }
   }
 
   /** 今の武器に合わせて、残りのポイントを振る（主な能力 6・次 2・VIT 2 の割合） */
@@ -350,49 +413,83 @@ export class Menu {
 
   // ───────── 持ち物 ─────────
 
+  /** 持ち物の絞り込み（部位）と並び（表示だけの「強さ順」） */
+  private itemFilter: ItemFilter = 'all';
+  private itemOrder: 'stored' | 'power' = 'stored';
+
   private renderItems(el: HTMLElement) {
     const p = this.ctx.me();
     const ch = p.char;
     const body = h('div', 'inv');
     const left = h('div', 'inv-left');
-    // 薬・料理など、その場で使えるもの。素材に埋もれないよう一番上に分けて、行ごとに「使う」を置く
-    // （装備品や素材がいっぱいでも、スクロールせずに使える）
+    const pick = (sel: number | string) => { this.itemSel = this.itemSel === sel ? null : sel; this.refresh(); };
+
+    // 消耗品：素材に埋もれないよう一番上に分けて、行ごとに「使う」
     const usable = Object.entries(ch.bag).filter(([id, n]) => n > 0 && CONTENT.materials[id]?.use && !CONTENT.materials[id].use!.capture);
     if (usable.length) {
       left.append(h('div', 'sub-title', txt('item.consumables')));
-      const cons = h('div', 'bag consumables');
+      const cons = h('div', 'use-list');
       for (const [id, n] of usable) {
-        const info = bagInfo(id);
-        const row = h('div', `bag-item use-row${this.itemSel === id ? ' sel' : ''}`);
-        const dot = h('i', 'dot');
-        dot.style.background = info.color;
+        const row = h('div', `use-row${this.itemSel === id ? ' sel' : ''}`);
         const name = h('button', 'use-name');
-        name.append(dot, h('span', '', info.name), h('b', '', `×${n}`));
-        name.addEventListener('click', () => { this.itemSel = id; this.refresh(); });
-        row.append(name, btn(txt('item.use'), () => this.ctx.send({ type: 'useItem', id }), 'mini use-btn'));
+        name.append(iconImg(bagIconUrl(id), 'use-ico'), h('span', 'use-label', bagInfo(id).name), h('b', 'use-n', `×${n}`));
+        name.addEventListener('click', () => pick(id));
+        row.append(name, btn(txt('item.use'), () => this.ctx.send({ type: 'useItem', id }), 'mini primary use-btn'));
         cons.append(row);
       }
       left.append(cons);
     }
+
+    // 装備中
+    left.append(h('div', 'sub-title', txt('item.equipped')));
     const eq = h('div', 'equip');
     for (const slot of EQUIP_SLOTS) {
       const it = ch.equipment[slot];
-      eq.append(itemCell(it, { label: txt(`slot.${slot}`), selected: !!it && it.uid === this.itemSel, onClick: () => { if (it) { this.itemSel = it.uid; this.refresh(); } } }));
+      eq.append(itemCell(it, { label: txt(`slot.${slot}`), selected: !!it && it.uid === this.itemSel, equipped: true, onClick: it ? () => pick(it.uid) : undefined }));
     }
     left.append(eq);
+
+    // 装備品：部位で絞り、並べ替える
     const tools = h('div', 'inv-tools');
-    tools.append(h('span', 'sub-title', `${txt('item.equipment')}  ${ch.inventory.length} / ${CONTENT.balance.player.inventorySize}`));
-    const sorts = h('div', 'seg small');
-    for (const k of CONTENT.storage.sortKeys) sorts.append(btn(txt(`sort.${k}`), () => this.ctx.send({ type: 'sortInventory', key: k }), 'seg-btn'));
-    tools.append(sorts);
+    const size = CONTENT.balance.player.inventorySize;
+    const count = h('span', `sub-title${ch.inventory.length >= size ? ' bad' : ch.inventory.length >= size - 5 ? ' warn' : ''}`, `${txt('item.equipment')}  ${ch.inventory.length} / ${size}`);
+    tools.append(count);
+    const order = h('div', 'seg small');
+    order.append(btn(txt('sort.power'), () => { this.itemOrder = 'power'; this.refresh(); }, `seg-btn${this.itemOrder === 'power' ? ' on' : ''}`));
+    for (const k of CONTENT.storage.sortKeys) order.append(btn(txt(`sort.${k}`), () => { this.itemOrder = 'stored'; this.ctx.send({ type: 'sortInventory', key: k }); }, 'seg-btn'));
+    tools.append(order);
     left.append(tools);
+    const chips = h('div', 'fchips');
+    for (const f of ITEM_FILTERS) {
+      const n = ch.inventory.filter((it) => filterItem(it, f)).length;
+      if (f !== 'all' && n === 0) continue;
+      chips.append(btn(`${txt(`ifilter.${f}`)} ${n}`, () => { this.itemFilter = f; this.refresh(); }, `fchip${this.itemFilter === f ? ' on' : ''}`));
+    }
+    left.append(chips);
+    left.append(h('div', 'legend', txt('item.cmpLegend')));
+    let list = ch.inventory.filter((it) => filterItem(it, this.itemFilter));
+    if (this.itemOrder === 'power') list = [...list].sort((a, b) => itemPower(b) - itemPower(a));
     const grid = h('div', 'grid');
     grid.dataset.keepScroll = '1';
-    for (const it of ch.inventory) grid.append(itemCell(it, { selected: it.uid === this.itemSel, onClick: () => { this.itemSel = it.uid; this.refresh(); } }));
+    for (const it of list) grid.append(itemCell(it, { selected: it.uid === this.itemSel, compare: ch, onClick: () => pick(it.uid) }));
+    if (!list.length) grid.append(h('div', 'muted empty-note', txt('item.none')));
     left.append(grid);
+
+    // 素材・結晶・捕獲石
+    const mats = Object.entries(ch.bag).filter(([id, n]) => n > 0 && !usable.some(([u]) => u === id) && CONTENT.materials[id]?.kind !== 'key');
+    if (mats.length) {
+      left.append(h('div', 'sub-title', txt('item.materials')));
+      const bag = h('div', 'grid bag-grid');
+      for (const [id, n] of mats) bag.append(bagCell(id, n, { selected: this.itemSel === id, onClick: () => pick(id) }));
+      left.append(bag);
+    }
+
+    // 拾うときの設定（たまにしか触らないので畳む）
     const f = ch.lootFilter;
+    const fold = h('details', 'fold');
+    fold.append(h('summary', '', txt('filter.title')));
     const filt = h('div', 'filter-row');
-    const pick = (label: string, cur: Rarity | null, set: (r: Rarity | null) => void) => {
+    const pickR = (label: string, cur: Rarity | null, set: (r: Rarity | null) => void) => {
       const row = h('div', 'set-row');
       row.append(h('span', 'set-label small', label));
       const g = h('div', 'seg small');
@@ -405,59 +502,53 @@ export class Menu {
       row.append(g);
       filt.append(row);
     };
-    pick(txt('filter.hide'), f.hideBelow, (r) => this.ctx.send({ type: 'setLootFilter', hideBelow: r, sellBelow: f.sellBelow }));
-    pick(txt('filter.sell'), f.sellBelow, (r) => this.ctx.send({ type: 'setLootFilter', hideBelow: f.hideBelow, sellBelow: r }));
-    left.append(filt);
-    const mats = Object.entries(ch.bag).filter(([id, n]) => n > 0 && !usable.some(([u]) => u === id));
-    if (mats.length) left.append(h('div', 'sub-title', txt('item.materials')));
-    const bag = h('div', 'bag');
-    for (const [id, n] of mats) {
-      const info = bagInfo(id);
-      const b = h('button', `bag-item${this.itemSel === id ? ' sel' : ''}`);
-      const dot = h('i', 'dot');
-      dot.style.background = info.color;
-      b.append(dot, h('span', '', info.name), h('b', '', `×${n}`));
-      b.addEventListener('click', () => { this.itemSel = id; this.refresh(); });
-      bag.append(b);
-    }
-    left.append(bag);
+    pickR(txt('filter.hide'), f.hideBelow, (r) => this.ctx.send({ type: 'setLootFilter', hideBelow: r, sellBelow: f.sellBelow }));
+    pickR(txt('filter.sell'), f.sellBelow, (r) => this.ctx.send({ type: 'setLootFilter', hideBelow: f.hideBelow, sellBelow: r }));
+    fold.append(filt);
+    if (f.hideBelow || f.sellBelow) fold.open = true;
+    left.append(fold);
+
     body.append(left);
     body.append(this.itemDetail());
     el.append(body);
   }
 
+  /** 選んだもの（装備・袋のアイテム）の詳細。スマホでは下から出るシートになる */
   private itemDetail(): HTMLElement {
     const p = this.ctx.me();
     const ch = p.char;
     const det = h('div', 'detail');
+    const closeRow = () => {
+      const x = btn('', () => { this.itemSel = null; this.refresh(); }, 'sheet-close');
+      x.setAttribute('aria-label', txt('ui.close'));
+      x.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>';
+      det.classList.add('sheet');
+      det.append(h('div', 'sheet-grip'), x);
+    };
     if (typeof this.itemSel === 'string') {
       const id = this.itemSel;
       const n = ch.bag[id] ?? 0;
       if (n <= 0) { det.classList.add('empty'); return det; }
-      const info = bagInfo(id);
-      const name = h('div', 'd-name', info.name);
-      name.style.color = info.color;
-      det.append(name, kv(txt('item.count'), String(n)), kv(txt('item.price'), `${info.price} G`));
-      const cr = CONTENT.crystals[id];
-      if (cr) for (const [k, v] of Object.entries(cr.mods)) det.append(h('div', 'opt', modText(k as ModKey, v as number)));
-      if (CONTENT.materials[id]?.use) {
-        const act = h('div', 'd-actions');
-        act.append(btn(txt('item.use'), () => this.ctx.send({ type: 'useItem', id }), 'btn primary'));
-        det.append(act);
-      }
+      closeRow();
+      det.append(bagDetail(this.ctx, id));
       return det;
     }
     const all = [...ch.inventory, ...Object.values(ch.equipment)].filter(Boolean) as Item[];
     const sel = all.find((it) => it.uid === this.itemSel);
-    if (!sel) { det.classList.add('empty'); return det; }
+    if (!sel) { det.classList.add('empty'); det.append(h('div', 'muted', txt('item.pickHint'))); return det; }
+    closeRow();
     det.append(itemInfo(sel, ch));
     const equipped = Object.values(ch.equipment).some((e) => e?.uid === sel.uid);
     if (!equipped) det.append(compareBox(sel, ch));
     const act = h('div', 'd-actions');
-    if (!equipped) act.append(btn(txt('item.equip'), () => this.ctx.send({ type: 'equip', uid: sel.uid }), 'btn primary'));
-    else if (sel.slot !== 'weapon') act.append(btn(txt('item.unequip'), () => this.ctx.send({ type: 'unequip', slot: sel.slot as EquipSlot }), 'btn'));
+    if (!equipped) {
+      const b = btn(txt('item.equip'), () => this.ctx.send({ type: 'equip', uid: sel.uid }), 'btn primary grow');
+      if (ch.level < sel.reqLevel) { b.disabled = true; b.textContent = txt('item.needLv', sel.reqLevel); }
+      act.append(b);
+    } else if (sel.slot !== 'weapon') act.append(btn(txt('item.unequip'), () => this.ctx.send({ type: 'unequip', slot: sel.slot as EquipSlot }), 'btn grow'));
     act.append(btn(sel.locked ? txt('item.unlock') : txt('item.lock'), () => this.ctx.send({ type: 'lock', uid: sel.uid, locked: !sel.locked }), 'btn'));
     det.append(act);
+    det.append(itemActions(this.ctx, sel, equipped, () => { this.itemSel = null; }));
     return det;
   }
 
@@ -565,17 +656,22 @@ export class Menu {
 }
 
 /** 持っている装備と、同じ部位の装備中のものを比べる */
+/** 今の装備と比べた差（増えるものを上に） */
 function compareBox(it: Item, ch: { equipment: Record<string, Item | null> }): HTMLElement {
   const box = h('div', 'compare');
   const cur = ch.equipment[it.slot];
+  box.append(h('div', 'cmp-head', cur ? txt('item.vs', cur.name + (cur.refine > 0 ? ` +${cur.refine}` : '')) : txt('item.vsNone')));
   const a = itemMods(it, CONTENT);
   const b = cur ? itemMods(cur, CONTENT) : {};
-  const keys = new Set([...Object.keys(a), ...Object.keys(b)]);
-  for (const k of keys) {
-    const d = (a[k as ModKey] ?? 0) - (b[k as ModKey] ?? 0);
-    if (Math.abs(d) < 0.05) continue;
-    box.append(h('span', d > 0 ? 'up' : 'down', `${modLabel(k as ModKey).label} ${d > 0 ? '+' : ''}${Math.round(d * 10) / 10}${modLabel(k as ModKey).unit}`));
+  const keys = [...new Set([...Object.keys(a), ...Object.keys(b)])] as ModKey[];
+  const rows = keys.map((k) => ({ k, d: (a[k] ?? 0) - (b[k] ?? 0) })).filter((r) => Math.abs(r.d) >= 0.05).sort((x, y) => y.d - x.d);
+  for (const { k, d } of rows) {
+    const { label, unit } = modLabel(k);
+    const row = h('div', `cmp-row ${d > 0 ? 'up' : 'down'}`);
+    row.append(h('span', '', label), h('b', '', `${d > 0 ? '+' : ''}${Math.round(d * 10) / 10}${unit}`));
+    box.append(row);
   }
+  if (!rows.length) box.append(h('div', 'muted', txt('item.same')));
   return box;
 }
 

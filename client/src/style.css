@@ -586,3 +586,245 @@ details.fold[open] { padding-bottom: 10px; }
 /* ホイールで選んでいるスキル（中クリックで使う） */
 #ui .act.skill.selected { box-shadow: 0 0 0 3px #ffd166, 0 0 12px rgba(255,209,102,0.6); }
 .mouse-help { font-size: 12px; color: #9aa3b8; line-height: 1.7; margin: 6px 0 10px; }
+
+/* ===== アイテムの UI（イラストつきのマス・詳細シート・道具屋・鍛冶屋・メニューのホーム） ===== */
+.bad { color: var(--bad); } .good { color: var(--good); } .warn { color: #ffcf6a; }
+.small { font-size: 11px; } .center { text-align: center; }
+.sub-title.bad { color: var(--bad); } .sub-title.warn { color: #ffcf6a; }
+.empty-note { grid-column: 1 / -1; padding: 12px 4px; font-size: 12px; }
+.legend, .hint { font-size: 11px; color: var(--muted); margin: 2px 0 6px; line-height: 1.5; }
+.hint { margin-top: 4px; }
+
+/* 絞り込みの札 */
+.fchips { display: flex; gap: 6px; flex-wrap: wrap; margin: 4px 0 6px; }
+.fchip { flex: none; min-height: 34px; padding: 6px 12px; border-radius: 999px; border: 1px solid var(--line); background: var(--panel2); font-size: 12px; font-weight: 800; color: #c9d1de; }
+.fchip.on { background: rgba(255,207,74,0.16); border-color: var(--accent); color: var(--accent) !important; }
+.fchip.locked { color: var(--muted); border-style: dashed; }
+.fchip.ghost { border-color: transparent; background: none; color: var(--accent); }
+
+/* マス */
+.grid { grid-template-columns: repeat(auto-fill, minmax(62px, 1fr)); gap: 6px; }
+@media (max-width: 700px) { .grid { max-height: none; overflow: visible; } }
+.cell { aspect-ratio: 1 / 1; min-height: 0; padding: 0; overflow: hidden; border-radius: 10px; border: 2px solid var(--rc, rgba(255,255,255,0.15));
+  background: radial-gradient(circle at 50% 42%, color-mix(in srgb, var(--rc, #8a94a6) 22%, transparent), transparent 70%), #161b26; }
+.cell.r-common { border-color: rgba(255,255,255,0.18); }
+.cell.glow { box-shadow: inset 0 0 14px -4px var(--rc); }
+.cell.sel { outline: 2px solid #fff; outline-offset: 1px; background-color: #222a39; }
+.cell-ico { position: absolute; left: 9%; top: 6%; width: 82%; height: 82%; object-fit: contain; pointer-events: none; }
+.cell-slot { top: 2px; left: 4px; z-index: 1; padding: 0 4px; border-radius: 4px; background: rgba(0,0,0,0.55); font-size: 9px; color: #c9d1de; }
+.cell-lv { position: absolute; left: 3px; bottom: 2px; padding: 0 3px; border-radius: 4px; background: rgba(0,0,0,0.6); font-size: 9px; font-weight: 800; color: #c9d1de; }
+.cell-lv.bad { color: var(--bad); }
+.cell-ref { position: absolute; right: 3px; bottom: 2px; padding: 0 3px; border-radius: 4px; background: rgba(0,0,0,0.6); font-size: 10px; font-weight: 900; color: var(--accent); }
+.cell-cmp { position: absolute; top: 2px; right: 4px; font-size: 11px; font-weight: 900; text-shadow: 0 1px 2px #000; }
+.cell-cmp.up { color: #8fe0a0; } .cell-cmp.down { color: #ff8a7a; }
+.cell-lock { top: auto; bottom: 16px; right: 3px; left: auto; padding: 0 3px; border-radius: 4px; background: rgba(0,0,0,0.65); font-size: 9px; color: #ffd76a; }
+.cell-eq { position: absolute; top: 2px; right: 3px; min-width: 14px; height: 14px; border-radius: 4px; background: var(--accent); color: #231800; font-size: 9px; font-weight: 900; display: grid; place-items: center; }
+.cell-set { position: absolute; top: 2px; left: 4px; margin: 0; font-size: 10px; color: #9be04a; }
+.cell-price { position: absolute; left: 0; right: 0; bottom: 0; margin: 0; padding: 1px 0; background: rgba(0,0,0,0.6); text-align: center; font-size: 9px; color: #ffd76a; }
+.cell:has(.cell-price) .cell-lv, .cell:has(.cell-price) .cell-ref { bottom: 15px; }
+.cell-check { position: absolute; top: 3px; right: 3px; width: 18px; height: 18px; border-radius: 5px; border: 1.5px solid rgba(255,255,255,0.45); background: rgba(0,0,0,0.4);
+  display: grid; place-items: center; font-size: 12px; font-weight: 900; color: #231800; }
+.cell:has(.cell-check) .cell-cmp { right: 24px; }
+.cell.checked { background-color: #2a2a1c; }
+.cell.checked .cell-check { background: var(--accent); border-color: var(--accent); }
+.cell.off { opacity: 0.45; }
+.cell.none { border-style: dashed; background: rgba(255,255,255,0.02); }
+.bag-cell { --rc: rgba(255,255,255,0.14); }
+.cell-n { position: absolute; right: 3px; bottom: 2px; padding: 0 4px; border-radius: 4px; background: rgba(0,0,0,0.65); font-size: 10px; font-weight: 900; color: #e8edf5; }
+.cell-n.bad { color: var(--bad); }
+.cell-cap { position: absolute; left: 0; right: 0; bottom: 0; padding: 1px 2px; background: rgba(0,0,0,0.6); font-size: 9px; font-weight: 800; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.equip { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+@media (max-width: 480px) { .equip { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 5px; } }
+.inv-tools { margin: 10px 0 4px; }
+
+/* 消耗品 */
+.use-list { display: flex; flex-direction: column; gap: 4px; }
+.use-row { display: flex; align-items: center; gap: 6px; padding-right: 6px; border-radius: 10px; border: 1px solid var(--line); background: var(--panel2); }
+.use-row.sel { outline: 2px solid #fff; }
+.use-row .use-name { flex: 1; min-width: 0; min-height: 44px; display: flex; align-items: center; gap: 8px; padding: 4px 8px; background: none; border: 0; text-align: left; font-size: 13px; font-weight: 800; }
+.use-ico { width: 34px; height: 34px; flex: none; }
+.use-label { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.use-n { color: var(--muted); }
+.use-btn { min-height: 36px; padding: 6px 14px; }
+.mini.primary { background: linear-gradient(#ffd55a, #e0a520); color: #2a1a00 !important; border: none; }
+
+/* 詳細（PC は右の欄、スマホは下から出るシート） */
+.inv { align-items: start; }
+.detail { position: sticky; top: 0; }
+.detail.empty { display: flex; align-items: center; justify-content: center; text-align: center; font-size: 12px; }
+.sheet-grip, .sheet-close { display: none; }
+@media (max-width: 700px) {
+  .detail.empty { display: none; }
+  .detail.sheet { position: fixed; left: 0; right: 0; bottom: 0; z-index: 6; max-height: 68vh; overflow: auto; border-radius: 18px 18px 0 0;
+    background: #181e2a; border: 1px solid var(--line); border-bottom: 0; box-shadow: 0 -14px 34px rgba(0,0,0,0.55); padding: 6px 14px calc(16px + var(--safe-b)); }
+  .detail.sheet .sheet-grip { display: block; align-self: center; width: 40px; height: 4px; border-radius: 2px; background: rgba(255,255,255,0.25); margin: 2px 0 2px; }
+  .detail.sheet .sheet-close { display: grid; place-items: center; position: absolute; top: 8px; right: 8px; width: 40px; height: 40px; border-radius: 10px; border: 1px solid var(--line); background: rgba(255,255,255,0.04); }
+  .inv-left { padding-bottom: 46vh; }
+}
+.d-head { display: flex; gap: 12px; align-items: center; padding-right: 44px; }
+.d-pic { flex: none; width: 64px; height: 64px; border-radius: 12px; border: 2px solid var(--rc, var(--line));
+  background: radial-gradient(circle at 50% 42%, color-mix(in srgb, var(--rc, #8a94a6) 28%, transparent), transparent 72%), #161b26; display: grid; place-items: center; }
+.d-pic.big { width: 84px; height: 84px; }
+.d-ico { width: 88%; height: 88%; object-fit: contain; }
+.d-titles { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.d-refine { color: var(--accent); }
+.compare { flex-direction: column; flex-wrap: nowrap; gap: 3px; padding: 8px 10px; border-radius: 10px; background: rgba(255,255,255,0.04); font-weight: 700; }
+.cmp-head { font-size: 11px; color: var(--muted); margin-bottom: 2px; }
+.cmp-row { display: flex; justify-content: space-between; font-size: 13px; }
+.cmp-row span { color: var(--text); font-weight: 600; }
+.cmp-row.up b { color: var(--good); } .cmp-row.down b { color: var(--bad); }
+.d-actions .grow { flex: 1; }
+.d-sec { display: flex; flex-direction: column; gap: 2px; border-top: 1px dashed var(--line); padding-top: 6px; }
+.d-sec-title { font-size: 11px; font-weight: 800; color: var(--muted); }
+.d-sec-line { font-size: 12px; }
+
+/* この装備でできること */
+.acts { display: flex; flex-direction: column; gap: 6px; }
+.acts .sub-title { margin: 4px 0 0; }
+.act-row { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 54px; padding: 8px 10px; border-radius: 12px; border: 1px solid var(--line); background: rgba(255,255,255,0.04); text-align: left; }
+.act-row.off { opacity: 0.55; }
+.act-ico { flex: none; width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; background: rgba(255,207,74,0.12); color: var(--accent); }
+.act-row.off .act-ico { background: rgba(255,255,255,0.06); color: var(--muted); }
+.act-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1; }
+.act-title { font-size: 14px; font-weight: 900; }
+.act-sub { font-size: 11px; color: var(--muted); font-weight: 700; }
+.act-go { flex: none; margin-left: auto; font-size: 12px; font-weight: 900; color: var(--accent); }
+
+/* 確かめる小窓 */
+.confirm-back { position: absolute; inset: 0; z-index: 40; background: rgba(0,0,0,0.55); display: grid; place-items: center; padding: 16px; pointer-events: auto; }
+.confirm { width: min(360px, 100%); background: #1b2230; border: 1px solid var(--line); border-radius: 14px; padding: 16px; display: flex; flex-direction: column; gap: 10px; box-shadow: 0 20px 50px rgba(0,0,0,0.6); }
+.confirm-title { font-size: 16px; font-weight: 900; line-height: 1.5; }
+.confirm-body { font-size: 13px; color: #c9d1de; line-height: 1.6; }
+.confirm-row { display: flex; gap: 8px; }
+.confirm-row .btn { flex: 1; min-height: 44px; }
+.btn.danger-fill { background: #c0392b; border-color: #c0392b; color: #fff; }
+
+/* 道具屋・NPC の共通 */
+.npc-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 8px; }
+.npc-top .tabs { margin-bottom: 0; flex: 1; }
+.npc-top .back-btn { margin-bottom: 0; min-height: 36px; }
+.gold-chip { flex: none; font-size: 13px; font-weight: 900; color: var(--accent); }
+.gold-text { color: var(--accent); font-size: 18px; }
+.row-ico { width: 40px; height: 40px; flex: none; }
+.buy-row { display: grid; grid-template-columns: 1fr auto; gap: 6px 10px; align-items: center; padding: 8px 10px; border-radius: 12px; border: 1px solid var(--line); background: var(--panel2); }
+.buy-info { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.buy-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.buy-text .name { font-size: 14px; font-weight: 800; }
+.stepper { display: flex; align-items: center; gap: 4px; }
+.step-btn { min-width: 36px; height: 36px; border-radius: 8px; border: 1px solid var(--line); background: rgba(255,255,255,0.06); font-weight: 900; font-size: 15px; }
+.step-btn.wide { font-size: 12px; padding: 0 8px; }
+.step-n { min-width: 28px; text-align: center; font-weight: 900; }
+.buy-btn { grid-column: 1 / -1; min-height: 40px; }
+.shop-list { display: flex; flex-direction: column; gap: 6px; }
+.sell-row { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-radius: 10px; border: 1px solid var(--line); background: var(--panel2); }
+.sell-row .buy-text { flex: 1; }
+.sell-row .mini { min-height: 34px; }
+.sell-bar { position: sticky; bottom: -14px; margin: 12px -12px -14px; padding: 10px 14px calc(12px + var(--safe-b)); background: #181e2a; border-top: 1px solid var(--line);
+  display: flex; align-items: center; gap: 12px; box-shadow: 0 -10px 24px rgba(0,0,0,0.45); z-index: 3; }
+.sell-sum { flex: 1; display: flex; flex-direction: column; }
+.sell-bar .btn { min-height: 46px; padding: 0 22px; }
+
+/* 鍛冶屋のホーム */
+.npc-greet { font-size: 14px; color: #c9d1de; margin: 2px 0 10px; }
+.screen-title { font-size: 18px; font-weight: 900; margin: 2px 0 8px; }
+.hub-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.hub-grid.three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+@media (min-width: 701px) { .hub-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } .hub-grid.three { grid-template-columns: repeat(6, minmax(0, 1fr)); } }
+.hub-tile { position: relative; display: flex; flex-direction: column; align-items: flex-start; gap: 4px; min-height: 120px; padding: 12px; border-radius: 14px; border: 1px solid var(--line); background: #171d29; text-align: left; }
+.hub-tile.small { min-height: 84px; justify-content: space-between; }
+.hub-tile.mini { min-height: 56px; justify-content: center; align-items: center; font-weight: 800; font-size: 13px; }
+.hub-tile.hot { border-color: rgba(255,207,74,0.6); }
+.hub-tile.hot .hub-sub { color: var(--accent); }
+.hub-ico { width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; background: rgba(255,207,74,0.12); color: var(--accent); margin-bottom: 2px; }
+.hub-title { font-size: 15px; font-weight: 900; }
+.hub-sub { font-size: 11px; color: var(--muted); font-weight: 700; line-height: 1.45; }
+.hub-badge { position: absolute; top: 10px; right: 10px; min-width: 22px; height: 22px; padding: 0 6px; border-radius: 11px; background: var(--accent); color: #231800; font-size: 12px; font-weight: 900; display: grid; place-items: center; }
+.lv-box { margin-top: 12px; padding: 12px 14px; border-radius: 14px; background: rgba(255,255,255,0.04); display: flex; flex-direction: column; gap: 6px; }
+.lv-head { display: flex; justify-content: space-between; align-items: baseline; }
+.rec-row { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 60px; padding: 10px 12px; border-radius: 14px; border: 1px solid var(--line); background: #171d29; text-align: left; }
+.rec-row.ok { border-color: rgba(143,224,160,0.45); }
+.rec-row .buy-text { flex: 1; }
+
+/* 装備を選ぶ横の帯 */
+.picker { display: flex; gap: 6px; overflow-x: auto; padding: 2px 2px 8px; scrollbar-width: thin; }
+.picker .cell { flex: none; width: 64px; }
+.picker .empty-note { flex: 1; }
+
+/* 精錬 */
+.refine-card { margin-top: 4px; padding: 14px; border-radius: 16px; background: #171d29; border: 1px solid var(--line); display: flex; flex-direction: column; gap: 10px; }
+.refine-top { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.refine-name { font-size: 15px; font-weight: 900; text-align: center; }
+.refine-steps { display: flex; align-items: center; justify-content: center; gap: 14px; font-weight: 900; }
+.refine-steps .from { font-size: 30px; color: var(--muted); }
+.refine-steps .arrow { font-size: 22px; color: var(--accent); }
+.refine-steps .to { font-size: 42px; color: var(--accent); }
+.rate-box { display: flex; flex-direction: column; gap: 6px; padding: 10px 12px; border-radius: 12px; background: rgba(255,255,255,0.04); }
+.rate-head { display: flex; align-items: baseline; gap: 8px; }
+.rate-head .rate-n { margin-left: auto; font-size: 22px; }
+.rate-bar { height: 10px; border-radius: 5px; background: rgba(255,255,255,0.08); display: flex; overflow: hidden; }
+.rate-base { background: var(--accent); } .rate-pity { background: #8fe0a0; }
+.need { display: flex; flex-direction: column; gap: 4px; }
+.need-row { display: flex; align-items: center; gap: 8px; font-size: 13px; }
+.need-row b { margin-left: auto; font-size: 15px; }
+.need-row.bad b { color: var(--bad); }
+.cchip-ico { width: 22px; height: 22px; flex: none; }
+.g-dot { width: 22px; height: 22px; border-radius: 50%; background: linear-gradient(#ffe08a, #e0a520); color: #231800; font-size: 11px; font-weight: 900; display: grid; place-items: center; }
+.goal-box { display: flex; flex-direction: column; gap: 4px; }
+.big-btn { min-height: 52px; font-size: 16px; }
+.refine-log { margin-top: 6px; }
+.log-row { padding: 6px 2px; border-bottom: 1px solid rgba(255,255,255,0.06); font-size: 13px; font-weight: 800; }
+
+/* 結晶 */
+.sockets { display: flex; flex-direction: column; gap: 8px; }
+.socket-row { display: flex; flex-direction: column; gap: 6px; padding: 10px; border-radius: 12px; border: 1px solid var(--line); background: rgba(255,255,255,0.03); }
+.socket-label { font-size: 11px; font-weight: 800; color: var(--muted); }
+.socket-gem { display: flex; align-items: center; gap: 10px; }
+.socket-acts { display: flex; gap: 6px; flex-wrap: wrap; }
+.socket-acts .mini { min-height: 36px; }
+.gem-list { display: flex; flex-direction: column; gap: 6px; }
+.gem-btn { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 54px; padding: 6px 10px; border-radius: 10px; border: 1px solid var(--line); background: rgba(255,255,255,0.04); text-align: left; }
+.gem-btn .buy-text { flex: 1; }
+
+/* 作る（銘入り・ふつう）・料理 */
+.seg.wide { width: 100%; }
+.seg.wide .seg-btn { flex: 1; min-height: 40px; }
+.card-list { display: flex; flex-direction: column; gap: 8px; margin-top: 6px; }
+.craft-card { padding: 12px; border-radius: 14px; background: #171d29; border: 1px solid var(--line); display: flex; flex-direction: column; gap: 8px; }
+.craft-card.ready { border-color: rgba(143,224,160,0.55); }
+.craft-card.final { box-shadow: inset 0 0 0 1px rgba(255,176,46,0.25); }
+.craft-head { display: flex; align-items: center; gap: 10px; }
+.craft-ico { width: 52px; height: 52px; flex: none; border-radius: 10px; background: #10141c; }
+.craft-title { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
+.craft-title b { font-size: 15px; }
+.ready-tag { flex: none; font-size: 11px; font-weight: 900; color: #8fe0a0; }
+.craft-eff { font-size: 12px; color: #ffcf8a; display: flex; flex-direction: column; gap: 2px; }
+.craft-card .btn { min-height: 44px; }
+.cost-chips { display: flex; flex-wrap: wrap; gap: 5px; }
+.cchip { display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px 3px 4px; border-radius: 8px; background: rgba(255,255,255,0.05); font-size: 12px; font-weight: 800; color: #8fe0a0; }
+.cchip.bad { color: var(--bad); background: rgba(255,138,122,0.1); }
+.cchip.gold { padding-left: 8px; color: #ffd76a; }
+.cchip.gold.bad { color: var(--bad); }
+.missing { font-size: 11px; color: var(--muted); line-height: 1.55; }
+.base-grid { grid-template-columns: repeat(auto-fill, minmax(58px, 1fr)); }
+.odds { display: flex; flex-wrap: wrap; gap: 4px 10px; font-size: 12px; font-weight: 800; }
+.opt-rows { display: flex; flex-direction: column; gap: 4px; }
+.opt-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 13px; color: var(--good); font-weight: 700; }
+.opt-row .mini { min-height: 34px; }
+
+/* メニューのホーム */
+.me-card { padding: 14px; border-radius: 16px; background: #171d29; border: 1px solid var(--line); display: flex; flex-direction: column; gap: 8px; }
+.me-top { display: flex; align-items: center; justify-content: space-between; }
+.me-name { display: flex; align-items: baseline; gap: 8px; }
+.me-name b { font-size: 17px; }
+.mfill.exp { background: linear-gradient(90deg, #46c76a, #8fe0a0); }
+.nav-btn.has-dot::after { left: calc(50% + 8px); }
+.buy-row { grid-template-columns: 1fr; }
+.buy-ctl { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.buy-ctl .buy-btn { min-height: 36px; min-width: 76px; padding: 6px 14px; font-size: 13px; }
+.socket-row { align-items: stretch; justify-content: flex-start; text-align: left; }
+.socket-label { text-align: left; }
+.equip { grid-template-columns: repeat(5, minmax(0, 88px)); }
+@media (max-width: 480px) { .equip { grid-template-columns: repeat(5, minmax(0, 1fr)); } }
+.inv { grid-template-columns: minmax(0, 1fr) 300px; }
+@media (max-width: 700px) { .inv { grid-template-columns: 1fr; } }
+.row-ico.small { width: 30px; height: 30px; }

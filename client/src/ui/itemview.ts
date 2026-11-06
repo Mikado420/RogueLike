@@ -4,6 +4,8 @@ import {
 import { rarityColor } from '../colors';
 import { h, kv } from './dom';
 import { elName, modLabel, modText } from './ctx';
+import { bagIconUrl, iconImg, itemIconUrl } from './icons';
+import { upgradeSign } from './itemkit';
 
 /** レジェンドの固有効果を短い行にする */
 export function uniqueLines(u: UniqueDef): string[] {
@@ -31,9 +33,17 @@ export function uniqueLines(u: UniqueDef): string[] {
 export function itemInfo(it: Item, ch: CharacterData | null): HTMLElement {
   const box = h('div', 'item-info');
   const rd = CONTENT.rarities.defs[it.rarity];
-  const name = h('div', 'd-name', it.name + (it.refine > 0 ? ` +${it.refine}` : ''));
+  const head = h('div', 'd-head');
+  const pic = h('div', 'd-pic');
+  pic.style.setProperty('--rc', rd.color);
+  pic.append(iconImg(itemIconUrl(it), 'd-ico'));
+  const titles = h('div', 'd-titles');
+  const name = h('div', 'd-name', it.name);
   name.style.color = rd.color;
-  box.append(name);
+  if (it.refine > 0) name.append(h('span', 'd-refine', ` +${it.refine}`));
+  titles.append(name);
+  head.append(pic, titles);
+  box.append(head);
   const tags = h('div', 'd-tags');
   const rt = h('span', 'tag', rd.name);
   rt.style.borderColor = rd.color; rt.style.color = rd.color;
@@ -41,7 +51,7 @@ export function itemInfo(it: Item, ch: CharacterData | null): HTMLElement {
   if (it.crafted) tags.append(h('span', 'tag named', txt('item.named')));
   if (it.element !== 'neutral') tags.append(h('span', `tag el-${it.element}`, elName(it.element)));
   tags.append(h('span', 'tag muted', txt(`trade.${it.trade}`)));
-  box.append(tags);
+  titles.append(tags);
   const lines = h('div', 'd-lines');
   const req = kv(txt('item.req'), String(it.reqLevel));
   if (ch && ch.level < it.reqLevel) req.classList.add('bad');
@@ -92,23 +102,73 @@ export function itemInfo(it: Item, ch: CharacterData | null): HTMLElement {
   return box;
 }
 
-/** 装備の一覧のマス */
-export function itemCell(it: Item | null, opts: { label?: string; selected?: boolean; price?: boolean; onClick?: () => void } = {}): HTMLButtonElement {
+export interface CellOpts {
+  /** 装備欄の部位名など、左上の小さな文字 */
+  label?: string;
+  selected?: boolean;
+  /** 売値を出す */
+  price?: boolean;
+  onClick?: () => void;
+  /** 今の装備と比べて ▲▼ を出す */
+  compare?: CharacterData | null;
+  /** 選んだかどうか（まとめて選ぶとき。undefined なら印を出さない） */
+  checked?: boolean;
+  /** 押せない（ロック中で売れないなど） */
+  disabled?: boolean;
+  /** 装備中の印 */
+  equipped?: boolean;
+}
+
+/** 装備の一覧のマス（イラスト・装備Lv・精錬値・強弱・ロック） */
+export function itemCell(it: Item | null, opts: CellOpts = {}): HTMLButtonElement {
   const c = h('button', 'cell');
   if (opts.label) c.append(h('span', 'cell-slot', opts.label));
   if (it) {
-    c.style.borderColor = rarityColor(it.rarity);
-    c.style.color = rarityColor(it.rarity);
+    const rc = rarityColor(it.rarity);
+    c.style.setProperty('--rc', rc);
+    c.classList.add(`r-${it.rarity}`);
     if (CONTENT.rarities.defs[it.rarity].glow) c.classList.add('glow');
-    c.style.setProperty('--rc', rarityColor(it.rarity));
-    c.append(h('span', 'cell-name', it.name + (it.refine > 0 ? ` +${it.refine}` : '')));
-    if (it.set) c.append(h('span', 'cell-set', CONTENT.sets[it.set]?.name ?? ''));
-    if (opts.price) c.append(h('span', 'cell-price', `${sellPrice(it, CONTENT)} G`));
-    if (it.locked) c.append(h('span', 'cell-lock', '🔒'));
+    c.append(iconImg(itemIconUrl(it), 'cell-ico'));
+    const name = it.name + (it.refine > 0 ? ` +${it.refine}` : '');
+    c.title = name;
+    c.setAttribute('aria-label', `${name}（${CONTENT.rarities.defs[it.rarity].name}・${txt('item.req')} ${it.reqLevel}）`);
+    const lv = h('span', 'cell-lv', `Lv${it.reqLevel}`);
+    if (opts.compare && opts.compare.level < it.reqLevel) lv.classList.add('bad');
+    c.append(lv);
+    if (it.refine > 0) c.append(h('span', 'cell-ref', `+${it.refine}`));
+    if (opts.compare && !opts.equipped) {
+      const s = upgradeSign(it, opts.compare);
+      if (s !== 0) c.append(h('span', `cell-cmp ${s > 0 ? 'up' : 'down'}`, s > 0 ? '▲' : '▼'));
+    }
+    if (it.set) c.append(h('span', 'cell-set', '◆'));
+    if (opts.price) c.append(h('span', 'cell-price', `${sellPrice(it, CONTENT).toLocaleString()} G`));
+    if (it.locked) c.append(h('span', 'cell-lock', txt('item.lockMark')));
+    if (opts.equipped) c.append(h('span', 'cell-eq', 'E'));
+    if (opts.checked !== undefined) {
+      c.classList.toggle('checked', opts.checked);
+      c.append(h('span', 'cell-check', opts.checked ? '✓' : ''));
+      c.setAttribute('aria-pressed', String(opts.checked));
+    }
     if (opts.selected) c.classList.add('sel');
+    if (opts.disabled) { c.classList.add('off'); c.setAttribute('aria-disabled', 'true'); }
     if (opts.onClick) c.addEventListener('click', opts.onClick);
   } else {
     c.classList.add('none');
+    c.disabled = !opts.onClick;
+    if (opts.onClick) c.addEventListener('click', opts.onClick);
   }
+  return c;
+}
+
+/** 袋のアイテム（素材・消耗品・結晶）のマス */
+export function bagCell(id: string, n: number, opts: { selected?: boolean; onClick?: () => void; need?: number } = {}): HTMLButtonElement {
+  const c = h('button', 'cell bag-cell');
+  c.append(iconImg(bagIconUrl(id), 'cell-ico'));
+  const name = CONTENT.materials[id]?.name ?? CONTENT.crystals[id]?.name ?? id;
+  c.title = name;
+  c.setAttribute('aria-label', `${name} ×${n}`);
+  c.append(h('span', `cell-n${opts.need !== undefined && n < opts.need ? ' bad' : ''}`, opts.need !== undefined ? `${n}/${opts.need}` : `×${n}`));
+  if (opts.selected) c.classList.add('sel');
+  if (opts.onClick) c.addEventListener('click', opts.onClick);
   return c;
 }
