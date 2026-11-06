@@ -355,6 +355,25 @@ export class Menu {
     const ch = p.char;
     const body = h('div', 'inv');
     const left = h('div', 'inv-left');
+    // 薬・料理など、その場で使えるもの。素材に埋もれないよう一番上に分けて、行ごとに「使う」を置く
+    // （装備品や素材がいっぱいでも、スクロールせずに使える）
+    const usable = Object.entries(ch.bag).filter(([id, n]) => n > 0 && CONTENT.materials[id]?.use && !CONTENT.materials[id].use!.capture);
+    if (usable.length) {
+      left.append(h('div', 'sub-title', txt('item.consumables')));
+      const cons = h('div', 'bag consumables');
+      for (const [id, n] of usable) {
+        const info = bagInfo(id);
+        const row = h('div', `bag-item use-row${this.itemSel === id ? ' sel' : ''}`);
+        const dot = h('i', 'dot');
+        dot.style.background = info.color;
+        const name = h('button', 'use-name');
+        name.append(dot, h('span', '', info.name), h('b', '', `×${n}`));
+        name.addEventListener('click', () => { this.itemSel = id; this.refresh(); });
+        row.append(name, btn(txt('item.use'), () => this.ctx.send({ type: 'useItem', id }), 'mini use-btn'));
+        cons.append(row);
+      }
+      left.append(cons);
+    }
     const eq = h('div', 'equip');
     for (const slot of EQUIP_SLOTS) {
       const it = ch.equipment[slot];
@@ -389,10 +408,10 @@ export class Menu {
     pick(txt('filter.hide'), f.hideBelow, (r) => this.ctx.send({ type: 'setLootFilter', hideBelow: r, sellBelow: f.sellBelow }));
     pick(txt('filter.sell'), f.sellBelow, (r) => this.ctx.send({ type: 'setLootFilter', hideBelow: f.hideBelow, sellBelow: r }));
     left.append(filt);
-    left.append(h('div', 'sub-title', txt('item.materials')));
+    const mats = Object.entries(ch.bag).filter(([id, n]) => n > 0 && !usable.some(([u]) => u === id));
+    if (mats.length) left.append(h('div', 'sub-title', txt('item.materials')));
     const bag = h('div', 'bag');
-    for (const [id, n] of Object.entries(ch.bag)) {
-      if (n <= 0) continue;
+    for (const [id, n] of mats) {
       const info = bagInfo(id);
       const b = h('button', `bag-item${this.itemSel === id ? ' sel' : ''}`);
       const dot = h('i', 'dot');
