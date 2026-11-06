@@ -25,9 +25,10 @@ export class Ambience {
     c.width = c.height = 256;
     const ctx = c.getContext('2d')!;
     const grd = ctx.createRadialGradient(128, 128, 0, 128, 128, 128);
-    grd.addColorStop(0, 'rgba(0,0,0,0)');
-    grd.addColorStop(0.55, 'rgba(0,0,0,0.05)');
-    grd.addColorStop(1, 'rgba(0,0,0,1)');
+    // 白で描いて tint で色を付ける（黒だと霧の灰色を掛けても黒のままで、外側の塗りと色がずれる）
+    grd.addColorStop(0, 'rgba(255,255,255,0)');
+    grd.addColorStop(0.55, 'rgba(255,255,255,0.05)');
+    grd.addColorStop(1, 'rgba(255,255,255,1)');
     ctx.fillStyle = grd;
     ctx.fillRect(0, 0, 256, 256);
     this.vision = new Sprite(Texture.from(c));

@@ -502,7 +502,8 @@ export class Hud {
         const b = this.skillBtns[i];
         b.name.textContent = id ? CONTENT.skills[id].name : none && i === 0 ? txt('hud.skillEmpty') : '';
         b.btn.classList.toggle('empty', !id);
-        b.btn.classList.toggle('hidden', !id && (none ? i > 0 : false));
+        // 覚える前は「スキルを覚える」の枠を 1 つだけ、覚えたあとは空の枠を出さない
+        b.btn.classList.toggle('hidden', !id && (none ? i > 0 : true));
       });
     }
     ids.forEach((id, i) => {

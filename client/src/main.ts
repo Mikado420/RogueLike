@@ -45,7 +45,7 @@ async function boot() {
       const q = new URLSearchParams(location.search);
       const ch = account.characters.find((c) => c.id === charId);
       if (ch && q.get('area')) { ch.location = { area: q.get('area')!, x: 0, y: 0 }; ch.tutorial.done = true; }
-      const clockOffset = q.has('noon') ? noonOffset(q.get('area') ?? ch?.location.area ?? CONTENT.balance.world.startArea) : 0;
+      const clockOffset = q.has('offset') ? Number(q.get('offset')) : q.has('noon') ? noonOffset(q.get('area') ?? ch?.location.area ?? CONTENT.balance.world.startArea) : 0;
       session = new NetSession(charId, { account, onSave: (a) => void store.save(a), clockOffset });
     } else {
       const charId = await showTitle({ reason, migrate: registerMigration() });
