@@ -121,10 +121,18 @@ export class Hud {
     const atk = h('button', 'act attack');
     this.attackBtn = atk;
     atk.append(h('span', 'act-name', txt('hud.attack')), this.chip('attack'));
-    const hold = (v: boolean) => (e: PointerEvent) => { e.preventDefault(); this.sfx.unlock(); this.input.setAttackHeld(v); };
-    atk.addEventListener('pointerdown', (e) => { atk.setPointerCapture(e.pointerId); hold(true)(e); });
-    atk.addEventListener('pointerup', hold(false));
-    atk.addEventListener('pointercancel', hold(false));
+    // 押した指を覚え、その指が離れた・取り消された・捕まえが外れたら必ずやめる（押しっぱなしで残らないように）
+    let atkPointer = -1;
+    const release = (e: PointerEvent) => { if (atkPointer === -1 || e.pointerId !== atkPointer) return; atkPointer = -1; this.input.setAttackHeld(false); };
+    atk.addEventListener('pointerdown', (e) => {
+      e.preventDefault(); this.sfx.unlock();
+      atkPointer = e.pointerId;
+      try { atk.setPointerCapture(e.pointerId); } catch { /* 使えなくても続ける */ }
+      this.input.setAttackHeld(true);
+    });
+    for (const ev of ['pointerup', 'pointercancel', 'lostpointercapture'] as const) atk.addEventListener(ev, release);
+    window.addEventListener('pointerup', release);
+    window.addEventListener('pointercancel', release);
     actions.append(atk);
     for (let i = 0; i < CONTENT.balance.player.skillSlots; i++) {
       const b = h('button', `act skill s${i}`);

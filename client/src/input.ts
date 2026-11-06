@@ -48,12 +48,15 @@ export class InputManager {
   private onDown = (e: KeyboardEvent) => this.onKey(e, true);
   private onUp = (e: KeyboardEvent) => this.onKey(e, false);
   private onBlur = () => { this.keys.clear(); this.mouseHeld = false; this.uiAttackHeld = false; };
+  /** アプリが裏に回ったら、押しっぱなしを全部やめる（スマホでは blur が来ないことがある） */
+  private onVisibility = () => { if (document.hidden) this.onBlur(); };
   private onPointerUp = (e: PointerEvent) => { if (e.pointerType === 'mouse' && e.button === 0) this.mouseHeld = false; };
 
   dispose() {
     window.removeEventListener('keydown', this.onDown);
     window.removeEventListener('keyup', this.onUp);
     window.removeEventListener('blur', this.onBlur);
+    document.removeEventListener('visibilitychange', this.onVisibility);
     window.removeEventListener('pointerup', this.onPointerUp);
     this.enabled = false;
   }
@@ -62,6 +65,7 @@ export class InputManager {
     window.addEventListener('keydown', this.onDown);
     window.addEventListener('keyup', this.onUp);
     window.addEventListener('blur', this.onBlur);
+    document.addEventListener('visibilitychange', this.onVisibility);
     canvasHost.addEventListener('pointermove', (e) => {
       if (e.pointerType !== 'mouse') return;
       this.mouse = { x: e.clientX, y: e.clientY, movedAt: performance.now() };
@@ -90,8 +94,10 @@ export class InputManager {
 
   private onKey(e: KeyboardEvent, down: boolean) {
     const t = e.target as HTMLElement | null;
-    if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT')) return;
     const k = e.code;
+    // 離したキーは、入力欄にいても必ず消す（消さないと、押しっぱなしのまま残って攻撃し続ける）
+    if (!down) this.keys.delete(k);
+    if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT')) return;
     if (down && this.capture) {
       e.preventDefault();
       const cb = this.capture;
