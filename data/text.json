@@ -29,6 +29,8 @@
   "title.delete": "削除",
   "title.confirmDelete": "本当に削除",
   "create.name": "名前",
+  "update.available": "新しい版があります",
+  "update.now": "更新する",
   "starter.talk": "ようこそ、冒険者。好きな武器を 1 本だけ持っていきなさい。どれを選んでも、あとで店や宝箱で他の武器も手に入るよ。",
   "starter.done": "{0}の調子はどうだい？ 使いこなせば、きっと強くなれる。",
   "starter.type.physical": "物理",

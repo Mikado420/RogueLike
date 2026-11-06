@@ -8,8 +8,10 @@ import { showLocalTitle } from './ui/title-local';
 import { registerMigration } from './ui/migrate';
 import { Game } from './game';
 import { NetSession } from './net/session';
+import { setInGame, watchForUpdates } from './update';
 
 async function boot() {
+  watchForUpdates();
   const host = document.getElementById('game')!;
   const settings = loadSettings();
   const app = new Application();
@@ -54,7 +56,9 @@ async function boot() {
       continue;
     }
     const game = new Game(app, session, settings, sfx);
+    setInGame(true);
     reason = await new Promise<string | null>((res) => { game.onExit = res; });
+    setInGame(false);
     game.destroy();
     session.close();
   }
