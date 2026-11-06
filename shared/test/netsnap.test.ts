@@ -51,3 +51,22 @@ describe('差分スナップショット', () => {
     expect(bytes).toBeLessThan(full * 0.8);
   });
 });
+
+describe('関心範囲の端', () => {
+  it('一度見えたものは、範囲の少し外までは消さない（出たり消えたりしない）', async () => {
+    const { Viewer, KEEP_MARGIN } = await import('../src/net/snapshot');
+    const v = new Viewer(10);
+    const frame = (x: number) => ({ tick: 0, areaJson: '{}', ents: [{ kind: 'mo' as const, id: 7, x, y: 0, json: `{"id":7,"x":${x}}`, fields: { id: '7', x: String(x) } }] });
+    const me = { id: 1, x: 0, y: 0 };
+    const base = { tick: 0, clock: 0 } as never;
+    // 範囲の外から来たものは送らない
+    expect(v.diff(frame(12), me, base, []).mo).toBeUndefined();
+    // 中に入ったら送る
+    expect(v.diff(frame(9.5), me, base, []).mo?.length).toBe(1);
+    // 少し外に出ても消さない
+    const m1 = v.diff(frame(10 + KEEP_MARGIN - 0.5), me, base, []);
+    expect(m1.gone).toBeUndefined();
+    // 十分に離れたら消す
+    expect(v.diff(frame(10 + KEEP_MARGIN + 1), me, base, []).gone).toEqual([7]);
+  });
+});

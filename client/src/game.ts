@@ -150,7 +150,7 @@ export class Game {
       this.acc -= TICK_MS;
     }
     if (!this.ctx.me()) return;
-    this.session.updateDisplay();
+    this.session.updateDisplay(this.acc / TICK_MS);
     this.view.render(1, t.deltaMS);
     const ps = this.view.playerScreenPos();
     // 遊び始めて 10 分は、雨や嵐で画面が暗くなりすぎないようにする

@@ -77,6 +77,9 @@ export function buildFrame(w: World): FrameCache {
   return { tick: w.tick, ents, areaJson: JSON.stringify(areaState(w.area)) };
 }
 
+/** 関心範囲の外側の余裕（マス） */
+export const KEEP_MARGIN = 4;
+
 /** 1人ぶんの、前回から変わったもの */
 export class Viewer {
   private seen = new Map<number, { json: string; fields: Record<string, string> }>();
@@ -89,8 +92,11 @@ export class Viewer {
     const msg: SnapshotMsg = { t: 'snap', ...base };
     const now = new Set<number>();
     const r2 = this.radius * this.radius;
+    // 一度見えたものは、少し外に出るまで見せ続ける（範囲の端で出たり消えたりしないように）
+    const keep2 = (this.radius + KEEP_MARGIN) ** 2;
     for (const e of frame.ents) {
-      const near = !me || e.id === me.id || e.kind === 'np' || (e.x - me.x) ** 2 + (e.y - me.y) ** 2 <= r2;
+      const d2 = me ? (e.x - me.x) ** 2 + (e.y - me.y) ** 2 : 0;
+      const near = !me || e.id === me.id || e.kind === 'np' || d2 <= r2 || (d2 <= keep2 && this.seen.has(e.id));
       // 落ちているものは自分のもの（持ち主なし含む）だけ
       if (e.kind === 'dr' && me && e.ownerId !== undefined && e.ownerId !== -1 && e.ownerId !== me.id) continue;
       if (!near) continue;

@@ -39,6 +39,10 @@ export class NetSession {
   private snapshotMs = 100;
   private inputMinMs = 50;
   private pred: { x: number; y: number; dodge: number; dir: { x: number; y: number } } | null = null;
+  /** 1 tick 前の予測位置（描くときに tick の間を補間する） */
+  private prevPred: { x: number; y: number } | null = null;
+  /** サーバーから届いた自分の位置（差分で片方しか来ないことがあるので持ち回す） */
+  private serverMe: { x: number; y: number } | null = null;
   private corr = { x: 0, y: 0 };
   private resume = '';
   private retries = 0;
@@ -129,6 +133,8 @@ export class NetSession {
           Object.assign(this.world, next);
           this.samples.clear();
           this.pred = null;
+          this.prevPred = null;
+          this.serverMe = null;
         }
         this.world.tick = m.tick;
         this.world.clock = m.clock;
@@ -143,8 +149,13 @@ export class NetSession {
         for (const list of [m.pl, m.mo, m.pe, m.pr]) {
           for (const e of list ?? []) {
             if (e.id === this.myId) continue;
-            const x = e.x as number, y = e.y as number;
+            // 差分には変わった項目しか入っていない（HP だけ・縦の動きだけなど）。ない方は最後に分かっている位置を使う
+            const hasX = typeof e.x === 'number', hasY = typeof e.y === 'number';
+            if (!hasX && !hasY) continue;
             const s = this.samples.get(e.id) ?? [];
+            const last = s[s.length - 1];
+            const x = hasX ? (e.x as number) : last?.x, y = hasY ? (e.y as number) : last?.y;
+            if (x === undefined || y === undefined) continue;
             s.push({ t: now, x, y });
             if (s.length > 12) s.shift();
             this.samples.set(e.id, s);
@@ -153,7 +164,11 @@ export class NetSession {
         for (const g of m.gone ?? []) this.samples.delete(g);
         const me = this.me;
         const mine = m.pl?.find((e) => e.id === this.myId);
-        if (me && mine) this.correct(me, mine.x as number, mine.y as number);
+        if (me && mine && (typeof mine.x === 'number' || typeof mine.y === 'number')) {
+          const sx = typeof mine.x === 'number' ? mine.x : this.serverMe?.x;
+          const sy = typeof mine.y === 'number' ? mine.y : this.serverMe?.y;
+          if (sx !== undefined && sy !== undefined) { this.serverMe = { x: sx, y: sy }; this.correct(me, sx, sy); }
+        }
         if (m.ev) this.events.push(...m.ev);
         // エリアが変わった知らせは、自分が見えてから
         if (this.areaEvent && this.me) { this.events.push({ type: 'areaChanged', playerId: this.myId, area: this.areaEvent }); this.areaEvent = null; }
@@ -193,13 +208,13 @@ export class NetSession {
 
   /** 自分の位置のずれを直す（大きくずれたら飛ばす） */
   private correct(me: Player, sx: number, sy: number) {
-    if (!this.pred || me.dead) { this.pred = { x: sx, y: sy, dodge: 0, dir: { x: 0, y: 0 } }; this.corr = { x: 0, y: 0 }; return; }
+    if (!this.pred || me.dead) { this.pred = { x: sx, y: sy, dodge: 0, dir: { x: 0, y: 0 } }; this.prevPred = { x: sx, y: sy }; this.corr = { x: 0, y: 0 }; return; }
     const lead = Math.min(0.3, (this.rtt / 2 + this.snapshotMs / 2) / 1000);
     const speed = me.stats.moveSpeed;
     const tx = sx + this.lastMove.x * speed * lead, ty = sy + this.lastMove.y * speed * lead;
     const dx = tx - this.pred.x, dy = ty - this.pred.y;
     const d = Math.hypot(dx, dy);
-    if (d > 2.5) { this.pred.x = sx; this.pred.y = sy; this.corr = { x: 0, y: 0 }; }
+    if (d > 2.5) { this.pred.x = sx; this.pred.y = sy; this.prevPred = { x: sx, y: sy }; this.corr = { x: 0, y: 0 }; }
     else if (d > 0.05) this.corr = { x: dx, y: dy };
   }
 
@@ -242,6 +257,7 @@ export class NetSession {
     const me = this.me;
     if (!me) return;
     if (!this.pred) { this.pred = { x: me.x, y: me.y, dodge: 0, dir: { x: 0, y: 0 } }; }
+    this.prevPred = { x: this.pred.x, y: this.pred.y };
     const dt = 1 / CONTENT.balance.tickRate;
     const map = this.world.area.map;
     const p = { x: this.pred.x, y: this.pred.y };
@@ -266,10 +282,15 @@ export class NetSession {
     this.pred.x = p.x; this.pred.y = p.y;
   }
 
-  /** 描く前に：自分は予測の位置、ほかは少し前の位置を補間 */
-  updateDisplay(now = performance.now()) {
+  /** 描く前に：自分は予測の位置（tick の間を alpha で補間）、ほかは少し前の位置を補間 */
+  updateDisplay(alpha = 1, now = performance.now()) {
     const me = this.me;
-    if (me && this.pred) { me.x = this.pred.x; me.y = this.pred.y; }
+    if (me && this.pred) {
+      const a = Math.max(0, Math.min(1, alpha));
+      const pp = this.prevPred ?? this.pred;
+      me.x = pp.x + (this.pred.x - pp.x) * a;
+      me.y = pp.y + (this.pred.y - pp.y) * a;
+    }
     const renderAt = now - this.snapshotMs * 1.5;
     const place = (o: { id: number; x: number; y: number }) => {
       const s = this.samples.get(o.id);
