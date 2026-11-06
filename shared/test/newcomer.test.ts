@@ -30,6 +30,15 @@ describe('はじめての人にやさしく', () => {
     }
   });
 
+  it('練習用のスライムは、持ち主が去ると消える（共有のフィールドにたまらない）', () => {
+    const { w, p } = freshWorld(2);
+    const key = `practice:${p.char.id}`;
+    expect(w.area.monsters.some((m) => !m.dead && m.spawnKey === key)).toBe(true);
+    p.char.tutorial.done = true;
+    tick(w, p, {}, 40);
+    expect(w.area.monsters.some((m) => !m.dead && m.spawnKey === key)).toBe(false);
+  });
+
   it('安全地帯にいる間は、そばの魔物も襲ってこない', () => {
     const { w, p } = freshWorld(7);
     const hornet = spawnAt(w, 'hornet', p.x + 2, p.y, 5);

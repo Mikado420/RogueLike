@@ -76,6 +76,15 @@ export function updateField(w: World) {
       if (w.content.monsters[m.defId].nightOnly && m.ai === 'wander') { m.dead = true; m.hp = 0; }
     }
   }
+  // 練習用のスライムは、持ち主がいなくなったか攻撃の練習を終えたら帰る（戦っていないもの）
+  if (w.tick % 20 === 0) {
+    const attackStep = w.content.tutorial.steps.findIndex((s) => s.type === 'hit');
+    for (const m of area.monsters) {
+      if (m.dead || !m.spawnKey.startsWith('practice:') || m.ai !== 'wander') continue;
+      const owner = w.players.find((p) => p.char.id === m.spawnKey.slice('practice:'.length));
+      if (!owner || owner.char.tutorial.done || owner.char.tutorial.step > attackStep) { m.dead = true; m.hp = 0; }
+    }
+  }
   if (--area.spawnTimer <= 0) {
     area.spawnTimer = sec(w, w.content.balance.world.spawnInterval);
     const alive = area.monsters.filter((m) => !m.dead && !m.fieldBoss).length;
