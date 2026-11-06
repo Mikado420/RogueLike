@@ -137,29 +137,50 @@ export function generateField(id: string, def: FieldGenDef, pal: Palette, exits:
     }
   }
 
-  // 高台（通れない段差）。道・出口・広場から 2 マス以上離れたところに、まとまりで置く
-  const heights = new Array<number>(W * H).fill(0);
-  const nearRes = (i: number, j: number) => { for (let dj = -2; dj <= 2; dj++) for (let di = -2; di <= 2; di++) if (res(i + di, j + dj)) return true; return false; };
-  const plates = Math.round((W * H) / 420);
-  for (let n = 0; n < plates; n++) {
-    const rx = rng.int(3, 6), ry = rng.int(3, 6), lv = rng.int(1, 2);
-    const cx = rng.int(rx + 2, W - rx - 3), cy = rng.int(ry + 2, H - ry - 3);
-    for (let j = cy - ry; j <= cy + ry; j++) for (let i = cx - rx; i <= cx + rx; i++) {
-      const d = ((i - cx) / rx) ** 2 + ((j - cy) / ry) ** 2;
-      if (d > 1 + rng.range(-0.25, 0.1) || i < 2 || j < 2 || i > W - 3 || j > H - 3) continue;
-      const k = j * W + i;
-      if (m.solid[k] || nearRes(i, j)) continue;
-      heights[k] = Math.max(heights[k], d < 0.35 && lv > 1 ? 2 : 1);
-      m.solid[k] = true; m.sprites[k] = null;
+  // なだらかな丘（見た目の高さ。どこでも歩いて登れる）。マスの角ごとの高さ
+  const VW = W + 1, VH = H + 1;
+  let hc = new Array<number>(VW * VH).fill(0);
+  const hills = Math.round((W * H) / 260);
+  for (let n = 0; n < hills; n++) {
+    const cx = rng.range(3, W - 3), cy = rng.range(3, H - 3), r = rng.range(4, 9), a = rng.range(20, 52);
+    for (let y = Math.max(0, Math.floor(cy - r * 2.2)); y <= Math.min(H, Math.ceil(cy + r * 2.2)); y++) {
+      for (let x = Math.max(0, Math.floor(cx - r * 2.2)); x <= Math.min(W, Math.ceil(cx + r * 2.2)); x++) {
+        hc[y * VW + x] += a * Math.exp(-(((x - cx) ** 2 + (y - cy) ** 2) / (r * r)));
+      }
     }
   }
-  // 中心から行けなくなった空き地は高台に含める（魔物が行けない場所に湧かないように）
-  const reach = reachable(m, center.x + 0.5, center.y + 0.5);
-  for (let k = 0; k < W * H; k++) if (!m.solid[k] && !reach[k] && heights.some((h) => h > 0)) {
-    const i = k % W, j = (k - i) / W;
-    if (i > 0 && j > 0 && i < W - 1 && j < H - 1 && m.tiles[k] !== pal.liquid.tile) { heights[k] = 1; m.solid[k] = true; }
+  // 水辺は低く、外周も低く。なじませるために少しぼかす
+  const low = new Uint8Array(VW * VH);
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+    if (m.tiles[y * W + x] === pal.liquid.tile) for (const [dx, dy] of [[0, 0], [1, 0], [0, 1], [1, 1]]) low[(y + dy) * VW + x + dx] = 1;
   }
-  m.heights = heights;
+  // 水辺・外周からの距離（角の数）で、丘をなだらかに下げる（池のまわりが穴にならないように）
+  const dist = new Array<number>(VW * VH).fill(1e9);
+  const q: number[] = [];
+  for (let y = 0; y < VH; y++) for (let x = 0; x < VW; x++) {
+    const k = y * VW + x;
+    if (low[k] || x === 0 || y === 0 || x === W || y === H) { dist[k] = 0; q.push(k); }
+  }
+  for (let h = 0; h < q.length; h++) {
+    const k = q[h], x = k % VW, y = (k - x) / VW;
+    for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+      const nx = x + dx, ny = y + dy;
+      if (nx < 0 || ny < 0 || nx >= VW || ny >= VH) continue;
+      const nk = ny * VW + nx;
+      if (dist[nk] > dist[k] + 1) { dist[nk] = dist[k] + 1; q.push(nk); }
+    }
+  }
+  for (let k = 0; k < VW * VH; k++) { const t = Math.min(1, dist[k] / 6); hc[k] *= t * t * (3 - 2 * t); }
+  for (let pass = 0; pass < 3; pass++) {
+    const nx = hc.slice();
+    for (let y = 0; y < VH; y++) for (let x = 0; x < VW; x++) {
+      const k = y * VW + x;
+      if (low[k] || x === 0 || y === 0 || x === W || y === H) { nx[k] = 0; continue; }
+      nx[k] = (hc[k] * 2 + hc[k - 1] + hc[k + 1] + hc[k - VW] + hc[k + VW]) / 6;
+    }
+    hc = nx;
+  }
+  m.heights = hc.map((v) => Math.round(v * 10) / 10);
 
   // 障害物（木・岩など）
   const weights: Record<string, number> = {};

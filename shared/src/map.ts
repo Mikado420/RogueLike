@@ -28,7 +28,7 @@ export interface GameMap {
   solid: boolean[];
   sprites: (string | null)[];
   buildings?: BuildingDef[];
-  /** 高台の段（0 は平地。1 以上は通れない段差として持ち上げて描く） */
+  /** 地形の高さ（ピクセル）。マスの角ごと（(width+1)×(height+1)）。見た目だけで、歩くのには関係しない */
   heights?: number[];
 }
 

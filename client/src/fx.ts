@@ -1,7 +1,7 @@
 import { Container, Graphics, Text, type TextStyleOptions } from 'pixi.js';
 import type { Element, Shape } from '../../shared/src/core';
 import { ELEMENT_COLOR } from './colors';
-import { isoRadii, toScreen } from './iso';
+import { isoRadii, toScreen, toScreenH } from './iso';
 
 interface Floater {
   obj: Container;
@@ -47,7 +47,7 @@ export class Effects {
 
   /** 1つの数字を出す。world 座標で渡す */
   number(wx: number, wy: number, amount: number, opt: { crit: boolean; weak: boolean; element: Element; toPlayer: boolean; offsetY?: number; total?: boolean }) {
-    const s = toScreen(wx, wy);
+    const s = toScreenH(wx, wy);
     const c = new Container();
     let color = 0xffffff, size = 22;
     if (opt.toPlayer) { color = 0xff4a4a; size = 22; }
@@ -84,7 +84,7 @@ export class Effects {
 
   /** 持続ダメージ（小さめの数字） */
   dot(wx: number, wy: number, amount: number, toPlayer: boolean, color: number) {
-    const s = toScreen(wx, wy);
+    const s = toScreenH(wx, wy);
     const t = this.makeText(String(amount), { fontSize: 15, fill: toPlayer ? 0xff7a7a : color });
     t.x = s.x + (Math.random() - 0.5) * 20; t.y = s.y - 40;
     this.layer.addChild(t);
@@ -93,7 +93,7 @@ export class Effects {
 
   /** 大きな文字（BREAK・LEVEL UP など） */
   bigText(wx: number, wy: number, text: string, color: number) {
-    const s = toScreen(wx, wy);
+    const s = toScreenH(wx, wy);
     const t = this.makeText(text, { fontSize: 26, fill: color, letterSpacing: 2, stroke: { color: 0x3a2000, width: 6, join: 'round' } });
     t.x = s.x; t.y = s.y - 80;
     this.layer.addChild(t);
@@ -101,7 +101,7 @@ export class Effects {
   }
 
   text(wx: number, wy: number, text: string, color: number) {
-    const s = toScreen(wx, wy);
+    const s = toScreenH(wx, wy);
     const t = this.makeText(text, { fontSize: 16, fill: color });
     t.x = s.x; t.y = s.y - 56;
     this.layer.addChild(t);
@@ -140,7 +140,7 @@ export class Effects {
 
   /** 地面に広がる輪 */
   burst(wx: number, wy: number, color: number, radius = 0.5, life = 0.25) {
-    const s = toScreen(wx, wy);
+    const s = toScreenH(wx, wy);
     const { rx, ry } = isoRadii(radius);
     const g = new Graphics();
     g.ellipse(0, 0, rx, ry).fill({ color, alpha: 0.5 }).stroke({ width: 2, color, alpha: 0.9 });
@@ -150,7 +150,7 @@ export class Effects {
   }
 
   spark(wx: number, wy: number, color: number, height = 24) {
-    const s = toScreen(wx, wy);
+    const s = toScreenH(wx, wy);
     for (let i = 0; i < 6; i++) {
       const g = new Graphics();
       g.circle(0, 0, 2 + Math.random() * 2).fill(color);
@@ -202,7 +202,7 @@ export class Effects {
 /** ワールド座標の範囲（円・扇形・直線・輪）を、アイソメに投影した図形として描く（fill は呼び出し側） */
 export function drawIsoShape(g: Graphics, wx: number, wy: number, shape: Shape, dir: number) {
   if (shape.type === 'circle') {
-    const s = toScreen(wx, wy);
+    const s = toScreenH(wx, wy);
     const { rx, ry } = isoRadii(shape.radius);
     g.ellipse(s.x, s.y, rx, ry);
     return;

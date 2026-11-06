@@ -1,6 +1,6 @@
 import { Container, Graphics } from 'pixi.js';
 import type { GameMap } from '../../shared/src';
-import { depth, toScreen } from './iso';
+import { depth, toScreen, toScreenH } from './iso';
 import { makePlayerSprite } from './sprites';
 import { BODY_COLORS, HAIR_COLORS } from './colors';
 
@@ -111,7 +111,7 @@ export class TownLife {
         if (Math.abs(sx) > 0.01) w.body.scale.x = sx < 0 ? -1 : 1;
         w.body.y = -Math.abs(Math.sin(this.time * 9 + w.phase)) * 2;
       } else w.wait = 1 + Math.random() * 3;
-      const s = toScreen(w.x, w.y);
+      const s = toScreenH(w.x, w.y);
       w.root.x = s.x; w.root.y = s.y;
       w.root.zIndex = depth(w.x, w.y);
     }

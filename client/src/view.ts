@@ -2,7 +2,7 @@ import { Application, Container, Graphics, Text } from 'pixi.js';
 import {
   CONTENT, type Drop, type GameEvent, type Item, type Monster, type Player, type Projectile, type World,
 } from '../../shared/src';
-import { depth, isoRadii, TILE_H, TILE_W, toScreen } from './iso';
+import { depth, isoRadii, setTerrain, terrainHeight, TILE_H, TILE_W, toScreen, toScreenH } from './iso';
 import { makeBagIcon, makePlayerSprite, makeSprite, makeWeaponGlyph } from './sprites';
 import { makeMonsterSprite } from './monsters';
 import { drawIsoShape, Effects } from './fx';
@@ -87,6 +87,7 @@ export class WorldView {
     this.actors.clear(); this.projectiles.clear(); this.drops.clear(); this.npcs.clear(); this.nodes.clear();
     this.ground.clear();
     const m = this.world.area.map;
+    setTerrain(m.heights, m.width, m.height);
     const g = this.ground;
     const hw = TILE_W / 2, hh = TILE_H / 2;
     for (let j = 0; j < m.height; j++) {
@@ -95,18 +96,12 @@ export class WorldView {
         const tile = m.tiles[k];
         const td = CONTENT.tiles[tile];
         const p = toScreen(i, j);
-        // 市松模様にせず、マスごとに少しだけ色をゆらす（地面が格子に見えないように）
-        const r = tileNoise(i, j);
-        const c = td ? (td.detail ? shade(hex(td.colors[0]), 0.97 + r * 0.06) : hex(td.colors[(i + j) % 2])) : 0xff00ff;
-        g.poly([p.x, p.y, p.x + hw, p.y + hh, p.x, p.y + 2 * hh, p.x - hw, p.y + hh]).fill(c);
-        if (td?.shine) g.poly([p.x, p.y + 6, p.x + hw - 10, p.y + hh, p.x, p.y + 2 * hh - 6, p.x - hw + 10, p.y + hh]).fill({ color: hex(td.shine), alpha: 0.18 });
-        if (td?.detail) tileDetail(g, td.detail, p.x, p.y, hex(td.colors[0]), i, j);
-        const hgt = m.heights?.[k] ?? 0;
-        if (hgt > 0) this.entities.addChild(plateauTile(m, i, j, td ? hex(td.colors[0]) : 0x4a7a3a, td?.detail));
+        drawGroundTile(g, m, i, j);
+        if (td?.detail) tileDetail(g, td.detail, p.x, p.y, groundColor(m, i, j), i, j, (u, v) => terrainHeight(i + u, j + v));
         const sp = m.sprites[k];
         if (sp) {
           const s = makeSprite(sp);
-          const c2 = toScreen(i + 0.5, j + 0.5);
+          const c2 = toScreenH(i + 0.5, j + 0.5);
           s.x = c2.x; s.y = c2.y;
           s.zIndex = depth(i + 0.5, j + 0.5);
           this.entities.addChild(s);
@@ -136,7 +131,7 @@ export class WorldView {
       const cx = (e.rect[0] + e.rect[2]) / 2, cy = (e.rect[1] + e.rect[3]) / 2;
       const label = new Text({ text: CONTENT.areas[e.to]?.name ?? '', style: { fontFamily: FONT, fontSize: 12, fontWeight: '800', fill: 0x9fe8ff, stroke: { color: 0x000000, width: 3 } } });
       label.anchor.set(0.5, 1);
-      const lp = toScreen(cx, cy);
+      const lp = toScreenH(cx, cy);
       label.x = lp.x; label.y = lp.y - 6;
       label.zIndex = 1e6;
       this.entities.addChild(label);
@@ -147,14 +142,14 @@ export class WorldView {
     this.life = new TownLife(this.entities, m, this.chimneys, this.world.area.type === 'town');
     for (const n of this.world.area.nodes) this.addNode(n);
     const me = this.me();
-    if (me) { const s = toScreen(me.x, me.y); this.camPos = { x: s.x, y: s.y }; }
+    if (me) { const s = toScreenH(me.x, me.y); this.camPos = { x: s.x, y: s.y }; }
   }
 
   private addNode(n: { id: number; type: string; x: number; y: number }) {
     const def = CONTENT.gathering.nodeTypes[n.type];
     if (!def) return;
     const root = makeSprite(def.sprite);
-    const s = toScreen(n.x, n.y);
+    const s = toScreenH(n.x, n.y);
     root.x = s.x; root.y = s.y;
     root.zIndex = depth(n.x, n.y);
     this.entities.addChild(root);
@@ -170,7 +165,7 @@ export class WorldView {
     label.anchor.set(0.5, 1);
     label.y = -62;
     root.addChild(label);
-    const s = toScreen(n.x, n.y);
+    const s = toScreenH(n.x, n.y);
     root.x = s.x; root.y = s.y;
     root.zIndex = depth(n.x, n.y);
     this.entities.addChild(root);
@@ -384,7 +379,7 @@ export class WorldView {
       const v = this.actorView(a);
       const pos = lerp(v, a.x, a.y);
       v.cur = pos;
-      const s = toScreen(pos.x, pos.y);
+      const s = toScreenH(pos.x, pos.y);
       v.root.x = s.x; v.root.y = s.y;
       v.root.zIndex = depth(pos.x, pos.y) + 0.01;
       v.hurt = Math.max(0, v.hurt - dt);
@@ -563,7 +558,7 @@ export class WorldView {
       if (!m.shielded) continue;
       const v = this.actors.get(m.id);
       if (!v) continue;
-      const s = toScreen(v.cur.x, v.cur.y);
+      const s = toScreenH(v.cur.x, v.cur.y);
       const { rx } = isoRadii(m.r + 0.6);
       this.telegraphs.circle(s.x, s.y - rx * 0.6, rx).stroke({ width: 3, color: 0x9fe8ff, alpha: 0.7 + 0.2 * Math.sin(this.time * 8) });
     }
@@ -572,17 +567,17 @@ export class WorldView {
     const me = this.me();
     const mv = this.actors.get(me.id);
     if (mv && !me.dead) {
-      const tip = toScreen(mv.cur.x + Math.cos(me.facing) * 0.75, mv.cur.y + Math.sin(me.facing) * 0.75);
-      const l = toScreen(mv.cur.x + Math.cos(me.facing + 0.5) * 0.5, mv.cur.y + Math.sin(me.facing + 0.5) * 0.5);
-      const r = toScreen(mv.cur.x + Math.cos(me.facing - 0.5) * 0.5, mv.cur.y + Math.sin(me.facing - 0.5) * 0.5);
+      const tip = toScreenH(mv.cur.x + Math.cos(me.facing) * 0.75, mv.cur.y + Math.sin(me.facing) * 0.75);
+      const l = toScreenH(mv.cur.x + Math.cos(me.facing + 0.5) * 0.5, mv.cur.y + Math.sin(me.facing + 0.5) * 0.5);
+      const r = toScreenH(mv.cur.x + Math.cos(me.facing - 0.5) * 0.5, mv.cur.y + Math.sin(me.facing - 0.5) * 0.5);
       const { rx, ry } = isoRadii(0.55);
-      const c = toScreen(mv.cur.x, mv.cur.y);
+      const c = toScreenH(mv.cur.x, mv.cur.y);
       this.telegraphs.ellipse(c.x, c.y, rx, ry).stroke({ width: 2, color: 0x8fd0ff, alpha: 0.45 });
       this.telegraphs.poly([tip.x, tip.y, l.x, l.y, r.x, r.y]).fill({ color: 0x8fd0ff, alpha: 0.6 });
     }
 
     // カメラ
-    const target = mv ? toScreen(mv.cur.x, mv.cur.y) : toScreen(me.x, me.y);
+    const target = mv ? toScreenH(mv.cur.x, mv.cur.y) : toScreenH(me.x, me.y);
     const follow = 1 - Math.exp(-dt * 10);
     this.camPos.x += (target.x - this.camPos.x) * follow;
     this.camPos.y += (target.y - 30 - this.camPos.y) * follow;
@@ -601,7 +596,7 @@ export class WorldView {
   playerScreenPos(): { x: number; y: number } {
     const v = this.actors.get(this.myId);
     const p = v ? v.cur : this.me();
-    const s = toScreen(p.x, p.y);
+    const s = toScreenH(p.x, p.y);
     const z = this.camera.scale.x;
     return { x: this.camera.x + s.x * z, y: this.camera.y + (s.y - 22) * z };
   }
@@ -610,7 +605,7 @@ export class WorldView {
     const x = v.prev.x + (pr.x - v.prev.x) * alpha;
     const y = v.prev.y + (pr.y - v.prev.y) * alpha;
     v.cur = { x, y };
-    const s = toScreen(x, y);
+    const s = toScreenH(x, y);
     v.root.x = s.x; v.root.y = s.y - 20;
     v.root.zIndex = depth(x, y) + 0.02;
     const d = toScreen(pr.vx, pr.vy);
@@ -619,7 +614,7 @@ export class WorldView {
 
   private makeDrop(d: Drop): DropView {
     const root = new Container();
-    const s = toScreen(d.x, d.y);
+    const s = toScreenH(d.x, d.y);
     root.x = s.x; root.y = s.y;
     root.zIndex = depth(d.x, d.y);
     const glow = new Graphics();
@@ -671,11 +666,11 @@ function tileNoise(i: number, j: number): number {
 }
 
 /** 地面の模様（石畳の目地・草・土のつぶ） */
-function tileDetail(g: Graphics, kind: string, x: number, y: number, base: number, i: number, j: number) {
+function tileDetail(g: Graphics, kind: string, x: number, y: number, base: number, i: number, j: number, z: (u: number, v: number) => number = () => 0) {
   const hw = TILE_W / 2, hh = TILE_H / 2;
   const n = (k: number) => tileNoise(i * 7 + k, j * 13 + k * 3);
   // マスの中の点（u, v は 0〜1）
-  const at = (u: number, v: number) => [x + (u - v) * hw, y + (u + v) * hh];
+  const at = (u: number, v: number) => [x + (u - v) * hw, y + (u + v) * hh - z(u, v)];
   if (kind === 'paving') {
     // 大きな敷石：内側に目地
     const d = 0.06;
@@ -704,35 +699,47 @@ function tileDetail(g: Graphics, kind: string, x: number, y: number, base: numbe
   }
 }
 
-const STEP = 22;   // 高台 1 段の高さ（ピクセル）
+/** マスの地面の色（ゆらぎ込み） */
+function groundColor(m: GameMap, i: number, j: number): number {
+  const i2 = Math.max(0, Math.min(m.width - 1, i)), j2 = Math.max(0, Math.min(m.height - 1, j));
+  const td = CONTENT.tiles[m.tiles[j2 * m.width + i2]];
+  if (!td) return 0xff00ff;
+  return td.detail ? shade(hex(td.colors[0]), 0.98 + tileNoise(i2, j2) * 0.04) : hex(td.colors[(i2 + j2) % 2]);
+}
 
-/** 高台の 1 マス：持ち上げた上面と、低い側（南・東）の崖 */
-function plateauTile(m: GameMap, i: number, j: number, ground: number, detail?: string): Container {
-  const g = new Graphics();
-  const hw = TILE_W / 2, hh = TILE_H / 2;
-  const h = (m.heights![j * m.width + i] ?? 0) * STEP;
-  const hAt = (a: number, b: number) => (a < 0 || b < 0 || a >= m.width || b >= m.height ? 0 : (m.heights![b * m.width + a] ?? 0) * STEP);
-  const rock = detail === 'grass' ? 0x7a6248 : shade(ground, 0.72);
-  const hs = hAt(i, j + 1), he = hAt(i + 1, j);
-  // 崖（南の面は少し明るく、東の面は暗く。横じまで地層に見せる）
-  if (hs < h) {
-    g.poly([-hw, -h, 0, hh - h, 0, hh - hs, -hw, -hs]).fill(shade(rock, 0.95));
-    for (let z = hs + 7; z < h; z += 7) g.moveTo(-hw, -z).lineTo(0, hh - z).stroke({ width: 1, color: shade(rock, 0.78), alpha: 0.7 });
+/** 2 色を混ぜる */
+function mix(a: number, b: number, t: number): number {
+  const ch = (s: number) => Math.round(((a >> s) & 255) * (1 - t) + ((b >> s) & 255) * t);
+  return (ch(16) << 16) | (ch(8) << 8) | ch(0);
+}
+
+/**
+ * 地面の 1 マス。中心と 4 辺で 4 つの三角形に分け、角の高さにそって描く。
+ * 辺のところは隣のマスの色と混ぜて、マスの境目がカクカクに見えないようにする。斜面は向きで明暗をつける。
+ */
+function drawGroundTile(g: Graphics, m: GameMap, i: number, j: number) {
+  const c = groundColor(m, i, j);
+  const td = CONTENT.tiles[m.tiles[j * m.width + i]];
+  const P = (x: number, y: number) => { const s = toScreen(x, y); return [s.x, s.y - terrainHeight(x, y)]; };
+  const cx = i + 0.5, cy = j + 0.5;
+  const tris: [number, number, number, number, number, number][] = [
+    [i, j, i + 1, j, i, j - 1],          // 上の辺（隣は j-1）
+    [i + 1, j, i + 1, j + 1, i + 1, j],  // 右の辺（隣は i+1）
+    [i + 1, j + 1, i, j + 1, i, j + 1],  // 下の辺（隣は j+1）
+    [i, j + 1, i, j, i - 1, j],          // 左の辺（隣は i-1）
+  ];
+  for (const [ax, ay, bx, by, ni, nj] of tris) {
+    const col = mix(c, groundColor(m, ni, nj), 0.32);
+    const za = terrainHeight(ax, ay), zb = terrainHeight(bx, by), zc = terrainHeight(cx, cy);
+    // 斜面の向き：左上（-x・-y）へ向いた面は明るく、右下へ向いた面は暗く
+    const ux = bx - ax, uy = by - ay, vx = cx - ax, vy = cy - ay, uz = zb - za, vz = zc - za;
+    const det = ux * vy - uy * vx;
+    const gx = det ? (uz * vy - vz * uy) / det : 0, gy = det ? (ux * vz - vx * uz) / det : 0;
+    const k = Math.max(0.66, Math.min(1.25, 1 + (gx + gy) * 0.011));
+    g.poly([...P(ax, ay), ...P(bx, by), ...P(cx, cy)]).fill(shade(col, k));
   }
-  if (he < h) {
-    g.poly([hw, -h, 0, hh - h, 0, hh - he, hw, -he]).fill(shade(rock, 0.72));
-    for (let z = he + 7; z < h; z += 7) g.moveTo(hw, -z).lineTo(0, hh - z).stroke({ width: 1, color: shade(rock, 0.58), alpha: 0.7 });
+  if (td?.shine) {
+    const a = P(i + 0.5, j + 0.15), b = P(i + 0.85, j + 0.5), d = P(i + 0.5, j + 0.85), e = P(i + 0.15, j + 0.5);
+    g.poly([...a, ...b, ...d, ...e]).fill({ color: hex(td.shine), alpha: 0.16 });
   }
-  // 上面
-  g.poly([0, -hh - h, hw, -h, 0, hh - h, -hw, -h]).fill(shade(ground, 1.06));
-  if (detail) tileDetail(g, detail, 0, -hh - h, shade(ground, 1.06), i, j);
-  // 縁（低い側だけ明るい線）
-  if (hs < h) g.moveTo(-hw, -h).lineTo(0, hh - h).stroke({ width: 2, color: shade(ground, 1.25) });
-  if (he < h) g.moveTo(0, hh - h).lineTo(hw, -h).stroke({ width: 2, color: shade(ground, 1.15) });
-  const c = new Container();
-  c.addChild(g);
-  const p = toScreen(i + 0.5, j + 0.5);
-  c.x = p.x; c.y = p.y;
-  c.zIndex = depth(i + 0.5, j + 0.5);
-  return c;
 }
