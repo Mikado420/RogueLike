@@ -8,6 +8,7 @@ import { keyLabel } from './keys';
 import { toScreen } from './iso';
 import type { Sfx } from './audio';
 import { h } from './ui/dom';
+import { unlockMove } from './ui/movelock';
 
 interface Bar { fill: HTMLDivElement; text: HTMLSpanElement }
 
@@ -361,6 +362,7 @@ export class Hud {
       }
       if (e.type === 'notice' && e.playerId === this.myId) {
         this.toast(txt(e.key, ...(e.args ?? [])), e.key.startsWith('err.') ? '#ff8a7a' : '#9fe8ff');
+        if (e.key.startsWith('err.')) unlockMove();   // 失敗したら、入るボタンをまた押せるように
       }
       if (e.type === 'damage' && e.tgt === this.myId && e.amount > 0) {
         // だれから何ダメージ受けたか（同じ相手は少し間をあけて）

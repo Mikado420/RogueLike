@@ -9,6 +9,7 @@ import {
   missionProgress, txt, upkeepCost, baseActive, baseOf, dayIndex, ensureMissions, type ModKey,
 } from '../../../shared/src';
 import { btn, h, kv } from './dom';
+import { moveBtn, unlockMove } from './movelock';
 import { modText, type Ctx } from './ctx';
 import { extraBoardTabs, type NpcPanels, type NpcState } from './npc';
 import type { Menu } from './menu';
@@ -51,9 +52,10 @@ export function registerContentPanels(npc: NpcPanels, menu: Menu, ctx: Ctx) {
       rk.slice(0, 5).forEach((r, i) => body.append(kv(`${i + 1}`, `${fmtTime(r.time)}  ${r.names}`)));
     }
     const acts = h('div', 'set-actions');
-    acts.append(btn(txt('gate.enter'), () => c.send({ type: 'enterDungeon', dungeon: id, difficulty: d }), 'btn primary'));
-    acts.append(btn(txt('gate.match'), () => c.send({ type: 'matchDungeon', dungeon: id, difficulty: d }), 'btn'));
-    acts.append(btn(txt('gate.matchCancel'), () => c.send({ type: 'matchDungeon', dungeon: id, difficulty: d, cancel: true }), 'btn'));
+    const here = () => c.world.area.id;
+    acts.append(moveBtn(txt('gate.enter'), here, () => c.send({ type: 'enterDungeon', dungeon: id, difficulty: d }), 'btn primary'));
+    acts.append(moveBtn(txt('gate.match'), here, () => c.send({ type: 'matchDungeon', dungeon: id, difficulty: d })));
+    acts.append(btn(txt('gate.matchCancel'), () => { unlockMove(); c.send({ type: 'matchDungeon', dungeon: id, difficulty: d, cancel: true }); }, 'btn'));
     body.append(acts);
   });
 
@@ -65,7 +67,7 @@ export function registerContentPanels(npc: NpcPanels, menu: Menu, ctx: Ctx) {
     const row = h('div', 'look-row');
     for (let f = 1; f <= p.char.tower.best + 1; f += t.checkpointEvery) {
       if (!canStartTower(c.world, p, f)) continue;
-      row.append(btn(`${f}F`, () => c.send({ type: 'enterTower', floor: f }), 'btn'));
+      row.append(moveBtn(`${f}F`, () => c.world.area.id, () => c.send({ type: 'enterTower', floor: f })));
     }
     body.append(row);
   });
@@ -78,7 +80,7 @@ export function registerContentPanels(npc: NpcPanels, menu: Menu, ctx: Ctx) {
       body.append(diffPicker(st, () => {}));
       const d = st.tab as keyof typeof CONTENT.difficulties;
       body.append(kv(txt('gate.level'), String(r.level + CONTENT.difficulties[d].levelBonus)));
-      const b = btn(txt('gate.enter'), () => c.send({ type: 'enterRaid', raid: id, difficulty: d }), 'btn primary');
+      const b = moveBtn(txt('gate.enter'), () => c.world.area.id, () => c.send({ type: 'enterRaid', raid: id, difficulty: d }), 'btn primary');
       b.disabled = c.me().char.level < r.minLevel;
       body.append(b);
     }

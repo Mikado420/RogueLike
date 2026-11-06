@@ -145,7 +145,7 @@ export class NetSession {
       }
       case 'snap': {
         const now = performance.now();
-        applySnapshot(this.world, m, this.myId, this.myChar);
+        if (applySnapshot(this.world, m, this.myId, this.myChar)) this.send({ t: 'resync' });
         for (const list of [m.pl, m.mo, m.pe, m.pr]) {
           for (const e of list ?? []) {
             if (e.id === this.myId) continue;

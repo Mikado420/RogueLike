@@ -121,13 +121,20 @@ export class Viewer {
 }
 
 /** client：スナップショットを World の写しに入れる */
-export function applySnapshot(w: World, msg: SnapshotMsg, myId: number, myChar: CharacterData | null) {
+/** 新しく作るときに必ず要る項目（これがない差分は、前に送られた相手の続き） */
+const REQUIRED: Partial<Record<Kind, string>> = { pl: 'char', mo: 'defId', pe: 'defId', np: 'npc', nd: 'type' };
+
+/** 当てはめる。知らない相手の差分（新しく作れないもの）は捨てて true を返す（送り直しを頼む合図） */
+export function applySnapshot(w: World, msg: SnapshotMsg, myId: number, myChar: CharacterData | null): boolean {
+  let unknown = false;
   w.tick = msg.tick;
   w.clock = msg.clock;
-  const upsert = <T extends { id: number }>(list: T[], items: EntityState[] | undefined, fix?: (o: T) => T): T[] => {
+  const upsert = <T extends { id: number }>(list: T[], items: EntityState[] | undefined, fix?: (o: T) => T, kind?: Kind): T[] => {
     if (!items) return list;
     const byId = new Map(list.map((x) => [x.id, x]));
     for (const it of items) {
+      const need = kind ? REQUIRED[kind] : undefined;
+      if (need && !byId.has(it.id as number) && !(need in it)) { unknown = true; continue; }
       let o = it as unknown as T;
       if (fix) o = fix(o);
       const prev = byId.get(o.id);
@@ -140,14 +147,14 @@ export function applySnapshot(w: World, msg: SnapshotMsg, myId: number, myChar: 
     if (p.id === myId && myChar) p.char = myChar;
     else if ('char' in p) p.char = { ...(p.char as unknown as object), inventory: [], bag: {}, counters: {}, tutorial: { step: 0, count: 0, done: true } } as unknown as CharacterData;
     return o;
-  });
-  w.area.monsters = upsert(w.area.monsters, msg.mo);
-  w.pets = upsert(w.pets, msg.pe);
+  }, 'pl');
+  w.area.monsters = upsert(w.area.monsters, msg.mo, undefined, 'mo');
+  w.pets = upsert(w.pets, msg.pe, undefined, 'pe');
   w.area.drops = upsert(w.area.drops, msg.dr);
   w.area.strikes = upsert(w.area.strikes, msg.st);
   w.area.projectiles = upsert(w.area.projectiles, msg.pr);
-  w.area.nodes = upsert(w.area.nodes, msg.nd);
-  w.area.npcs = upsert(w.area.npcs, msg.np);
+  w.area.nodes = upsert(w.area.nodes, msg.nd, undefined, 'nd');
+  w.area.npcs = upsert(w.area.npcs, msg.np, undefined, 'np');
   if (msg.gone?.length) {
     const g = new Set(msg.gone);
     w.players = w.players.filter((x) => !g.has(x.id));
@@ -160,6 +167,7 @@ export function applySnapshot(w: World, msg: SnapshotMsg, myId: number, myChar: 
     w.area.npcs = w.area.npcs.filter((x) => !g.has(x.id));
   }
   if (msg.area) Object.assign(w.area, msg.area);
+  return unknown;
 }
 
 /** 自分のキャラのデータが変わったかを見るための文字列（毎 tick 変わるプレイ時間などは除く） */

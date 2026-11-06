@@ -4,6 +4,7 @@ import {
 } from '../../../shared/src';
 import { rarityColor } from '../colors';
 import { btn, h, kv } from './dom';
+import { moveBtn } from './movelock';
 import type { Ctx } from './ctx';
 import { itemCell, itemInfo } from './itemview';
 
@@ -365,7 +366,7 @@ function renderTravel(ctx: Ctx, body: HTMLElement) {
     const visited = ch.visitedTowns.includes(id);
     const here = ctx.world.area.id === id;
     row.append(h('span', 'price', visited ? `${a.travelCost ?? 0} G` : '—'));
-    const b = btn(txt('npc.travel'), () => ctx.send({ type: 'fastTravel', town: id }), 'mini');
+    const b = moveBtn(txt('npc.travel'), () => ctx.world.area.id, () => ctx.send({ type: 'fastTravel', town: id }), 'mini');
     b.disabled = !visited || here || ch.gold < (a.travelCost ?? 0);
     row.append(b);
     list.append(row);

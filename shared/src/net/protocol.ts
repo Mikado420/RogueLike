@@ -43,7 +43,9 @@ export const BTN_ATTACK = 1, BTN_DODGE = 2, BTN_INTERACT = 4;
 export type ClientMsg =
   | InputMsg
   | { t: 'ping'; at: number }
-  | { t: 'bye' };
+  | { t: 'bye' }
+  /** クライアントが知らない相手の差分が届いた：次のスナップショットを全部送り直してほしい */
+  | { t: 'resync' };
 
 /** スナップショットの中の1体（そのまま World の配列に入る形） */
 export type EntityState = Record<string, unknown> & { id: number };

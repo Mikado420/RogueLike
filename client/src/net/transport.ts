@@ -47,12 +47,26 @@ export class LagTransport implements Transport {
     const j = this.lag * (0.8 + Math.random() * 0.4) / 2;
     return Math.random() < this.loss ? j + this.lag * 2 : j;
   }
-  /** 順番は守る（TCP と同じ） */
+  private queues: Record<'in' | 'out', { at: number; fn: () => void }[]> = { in: [], out: [] };
+  /**
+   * 順番は必ず守る（TCP と同じ）。1 つずつ別のタイマーにすると、時刻の丸めでメッセージと「閉じた」が入れ替わることがあり、
+   * 本物の WebSocket では起きない不具合（move の前に閉じたと扱う など）が出てしまうので、1 本の待ち行列で順に配る
+   */
   private later(fn: () => void, dir: 'in' | 'out') {
     const now = performance.now();
     const at = Math.max(now + this.delay(), dir === 'in' ? this.lastIn : this.lastOut);
     if (dir === 'in') this.lastIn = at; else this.lastOut = at;
-    setTimeout(fn, at - now);
+    const q = this.queues[dir];
+    q.push({ at, fn });
+    if (q.length === 1) this.pump(dir);
+  }
+  private pump(dir: 'in' | 'out') {
+    const q = this.queues[dir];
+    if (!q.length) return;
+    setTimeout(() => {
+      while (q.length && q[0].at <= performance.now() + 1) q.shift()!.fn();
+      this.pump(dir);
+    }, Math.max(0, q[0].at - performance.now()));
   }
   send(m: ClientMsg) {
     if (m.t === 'in' && !m.c?.length && !m.b && m.k < 0 && Math.random() < this.loss) return;

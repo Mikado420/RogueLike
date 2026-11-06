@@ -27,6 +27,8 @@ export function applyCommand(w: World, p: Player, cmd: Command) {
   const ch = p.char;
   let err: string | null = null;
   let changed = true;
+  // 移動待ち（p.transition がある）の間に、もう一度移動を伴うコマンドが来ても受け付けない（入るボタンの二重押しなど）
+  if (p.transition && MOVING.has(cmd.type)) return;
   switch (cmd.type) {
     case 'equip': err = equipItem(w, ch, cmd.uid); if (!err) w.events.push({ type: 'equip', playerId: p.id }); break;
     case 'unequip': err = unequipItem(w, ch, cmd.slot); if (!err) w.events.push({ type: 'equip', playerId: p.id }); break;
@@ -138,3 +140,6 @@ function takeStarterWeapon(w: World, p: Player, base: string): string | null {
   w.events.push({ type: 'pickup', playerId: p.id, item: it });
   return null;
 }
+
+/** エリアの移動を伴うコマンド */
+const MOVING = new Set(['fastTravel', 'enterDungeon', 'enterTower', 'enterRaid', 'leaveInstance', 'matchDungeon', 'rescue']);

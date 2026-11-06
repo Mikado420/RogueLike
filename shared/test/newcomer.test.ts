@@ -104,3 +104,14 @@ describe('杖の自動追従', () => {
     expect(m.hp).toBeLessThan(hp);
   });
 });
+
+describe('移動待ちの二重送信', () => {
+  it('移動待ちの間は、移動を伴うコマンドを受け付けない', async () => {
+    const { w, p } = makeWorld(6);
+    const t = { to: 'meadow', spawn: '' };
+    p.transition = t;
+    applyCommand(w, p, { type: 'enterDungeon', dungeon: 'dg_meadow', difficulty: 'normal' });
+    applyCommand(w, p, { type: 'leaveInstance' });
+    expect(p.transition).toBe(t);
+  });
+});

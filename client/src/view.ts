@@ -386,6 +386,8 @@ export class WorldView {
 
     for (const a of [...w.players, ...w.area.monsters, ...w.pets] as (Player | Monster)[]) {
       seen.add(a.id);
+      // 種類の分からない魔物（差分だけ届いた相手）は描かない。送り直しで正しい姿が届く
+      if (a.kind === 'monster' && !CONTENT.monsters[a.defId]) continue;
       const v = this.actorView(a);
       const pos = lerp(v, a.x, a.y);
       v.cur = pos;

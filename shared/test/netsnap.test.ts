@@ -81,3 +81,23 @@ describe('ダンジョンの写し', () => {
     expect(w.area.map).toBe(g.map);
   });
 });
+
+describe('知らない相手の差分', () => {
+  it('作れない差分は捨てて送り直しを頼む。送り直しのあとは種類つきで届く', async () => {
+    const { Viewer, applySnapshot, buildFrame } = await import('../src/net/snapshot');
+    const { createMirrorWorld } = await import('../src/net/mirror');
+    const w = createMirrorWorld('meadow');
+    const unknown = applySnapshot(w, { t: 'snap', tick: 1, clock: 0, mo: [{ id: 999, x: 3 } as never] } as never, -1, null);
+    expect(unknown).toBe(true);
+    expect(w.area.monsters.some((m) => m.id === 999)).toBe(false);
+    // サーバー：送った記録を消すと、次は全部（defId つき）を送る
+    const { makeWorld } = await import('./helpers');
+    const { w: sw, p } = makeWorld(2);
+    const v = new Viewer(30);
+    const f = buildFrame(sw);
+    v.diff(f, p, { tick: 0, clock: 0 } as never, []);
+    v.reset();
+    const again = v.diff(f, p, { tick: 0, clock: 0 } as never, []);
+    for (const e of again.pl ?? []) expect('char' in e).toBe(true);
+  });
+});

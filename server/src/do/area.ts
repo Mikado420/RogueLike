@@ -11,6 +11,8 @@ import { platform } from '../util/platform';
 import { RateWindow, checkMovement, type Suspicion } from '../util/guard';
 
 interface Conn {
+  /** 最後に送り直しをした時刻 */
+  resyncAt?: number;
   sid: string;
   ws: WebSocket;
   ticket: Ticket;
@@ -178,6 +180,10 @@ export class AreaDO {
     try { msg = JSON.parse(typeof data === 'string' ? data : new TextDecoder().decode(data as ArrayBuffer)); } catch { return; }
     if (msg.t === 'ping') { this.send(conn, { t: 'pong', at: msg.at, server: platform.now() }); return; }
     if (msg.t === 'bye') { void this.drop(conn.sid, 'bye', true).then(() => call(this.accountStub(conn.ticket.a), 'logout', { sid: conn.ticket.s, epoch: conn.ticket.e }).catch(() => {})); return; }
+    if (msg.t === 'resync') {
+      if (platform.now() - (conn.resyncAt ?? 0) > 1000) { conn.resyncAt = platform.now(); conn.viewer.reset(); }
+      return;
+    }
     if (msg.t !== 'in') return;
     if (!conn.inputs.hit(platform.now())) { this.suspect(conn, { kind: 'inputRate' }); return; }
     if (typeof msg.n !== 'number' || msg.n <= conn.lastSeq) return;
