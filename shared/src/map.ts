@@ -28,6 +28,8 @@ export interface GameMap {
   solid: boolean[];
   sprites: (string | null)[];
   buildings?: BuildingDef[];
+  /** 高台の段（0 は平地。1 以上は通れない段差として持ち上げて描く） */
+  heights?: number[];
 }
 
 export function buildMap(id: string, def: MapDef): GameMap {

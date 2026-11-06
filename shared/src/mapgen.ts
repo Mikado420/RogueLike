@@ -137,6 +137,30 @@ export function generateField(id: string, def: FieldGenDef, pal: Palette, exits:
     }
   }
 
+  // 高台（通れない段差）。道・出口・広場から 2 マス以上離れたところに、まとまりで置く
+  const heights = new Array<number>(W * H).fill(0);
+  const nearRes = (i: number, j: number) => { for (let dj = -2; dj <= 2; dj++) for (let di = -2; di <= 2; di++) if (res(i + di, j + dj)) return true; return false; };
+  const plates = Math.round((W * H) / 420);
+  for (let n = 0; n < plates; n++) {
+    const rx = rng.int(3, 6), ry = rng.int(3, 6), lv = rng.int(1, 2);
+    const cx = rng.int(rx + 2, W - rx - 3), cy = rng.int(ry + 2, H - ry - 3);
+    for (let j = cy - ry; j <= cy + ry; j++) for (let i = cx - rx; i <= cx + rx; i++) {
+      const d = ((i - cx) / rx) ** 2 + ((j - cy) / ry) ** 2;
+      if (d > 1 + rng.range(-0.25, 0.1) || i < 2 || j < 2 || i > W - 3 || j > H - 3) continue;
+      const k = j * W + i;
+      if (m.solid[k] || nearRes(i, j)) continue;
+      heights[k] = Math.max(heights[k], d < 0.35 && lv > 1 ? 2 : 1);
+      m.solid[k] = true; m.sprites[k] = null;
+    }
+  }
+  // 中心から行けなくなった空き地は高台に含める（魔物が行けない場所に湧かないように）
+  const reach = reachable(m, center.x + 0.5, center.y + 0.5);
+  for (let k = 0; k < W * H; k++) if (!m.solid[k] && !reach[k] && heights.some((h) => h > 0)) {
+    const i = k % W, j = (k - i) / W;
+    if (i > 0 && j > 0 && i < W - 1 && j < H - 1 && m.tiles[k] !== pal.liquid.tile) { heights[k] = 1; m.solid[k] = true; }
+  }
+  m.heights = heights;
+
   // 障害物（木・岩など）
   const weights: Record<string, number> = {};
   pal.obstacles.forEach((o, i) => { weights[String(i)] = o.w; });

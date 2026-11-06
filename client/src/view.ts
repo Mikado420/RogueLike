@@ -8,7 +8,7 @@ import { makeMonsterSprite } from './monsters';
 import { drawIsoShape, Effects } from './fx';
 import { buildingTile, shade } from './buildings';
 import { TownLife } from './townlife';
-import { chargeLevel, rarityRank, shownLook } from '../../shared/src';
+import { chargeLevel, rarityRank, shownLook, type GameMap } from '../../shared/src';
 import { BODY_COLORS, ELEMENT_COLOR, hex, HAIR_COLORS, lookInfo, rarityColorNum, statusColor } from './colors';
 import type { Settings } from './settings';
 import type { Sfx } from './audio';
@@ -101,6 +101,8 @@ export class WorldView {
         g.poly([p.x, p.y, p.x + hw, p.y + hh, p.x, p.y + 2 * hh, p.x - hw, p.y + hh]).fill(c);
         if (td?.shine) g.poly([p.x, p.y + 6, p.x + hw - 10, p.y + hh, p.x, p.y + 2 * hh - 6, p.x - hw + 10, p.y + hh]).fill({ color: hex(td.shine), alpha: 0.18 });
         if (td?.detail) tileDetail(g, td.detail, p.x, p.y, hex(td.colors[0]), i, j);
+        const hgt = m.heights?.[k] ?? 0;
+        if (hgt > 0) this.entities.addChild(plateauTile(m, i, j, td ? hex(td.colors[0]) : 0x4a7a3a, td?.detail));
         const sp = m.sprites[k];
         if (sp) {
           const s = makeSprite(sp);
@@ -700,4 +702,37 @@ function tileDetail(g: Graphics, kind: string, x: number, y: number, base: numbe
       g.circle(cx, cy, 1 + n(k + 8) * 1.2).fill({ color: shade(base, n(k + 1) > 0.5 ? 0.8 : 1.15), alpha: 0.7 });
     }
   }
+}
+
+const STEP = 22;   // 高台 1 段の高さ（ピクセル）
+
+/** 高台の 1 マス：持ち上げた上面と、低い側（南・東）の崖 */
+function plateauTile(m: GameMap, i: number, j: number, ground: number, detail?: string): Container {
+  const g = new Graphics();
+  const hw = TILE_W / 2, hh = TILE_H / 2;
+  const h = (m.heights![j * m.width + i] ?? 0) * STEP;
+  const hAt = (a: number, b: number) => (a < 0 || b < 0 || a >= m.width || b >= m.height ? 0 : (m.heights![b * m.width + a] ?? 0) * STEP);
+  const rock = detail === 'grass' ? 0x7a6248 : shade(ground, 0.72);
+  const hs = hAt(i, j + 1), he = hAt(i + 1, j);
+  // 崖（南の面は少し明るく、東の面は暗く。横じまで地層に見せる）
+  if (hs < h) {
+    g.poly([-hw, -h, 0, hh - h, 0, hh - hs, -hw, -hs]).fill(shade(rock, 0.95));
+    for (let z = hs + 7; z < h; z += 7) g.moveTo(-hw, -z).lineTo(0, hh - z).stroke({ width: 1, color: shade(rock, 0.78), alpha: 0.7 });
+  }
+  if (he < h) {
+    g.poly([hw, -h, 0, hh - h, 0, hh - he, hw, -he]).fill(shade(rock, 0.72));
+    for (let z = he + 7; z < h; z += 7) g.moveTo(hw, -z).lineTo(0, hh - z).stroke({ width: 1, color: shade(rock, 0.58), alpha: 0.7 });
+  }
+  // 上面
+  g.poly([0, -hh - h, hw, -h, 0, hh - h, -hw, -h]).fill(shade(ground, 1.06));
+  if (detail) tileDetail(g, detail, 0, -hh - h, shade(ground, 1.06), i, j);
+  // 縁（低い側だけ明るい線）
+  if (hs < h) g.moveTo(-hw, -h).lineTo(0, hh - h).stroke({ width: 2, color: shade(ground, 1.25) });
+  if (he < h) g.moveTo(0, hh - h).lineTo(hw, -h).stroke({ width: 2, color: shade(ground, 1.15) });
+  const c = new Container();
+  c.addChild(g);
+  const p = toScreen(i + 0.5, j + 0.5);
+  c.x = p.x; c.y = p.y;
+  c.zIndex = depth(i + 0.5, j + 0.5);
+  return c;
 }
