@@ -1,110 +1,352 @@
 {
  "legend": {
-  ".": {
-   "tile": "stone",
+  "g": {
+   "tile": "town_grass",
+   "solid": false
+  },
+  "r": {
+   "tile": "road",
    "solid": false
   },
   ",": {
    "tile": "plaza",
    "solid": false
   },
-  "g": {
-   "tile": "grass",
+  "y": {
+   "tile": "yard",
    "solid": false
+  },
+  "B": {
+   "tile": "road",
+   "solid": true
   },
   "#": {
    "tile": "stone",
    "solid": true,
    "sprite": "town_wall"
   },
-  "H": {
-   "tile": "stone",
+  "X": {
+   "tile": "tower",
    "solid": true,
-   "sprite": "house"
+   "sprite": "tower_wall"
   },
-  "R": {
-   "tile": "stone",
-   "solid": true,
-   "sprite": "house_red"
-  },
-  "T": {
-   "tile": "grass",
-   "solid": true,
-   "sprite": "tree"
-  },
-  "F": {
-   "tile": "plaza",
-   "solid": true,
-   "sprite": "fountain"
+  "t": {
+   "tile": "tower",
+   "solid": false
   },
   "C": {
    "tile": "plaza",
    "solid": true,
    "sprite": "crystal_big"
   },
-  "~": {
-   "tile": "water",
-   "solid": true
-  },
-  "=": {
-   "tile": "boardwalk",
-   "solid": false
-  },
   "L": {
-   "tile": "stone",
+   "tile": "plaza",
    "solid": true,
    "sprite": "lamp"
   },
-  "t": {
-   "tile": "tower",
-   "solid": false
-  },
-  "X": {
-   "tile": "tower",
+  "T": {
+   "tile": "town_grass",
    "solid": true,
-   "sprite": "tower_wall"
+   "sprite": "tree"
+  },
+  "h": {
+   "tile": "town_grass",
+   "solid": true,
+   "sprite": "town_bush"
+  },
+  "f": {
+   "tile": "town_grass",
+   "solid": true,
+   "sprite": "flowers"
+  },
+  "n": {
+   "tile": "plaza",
+   "solid": true,
+   "sprite": "bench"
+  },
+  "x": {
+   "tile": "road",
+   "solid": true,
+   "sprite": "crate"
+  },
+  "b": {
+   "tile": "road",
+   "solid": true,
+   "sprite": "barrel"
+  },
+  "m": {
+   "tile": "road",
+   "solid": true,
+   "sprite": "stall"
+  },
+  "a": {
+   "tile": "road",
+   "solid": true,
+   "sprite": "anvil"
+  },
+  "w": {
+   "tile": "road",
+   "solid": true,
+   "sprite": "well"
+  },
+  "e": {
+   "tile": "yard",
+   "solid": true,
+   "sprite": "fence"
+  },
+  "d": {
+   "tile": "yard",
+   "solid": true,
+   "sprite": "dummy"
+  },
+  "E": {
+   "tile": "yard",
+   "solid": true,
+   "sprite": "fence_y"
   }
  },
  "rows": [
   "########################################",
-  "#g.g.ggg..g.....XXXXXXXXTgg.g...gg.g.T.#",
-  "#g...Tg.gg...g..XXXXXXXX.....T...g.ggTg#",
-  "#...............XXXXXXXX.............g.#",
-  "#...............XXXXXXXX..............g#",
-  "#...RRRRR........tttttt.......HHHHH...g#",
-  "#g..RRRRR........tttttt.......HHHHH...g#",
-  "#...RRRRR.....................HHHHH....#",
-  "#...RRRRR.....................HHHHH....#",
-  "#T.....................................#",
-  "#....................................gg#",
-  "#gg........HHHH..........RRRR........gg#",
-  "#T.........HHHH..........RRRR........gg#",
-  "#T.........HHHH..........RRRR..........#",
-  "#gg.................,.................g#",
-  "#................,,,,,,,.............gg#",
-  "#...............,,,,,,,,,.............g#",
-  "#T.............,L,,,,,,,L,............g#",
-  "#.............,,,,,,,,,,,,,.............",
-  "#.............,,,,,,,,,,,,,.............",
-  "#gg...........,,,,,,,,,,,,,.............",
-  "#............,,,,,,,F,,,,,,,............",
-  "#.g...........,,,,,,,,,,,,,..........g.#",
-  "#.............,,,,,,,,,,,,,............#",
-  "#.g...........,,,,,,,,,,,,,............#",
-  "#..............,L,,,,,,,L,...........TT#",
-  "#...............,,,,,,,,,..............#",
-  "#.g..............,,,,,,,.............T.#",
-  "#T.........RRRR.....,....HHHH..........#",
-  "#.g........RRRR..........HHHH..........#",
-  "#...HHHHH..RRRR..........HHHH.RRRRR....#",
-  "#.g.HHHHH.....................RRRRR..g.#",
-  "#gT.HHHHH.....................RRRRR....#",
-  "#...HHHHH.....................RRRRR....#",
-  "#...HHHHH.....................RRRRR...g#",
-  "#g...................................g.#",
-  "#.g....................................#",
-  "#gg.................g..g.gg..T.T.T....g#",
-  "#.gTg.g..T..gTg...g...g..T..TT.g.g.gggT#",
+  "#gggggggggggggggXXXXXXXXggggggggggggggg#",
+  "#gggggggTgTggTggXXXXXXXXTggggggggggggTg#",
+  "#ggBBBBBggggggggXXXXXXXXggBBBBBggBBBBgg#",
+  "#ggBBBBBgggBBBBBXXXXXXXXggBBBBBggBBBBgg#",
+  "#ggBBBBBgggBBBBBgttttttghgBBBBBggBBBBgg#",
+  "#ggBBBBBgggBBBBBgttttttgggBBBBBggBBBBgg#",
+  "#gTggrgggggBBBBBrrrrrrggggggrgggggrgggg#",
+  "#gggggghgggBBBBBgrrrrrggxggggggTggggggT#",
+  "#ggggggggggBBBBBgrrrrrggbgggggggBBBBBBg#",
+  "#gBBBBBggggggggggrrrrrgggBBBBBBgBBBBBBg#",
+  "#gBBBBBggBBBBBBggrrrrrgggBBBBBBgBBBBBBg#",
+  "#gBBBBBggBBBBBBghrrrrrgghBBBBBBgBBBBBBg#",
+  "#gBBBBBggBBBBBBggrrrrrgggBBBBBBgBBBBBBg#",
+  "#gBBBBBgbBBBBBBggg,,,,,ggBBBBBBbBBBBBBg#",
+  "#gBBBBBgxBBBBBBmbf,,,,,f,rrrrraxrrrrrrr#",
+  "#grrrrrxrrrrrrr,,,,,,,,,,,rrrrrrnrrrrnr#",
+  "#grrrrrrrrrrrrrL,,,,,,,,,Lggggggggggggg#",
+  "#ggggggggggggg,,,,,,,,,,,,,rrrrrrrrrrrrr",
+  "#grrrrrrrrrrrr,,,,,,,,,,,,,rrrrrrrrrrrrr",
+  "#grrrrrrrrrrrrf,,,,,C,,,,,,rrrrrrrrrrrrr",
+  "#grrrrrrrrrrrr,,,,,,,,,,,,,rrrrrrrrrrrrr",
+  "#gTgggggggrrrg,,,,,,,,,,,,,gggggggggggg#",
+  "#ggggggggwrrrggL,,,,,,,,,LgggggggggggTg#",
+  "#ggBBBBBBgrrrBBBB,,,,,,,,,ggggghggggggg#",
+  "#ggBBBBBBgrrrBBBB,n,,,n,,gggggggggggggg#",
+  "#ggBBBBBBrrrrBBBBf,,,,,rreeeeeeeeegBBBg#",
+  "#ggBBBBBBgrrrBBBBggrrrrrrEyyyyyyyyEBBBg#",
+  "#ggBBBBBBgrrrgrgTggrrrrrryyyyyyyyyEBBBg#",
+  "#gTgggggghrrrggggggrrrrrryyydyyydyEBBBg#",
+  "#gggggggTgrrrgggghgrrrrrryyyyyyyyyEgrhg#",
+  "#ggBBBBBgggggBBBBBgrrrrrryyyyydyyyEgggg#",
+  "#ggBBBBBgggggBBBBBgrrrrrryyydyyyyyEgggg#",
+  "#ggBBBBBrggggBBBBBrrrrrrrEyyyyyyyyEggTg#",
+  "#ggBBBBBgggggBBBBBgrrrgggEyyyyyyyyEgggg#",
+  "#ggggggggggggggggggrrrgggeeeeeeeeeggggg#",
+  "#gTggggggTgggggggggrrrggggBBBBBBggggggg#",
+  "#gghgggggggggggggTgrrrgTggBBBBBBggTgggg#",
+  "#gggggggggggggggggggggggggggrgggggggggg#",
   "########################################"
+ ],
+ "buildings": [
+  {
+   "x": 9,
+   "y": 11,
+   "w": 6,
+   "h": 5,
+   "kind": "shop",
+   "door": {
+    "side": "s",
+    "at": 3
+   },
+   "roof": "#3f8a5a",
+   "wall": "#e8dcc0",
+   "sign": "shop",
+   "awning": "#d8574a",
+   "chimney": false
+  },
+  {
+   "x": 2,
+   "y": 10,
+   "w": 5,
+   "h": 6,
+   "kind": "storage",
+   "door": {
+    "side": "s",
+    "at": 2
+   },
+   "roof": "#7a5a3a",
+   "wall": "#a07a50",
+   "sign": "storage",
+   "height": 40
+  },
+  {
+   "x": 11,
+   "y": 4,
+   "w": 5,
+   "h": 6,
+   "kind": "chapel",
+   "door": {
+    "side": "e",
+    "at": 3
+   },
+   "roof": "#4a6aa8",
+   "wall": "#f0ece0",
+   "sign": "chapel",
+   "height": 46
+  },
+  {
+   "x": 25,
+   "y": 10,
+   "w": 6,
+   "h": 5,
+   "kind": "smith",
+   "door": {
+    "side": "s",
+    "at": 2
+   },
+   "roof": "#4a4a58",
+   "wall": "#8a7a6a",
+   "sign": "smith",
+   "chimney": true
+  },
+  {
+   "x": 32,
+   "y": 9,
+   "w": 6,
+   "h": 6,
+   "kind": "inn",
+   "door": {
+    "side": "s",
+    "at": 2
+   },
+   "roof": "#c8743a",
+   "wall": "#e8d8b8",
+   "sign": "cook",
+   "awning": "#e8b84a",
+   "chimney": true
+  },
+  {
+   "x": 3,
+   "y": 24,
+   "w": 6,
+   "h": 5,
+   "kind": "guild",
+   "door": {
+    "side": "e",
+    "at": 2
+   },
+   "roof": "#a83a3a",
+   "wall": "#e0d0b0",
+   "sign": "guild",
+   "height": 40
+  },
+  {
+   "x": 26,
+   "y": 3,
+   "w": 5,
+   "h": 4,
+   "kind": "house",
+   "door": {
+    "side": "s",
+    "at": 2
+   },
+   "roof": "#a84a3a",
+   "wall": "#e8dcc0",
+   "chimney": true
+  },
+  {
+   "x": 33,
+   "y": 3,
+   "w": 4,
+   "h": 4,
+   "kind": "house",
+   "door": {
+    "side": "s",
+    "at": 1
+   },
+   "roof": "#4a6a9a",
+   "wall": "#e0d4b8"
+  },
+  {
+   "x": 3,
+   "y": 31,
+   "w": 5,
+   "h": 4,
+   "kind": "house",
+   "door": {
+    "side": "e",
+    "at": 2
+   },
+   "roof": "#4a6a9a",
+   "wall": "#e8dcc0",
+   "chimney": true
+  },
+  {
+   "x": 13,
+   "y": 24,
+   "w": 4,
+   "h": 4,
+   "kind": "house",
+   "door": {
+    "side": "s",
+    "at": 1
+   },
+   "roof": "#a84a3a",
+   "wall": "#e0d4b8"
+  },
+  {
+   "x": 13,
+   "y": 31,
+   "w": 5,
+   "h": 4,
+   "kind": "house",
+   "door": {
+    "side": "e",
+    "at": 2
+   },
+   "roof": "#5a8a4a",
+   "wall": "#e8dcc0",
+   "chimney": true
+  },
+  {
+   "x": 35,
+   "y": 26,
+   "w": 3,
+   "h": 4,
+   "kind": "house",
+   "door": {
+    "side": "s",
+    "at": 1
+   },
+   "roof": "#7a5a3a",
+   "wall": "#a07a50"
+  },
+  {
+   "x": 26,
+   "y": 36,
+   "w": 6,
+   "h": 2,
+   "kind": "house",
+   "door": {
+    "side": "s",
+    "at": 2
+   },
+   "roof": "#4a6a9a",
+   "wall": "#e8dcc0"
+  },
+  {
+   "x": 3,
+   "y": 3,
+   "w": 5,
+   "h": 4,
+   "kind": "house",
+   "door": {
+    "side": "s",
+    "at": 2
+   },
+   "roof": "#5a8a4a",
+   "wall": "#e0d4b8",
+   "chimney": true
+  }
  ]
 }

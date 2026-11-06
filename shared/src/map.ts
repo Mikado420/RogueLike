@@ -1,4 +1,22 @@
-export interface MapDef { legend: Record<string, { tile: string; solid: boolean; sprite?: string }>; rows: string[] }
+/**
+ * 建物（何マスかを占める 1 軒）。床は通れない。扉は南（s：j が大きい側）か東（e：i が大きい側）の、画面で見える面に付く。
+ * at は扉の位置（南なら x からのずれ、東なら y からのずれ）。
+ */
+export interface BuildingDef {
+  x: number; y: number; w: number; h: number;
+  kind: string;
+  door?: { side: 's' | 'e'; at: number };
+  roof?: string; wall?: string;
+  /** 店の看板（smith・shop・cook・storage・chapel・guild・inn など） */
+  sign?: string;
+  /** 壁の高さ（ピクセル、既定 34） */
+  height?: number;
+  chimney?: boolean;
+  /** 扉の上の日よけ（色） */
+  awning?: string;
+}
+
+export interface MapDef { legend: Record<string, { tile: string; solid: boolean; sprite?: string }>; rows: string[]; buildings?: BuildingDef[] }
 
 /** タイルマップ。タイル (i, j) はワールド座標 [i, i+1) × [j, j+1) を占める。 */
 export interface GameMap {
@@ -9,6 +27,7 @@ export interface GameMap {
   tiles: string[];
   solid: boolean[];
   sprites: (string | null)[];
+  buildings?: BuildingDef[];
 }
 
 export function buildMap(id: string, def: MapDef): GameMap {
@@ -26,7 +45,15 @@ export function buildMap(id: string, def: MapDef): GameMap {
       sprites.push(lg.sprite ?? null);
     }
   }
-  return { id, width, height, tiles, solid, sprites };
+  const buildings = def.buildings ?? [];
+  for (const b of buildings) {
+    for (let j = b.y; j < b.y + b.h; j++) for (let i = b.x; i < b.x + b.w; i++) {
+      if (i < 0 || j < 0 || i >= width || j >= height) continue;
+      solid[j * width + i] = true;
+      sprites[j * width + i] = null;
+    }
+  }
+  return { id, width, height, tiles, solid, sprites, buildings };
 }
 
 export function isSolid(m: GameMap, i: number, j: number): boolean {

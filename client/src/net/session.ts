@@ -55,12 +55,12 @@ export class NetSession {
   /** 最初に自分が見えたら */
   readonly ready: Promise<void>;
 
-  constructor(readonly charId: string, local?: { account: AccountData; onSave: (a: AccountData) => void }) {
+  constructor(readonly charId: string, local?: { account: AccountData; onSave: (a: AccountData) => void; clockOffset?: number }) {
     this.world = createMirrorWorld(CONTENT.balance.world.startArea);
     this.ready = new Promise((r) => { this.readyResolve = r; });
     this.isLocal = !!local;
     if (local) {
-      this.hub = new LocalHub(local.account, charId);
+      this.hub = new LocalHub(local.account, charId, { clockOffset: local.clockOffset });
       this.hub.onSave = local.onSave;
     }
   }

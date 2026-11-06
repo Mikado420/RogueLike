@@ -21,8 +21,12 @@ export class LocalHub {
   /** 保存（開発用は手元に） */
   onSave: ((acc: AccountData) => void) | null = null;
 
-  constructor(private account: AccountData, charId: string) {
-    this.server = new LocalServer({ seed: (Math.random() * 2 ** 30) | 0, now: Date.now() });
+  /** 開発用：時計をずらす（ミリ秒）。見た目の確認で昼・晴れにするときなど */
+  private offset = 0;
+
+  constructor(private account: AccountData, charId: string, opts: { clockOffset?: number } = {}) {
+    this.offset = opts.clockOffset ?? 0;
+    this.server = new LocalServer({ seed: (Math.random() * 2 ** 30) | 0, now: Date.now() + this.offset });
     this.sid = this.server.connect(account, charId);
   }
 
@@ -63,7 +67,7 @@ export class LocalHub {
   }
 
   private tick() {
-    this.server.tick(Date.now());
+    this.server.tick(Date.now() + this.offset);
     this.tickCount++;
     const h = this.server.host(this.sid);
     if (!h) return;

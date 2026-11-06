@@ -14,7 +14,11 @@ import { makeTraining, makeWorld, spawnAt, tick } from './helpers';
 import type { Item } from '../src/state';
 
 const C = CONTENT;
-const nearSmith = (p: { x: number; y: number }) => { p.x = 26.5; p.y = 19.3; };
+// 鍛冶屋のそば（位置はデータから。街の作りを変えてもテストが壊れないように）
+const nearSmith = (p: { x: number; y: number }) => {
+  const n = CONTENT.areas.lumina.npcs!.find((x) => x.npc === 'smith')!;
+  p.x = n.x; p.y = n.y + 0.8;
+};
 
 describe('装備の生成', () => {
   it('レジェンドは固有効果、ミシックはスキルを変える効果を持つ', () => {

@@ -6,6 +6,8 @@ import { depth, isoRadii, TILE_H, TILE_W, toScreen } from './iso';
 import { makeBagIcon, makePlayerSprite, makeSprite, makeWeaponGlyph } from './sprites';
 import { makeMonsterSprite } from './monsters';
 import { drawIsoShape, Effects } from './fx';
+import { buildingTile, shade } from './buildings';
+import { TownLife } from './townlife';
 import { chargeLevel, rarityRank, shownLook } from '../../shared/src';
 import { BODY_COLORS, ELEMENT_COLOR, hex, HAIR_COLORS, lookInfo, rarityColorNum, statusColor } from './colors';
 import type { Settings } from './settings';
@@ -61,6 +63,11 @@ export class WorldView {
   private camPos = { x: 0, y: 0 };
   private time = 0;
   private areaRef: unknown = null;
+  /** 煙突のてっぺん（画面座標）。煙を出す */
+  private chimneys: { x: number; y: number }[] = [];
+  /** 街のにぎわい（NPC の動き・煙・通行人） */
+  private life: TownLife | null = null;
+  private npcPos = new Map<number, { x: number; y: number; sprite: string }>();
 
   constructor(private app: Application, private world: World, public myId: number, private settings: Settings, private sfx: Sfx) {
     app.stage.addChild(this.camera);
@@ -87,10 +94,13 @@ export class WorldView {
         const k = j * m.width + i;
         const tile = m.tiles[k];
         const td = CONTENT.tiles[tile];
-        const c = td ? hex(td.colors[(i + j) % 2]) : 0xff00ff;
         const p = toScreen(i, j);
+        // 市松模様にせず、マスごとに少しだけ色をゆらす（地面が格子に見えないように）
+        const r = tileNoise(i, j);
+        const c = td ? (td.detail ? shade(hex(td.colors[0]), 0.97 + r * 0.06) : hex(td.colors[(i + j) % 2])) : 0xff00ff;
         g.poly([p.x, p.y, p.x + hw, p.y + hh, p.x, p.y + 2 * hh, p.x - hw, p.y + hh]).fill(c);
         if (td?.shine) g.poly([p.x, p.y + 6, p.x + hw - 10, p.y + hh, p.x, p.y + 2 * hh - 6, p.x - hw + 10, p.y + hh]).fill({ color: hex(td.shine), alpha: 0.18 });
+        if (td?.detail) tileDetail(g, td.detail, p.x, p.y, hex(td.colors[0]), i, j);
         const sp = m.sprites[k];
         if (sp) {
           const s = makeSprite(sp);
@@ -99,6 +109,18 @@ export class WorldView {
           s.zIndex = depth(i + 0.5, j + 0.5);
           this.entities.addChild(s);
         }
+      }
+    }
+    // 建物（1 マスずつの部品。屋根は建物全体でつながる）
+    this.chimneys = [];
+    for (const b of m.buildings ?? []) {
+      for (let j = b.y; j < b.y + b.h; j++) for (let i = b.x; i < b.x + b.w; i++) {
+        const piece = buildingTile(b, i, j);
+        const c2 = toScreen(i + 0.5, j + 0.5);
+        piece.root.x = c2.x; piece.root.y = c2.y;
+        piece.root.zIndex = depth(i + 0.5, j + 0.5);
+        this.entities.addChild(piece.root);
+        if (piece.smoke) this.chimneys.push(piece.smoke);
       }
     }
     const tl = toScreen(0, 0), tr = toScreen(m.width, 0), br = toScreen(m.width, m.height), bl = toScreen(0, m.height);
@@ -118,7 +140,9 @@ export class WorldView {
       this.entities.addChild(label);
     }
     // NPC
+    this.npcPos.clear();
     for (const n of this.world.area.npcs) this.addNpc(n);
+    this.life = new TownLife(this.entities, m, this.chimneys, this.world.area.type === 'town');
     for (const n of this.world.area.nodes) this.addNode(n);
     const me = this.me();
     if (me) { const s = toScreen(me.x, me.y); this.camPos = { x: s.x, y: s.y }; }
@@ -149,6 +173,7 @@ export class WorldView {
     root.zIndex = depth(n.x, n.y);
     this.entities.addChild(root);
     this.npcs.set(n.id, root);
+    this.npcPos.set(n.id, { x: n.x, y: n.y, sprite: def.sprite });
   }
 
   /** step の前に呼ぶ。補間用に今の位置を覚える */
@@ -518,6 +543,9 @@ export class WorldView {
       const v = this.nodes.get(n.id);
       if (v) v.alpha = n.charges > 0 ? 0.85 + Math.sin(this.time * 3 + n.id) * 0.15 : 0.2;
     }
+    // 街のにぎわい
+    const meP = w.players.find((p) => p.id === this.myId);
+    this.life?.update(dt, this.npcs, this.npcPos, meP ? { x: meP.x, y: meP.y } : null);
     // 途中で増えた NPC（出口・階段）
     for (const n of w.area.npcs) if (!this.npcs.has(n.id)) this.addNpc(n);
     for (const n of w.area.nodes) if (!this.nodes.has(n.id)) this.addNode(n);
@@ -630,5 +658,46 @@ export class WorldView {
     root.addChild(icon);
     this.entities.addChild(root);
     return { root, glow, pillar, icon, t: Math.random() * 3 };
+  }
+}
+
+/** マスごとの決まったゆらぎ（0〜1） */
+function tileNoise(i: number, j: number): number {
+  let h = (i * 374761393 + j * 668265263) | 0;
+  h = Math.imul(h ^ (h >>> 13), 1274126177);
+  return ((h ^ (h >>> 16)) >>> 0) / 4294967295;
+}
+
+/** 地面の模様（石畳の目地・草・土のつぶ） */
+function tileDetail(g: Graphics, kind: string, x: number, y: number, base: number, i: number, j: number) {
+  const hw = TILE_W / 2, hh = TILE_H / 2;
+  const n = (k: number) => tileNoise(i * 7 + k, j * 13 + k * 3);
+  // マスの中の点（u, v は 0〜1）
+  const at = (u: number, v: number) => [x + (u - v) * hw, y + (u + v) * hh];
+  if (kind === 'paving') {
+    // 大きな敷石：内側に目地
+    const d = 0.06;
+    g.poly([...at(d, d), ...at(1 - d, d), ...at(1 - d, 1 - d), ...at(d, 1 - d)]).stroke({ width: 1, color: shade(base, 0.8), alpha: 0.55 });
+    if (n(1) > 0.7) g.poly([...at(0.2, 0.25), ...at(0.45, 0.2), ...at(0.4, 0.45)]).fill({ color: shade(base, 1.06), alpha: 0.5 });
+  } else if (kind === 'cobble') {
+    // 丸い石を並べる
+    for (let a = 0; a < 2; a++) for (let b = 0; b < 2; b++) {
+      const u = 0.27 + a * 0.46 + (n(a * 2 + b) - 0.5) * 0.08, v = 0.27 + b * 0.46 + (n(a + b * 5) - 0.5) * 0.08;
+      const [cx, cy] = at(u, v);
+      g.ellipse(cx, cy, 11, 5.5).fill({ color: shade(base, 0.96 + n(a * 3 + b) * 0.08) }).stroke({ width: 1, color: shade(base, 0.82), alpha: 0.45 });
+    }
+  } else if (kind === 'grass') {
+    for (let k = 0; k < 3; k++) {
+      if (n(k) < 0.45) continue;
+      const [cx, cy] = at(0.15 + n(k + 5) * 0.7, 0.15 + n(k + 9) * 0.7);
+      g.moveTo(cx - 2, cy).lineTo(cx - 3, cy - 4).moveTo(cx, cy).lineTo(cx, cy - 5).moveTo(cx + 2, cy).lineTo(cx + 3, cy - 4)
+        .stroke({ width: 1, color: shade(base, n(k + 2) > 0.5 ? 1.25 : 0.78) });
+    }
+    if (n(11) > 0.93) { const [cx, cy] = at(0.5, 0.5); g.circle(cx, cy - 1, 2).fill(n(12) > 0.5 ? 0xfff0a0 : 0xffffff); }
+  } else if (kind === 'dirt') {
+    for (let k = 0; k < 4; k++) {
+      const [cx, cy] = at(0.1 + n(k) * 0.8, 0.1 + n(k + 4) * 0.8);
+      g.circle(cx, cy, 1 + n(k + 8) * 1.2).fill({ color: shade(base, n(k + 1) > 0.5 ? 0.8 : 1.15), alpha: 0.7 });
+    }
   }
 }

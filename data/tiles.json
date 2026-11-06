@@ -3,19 +3,22 @@
   "colors": [
    "#3f7a3a",
    "#447f3e"
-  ]
+  ],
+  "detail": "grass"
  },
  "dirt": {
   "colors": [
    "#8a6e48",
    "#8f7350"
-  ]
+  ],
+  "detail": "dirt"
  },
  "arena": {
   "colors": [
    "#5a3a33",
    "#553730"
-  ]
+  ],
+  "detail": "dirt"
  },
  "water": {
   "colors": [
@@ -34,37 +37,43 @@
   "colors": [
    "#467f3e",
    "#4b8442"
-  ]
+  ],
+  "detail": "grass"
  },
  "stone": {
   "colors": [
    "#8a8578",
    "#8f8a7d"
-  ]
+  ],
+  "detail": "paving"
  },
  "plaza": {
   "colors": [
-   "#a49a86",
-   "#9c927e"
-  ]
+   "#c9bda3",
+   "#c2b69c"
+  ],
+  "detail": "paving"
  },
  "marsh": {
   "colors": [
    "#4a6a40",
    "#4e6e44"
-  ]
+  ],
+  "detail": "grass"
  },
  "mud": {
   "colors": [
    "#5a5038",
    "#5e543c"
-  ]
+  ],
+  "detail": "dirt"
  },
  "boardwalk": {
   "colors": [
    "#8a6a44",
    "#7e6040"
-  ]
+  ],
+  "detail": "paving"
  },
  "swamp": {
   "colors": [
@@ -77,19 +86,22 @@
   "colors": [
    "#4a4040",
    "#4e4444"
-  ]
+  ],
+  "detail": "dirt"
  },
  "basalt": {
   "colors": [
    "#3a3434",
    "#3e3838"
-  ]
+  ],
+  "detail": "paving"
  },
  "cinder": {
   "colors": [
    "#6a4a3a",
    "#6e4e3e"
-  ]
+  ],
+  "detail": "dirt"
  },
  "lava": {
   "colors": [
@@ -102,31 +114,36 @@
   "colors": [
    "#2f5a34",
    "#325e37"
-  ]
+  ],
+  "detail": "grass"
  },
  "moss": {
   "colors": [
    "#3e6a3a",
    "#41703d"
-  ]
+  ],
+  "detail": "grass"
  },
  "leaves": {
   "colors": [
    "#6a5a2e",
    "#705f32"
-  ]
+  ],
+  "detail": "dirt"
  },
  "snow": {
   "colors": [
    "#dfe8f0",
    "#e6eef6"
-  ]
+  ],
+  "detail": "dirt"
  },
  "snow2": {
   "colors": [
    "#d0dce8",
    "#d6e2ee"
-  ]
+  ],
+  "detail": "dirt"
  },
  "ice_path": {
   "colors": [
@@ -145,13 +162,15 @@
   "colors": [
    "#3a3a46",
    "#3e3e4a"
-  ]
+  ],
+  "detail": "paving"
  },
  "dungeon2": {
   "colors": [
    "#34343f",
    "#383843"
-  ]
+  ],
+  "detail": "paving"
  },
  "void": {
   "colors": [
@@ -163,7 +182,8 @@
   "colors": [
    "#4a4a5e",
    "#4e4e62"
-  ]
+  ],
+  "detail": "paving"
  },
  "rune": {
   "colors": [
@@ -171,5 +191,26 @@
    "#3e3e70"
   ],
   "shine": "#9fa8ff"
+ },
+ "town_grass": {
+  "colors": [
+   "#5b9a48",
+   "#56944a"
+  ],
+  "detail": "grass"
+ },
+ "road": {
+  "colors": [
+   "#a69c8a",
+   "#9f9583"
+  ],
+  "detail": "cobble"
+ },
+ "yard": {
+  "colors": [
+   "#a88a62",
+   "#a2845c"
+  ],
+  "detail": "dirt"
  }
 }

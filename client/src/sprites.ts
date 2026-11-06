@@ -144,6 +144,80 @@ const DRAWERS: Record<string, Drawer> = {
     g.poly([hw, 0, 0, hh, 0, hh - h, hw, -h]).fill(0x7a7060);
     g.poly([0, -hh - h, hw, -h, 0, hh - h, -hw, -h]).fill(0xa49a86).stroke({ width: 1, color: 0x5a5448 });
   }),
+  // ───── 街の小物 ─────
+  town_bush: () => gfx((g) => {
+    shadow(g, 18);
+    g.circle(-9, -10, 11).fill(0x3f7a38); g.circle(8, -11, 12).fill(0x3a7234); g.circle(0, -18, 12).fill(0x4a8a40);
+    g.circle(-4, -21, 4).fill({ color: 0x8acb6a, alpha: 0.6 }); g.circle(6, -14, 2).fill(0xf08aa0); g.circle(-8, -9, 2).fill(0xfff0a0);
+  }),
+  flowers: () => gfx((g) => {
+    g.ellipse(0, 0, 26, 13).fill(0x6a4a30).stroke({ width: 3, color: 0x8a8070 });
+    g.ellipse(0, -2, 22, 10).fill(0x4a8a3a);
+    const cols = [0xf06a8a, 0xffe06a, 0xffffff, 0xb07af0, 0xff9a4a];
+    for (let k = 0; k < 11; k++) {
+      const a = (k / 11) * Math.PI * 2, r = k % 2 ? 13 : 6;
+      g.circle(Math.cos(a) * r, -3 + Math.sin(a) * r * 0.45, 2.6).fill(cols[k % cols.length]);
+    }
+  }),
+  bench: () => gfx((g) => {
+    shadow(g, 20, 8);
+    g.rect(-16, -10, 3, 10).fill(0x3a2a1a); g.rect(13, -10, 3, 10).fill(0x3a2a1a);
+    g.poly([-20, -12, 18, -20, 22, -16, -16, -8]).fill(0x9a6a3a).stroke({ width: 1, color: 0x4a2a14 });
+    g.poly([-20, -12, -20, -22, 18, -30, 18, -20]).fill(0x8a5a32).stroke({ width: 1, color: 0x4a2a14 });
+  }),
+  crate: () => gfx((g) => {
+    shadow(g, 16, 8);
+    g.poly([-14, -6, 0, 1, 0, -17, -14, -24]).fill(0xb08050); g.poly([14, -6, 0, 1, 0, -17, 14, -24]).fill(0x8a6038);
+    g.poly([0, -31, 14, -24, 0, -17, -14, -24]).fill(0xc8985e).stroke({ width: 1, color: 0x4a2a14 });
+    g.moveTo(-14, -6).lineTo(0, -17).moveTo(14, -6).lineTo(0, -17).stroke({ width: 1.5, color: 0x5a3a1a });
+  }),
+  barrel: () => gfx((g) => {
+    shadow(g, 12, 6);
+    g.roundRect(-11, -28, 22, 28, 6).fill(0x9a6438).stroke({ width: 1, color: 0x4a2a14 });
+    g.rect(-11, -22, 22, 2.5).fill(0x5a5a62); g.rect(-11, -7, 22, 2.5).fill(0x5a5a62);
+    g.ellipse(0, -28, 10, 4).fill(0x7a4a26).stroke({ width: 1, color: 0x4a2a14 });
+  }),
+  stall: () => gfx((g) => {
+    shadow(g, 26, 12);
+    g.rect(-22, -34, 3, 34).fill(0x5a3a22); g.rect(19, -34, 3, 34).fill(0x5a3a22);
+    g.poly([-24, -12, 24, -12, 24, -4, -24, -4]).fill(0x9a6a3a);
+    for (let k = 0; k < 5; k++) g.circle(-16 + k * 8, -15, 3.5).fill([0xe0506a, 0xffd23a, 0x7ad06a, 0xe08a3a, 0x8ab0ff][k]);
+    for (let k = 0; k < 6; k++) g.poly([-26 + k * 9, -34, -17 + k * 9, -34, -17 + k * 9, -42, -26 + k * 9, -44]).fill(k % 2 ? 0xf4ece0 : 0x3a8a5a);
+  }),
+  anvil: () => gfx((g) => {
+    shadow(g, 16, 7);
+    g.rect(-7, -12, 14, 12).fill(0x5a4a3a);
+    g.poly([-16, -20, 12, -20, 18, -16, 12, -12, -12, -12]).fill(0x5a5e68).stroke({ width: 1, color: 0x2a2a30 });
+    g.rect(-16, -21, 28, 2).fill(0x8a8e98);
+  }),
+  well: () => gfx((g) => {
+    shadow(g, 22, 11);
+    g.ellipse(0, -10, 20, 10).fill(0x8a8578).stroke({ width: 2, color: 0x5a564c });
+    g.ellipse(0, -11, 14, 6.5).fill(0x1a3050);
+    g.rect(-18, -46, 3, 36).fill(0x5a3a22); g.rect(15, -46, 3, 36).fill(0x5a3a22);
+    g.poly([-24, -44, 0, -58, 24, -44, 0, -36]).fill(0x8a4a32).stroke({ width: 1, color: 0x3a1a10 });
+    g.moveTo(0, -40).lineTo(0, -22).stroke({ width: 1, color: 0x2a2018 }); g.rect(-3, -24, 6, 5).fill(0x7a5a3a);
+  }),
+  fence: () => gfx((g) => {
+    const hw = TILE_W / 2, hh = TILE_H / 2;
+    // i の方向（画面で右下がり）に並ぶ柵
+    g.moveTo(-hw * 0.5, -hh * 0.5 - 10).lineTo(hw * 0.5, hh * 0.5 - 10).moveTo(-hw * 0.5, -hh * 0.5 - 18).lineTo(hw * 0.5, hh * 0.5 - 18).stroke({ width: 3, color: 0x8a6038 });
+    g.rect(-2, -24, 4, 24).fill(0x6a4428);
+  }),
+  fence_y: () => gfx((g) => {
+    const hw = TILE_W / 2, hh = TILE_H / 2;
+    // j の方向（画面で左下がり）に並ぶ柵
+    g.moveTo(hw * 0.5, -hh * 0.5 - 10).lineTo(-hw * 0.5, hh * 0.5 - 10).moveTo(hw * 0.5, -hh * 0.5 - 18).lineTo(-hw * 0.5, hh * 0.5 - 18).stroke({ width: 3, color: 0x7a5432 });
+    g.rect(-2, -24, 4, 24).fill(0x6a4428);
+  }),
+  dummy: () => gfx((g) => {
+    shadow(g, 12, 6);
+    g.rect(-2, -40, 4, 40).fill(0x6a4428);
+    g.rect(-14, -32, 28, 4).fill(0x6a4428);
+    g.roundRect(-9, -36, 18, 22, 6).fill(0xd8c08a).stroke({ width: 1, color: 0x5a4a2a });
+    g.circle(0, -44, 7).fill(0xd8c08a).stroke({ width: 1, color: 0x5a4a2a });
+    g.circle(0, -26, 4).stroke({ width: 1.5, color: 0xc84a3a });
+  }),
   house: () => houseDrawer(0x4a6a9a),
   house_red: () => houseDrawer(0xa84a3a),
   tower_wall: () => gfx((g) => {

@@ -1,5 +1,5 @@
 import { Application } from 'pixi.js';
-import { newAccount, type AccountData } from '../../shared/src';
+import { CONTENT, gameHourAt, newAccount, weatherAt, weatherSlotAt, type AccountData } from '../../shared/src';
 import { Sfx } from './audio';
 import { loadSettings } from './settings';
 import { BrowserSaveStore } from './store';
@@ -41,7 +41,12 @@ async function boot() {
       try { account = await store.load(); } catch (e) { console.error(e); }
       if (!account) account = newAccount(Date.now(), (Math.random() * 0x7fffffff) >>> 0);
       const charId = await showLocalTitle(account, store);
-      session = new NetSession(charId, { account, onSave: (a) => void store.save(a) });
+      // 開発用：?area=lumina で始めるエリア、?noon で昼・晴れにする（見た目の確認用）
+      const q = new URLSearchParams(location.search);
+      const ch = account.characters.find((c) => c.id === charId);
+      if (ch && q.get('area')) { ch.location = { area: q.get('area')!, x: 0, y: 0 }; ch.tutorial.done = true; }
+      const clockOffset = q.has('noon') ? noonOffset(q.get('area') ?? ch?.location.area ?? CONTENT.balance.world.startArea) : 0;
+      session = new NetSession(charId, { account, onSave: (a) => void store.save(a), clockOffset });
     } else {
       const charId = await showTitle({ reason, migrate: registerMigration() });
       session = new NetSession(charId);
@@ -62,6 +67,16 @@ async function boot() {
     game.destroy();
     session.close();
   }
+}
+
+/** 開発用：今から見て、昼で晴れになる時計のずらし（ミリ秒） */
+function noonOffset(area: string): number {
+  const now = Date.now();
+  for (let off = 0; off < 7 * 86400000; off += 60000) {
+    const t = now + off, h = gameHourAt(CONTENT, t);
+    if (h >= 11 && h <= 13 && weatherAt(CONTENT, area, weatherSlotAt(CONTENT, t)) === 'clear') return off;
+  }
+  return 0;
 }
 
 void boot();
