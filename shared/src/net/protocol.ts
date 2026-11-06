@@ -65,7 +65,7 @@ export interface SnapshotMsg {
   np?: EntityState[];
   /** 見えなくなったもの */
   gone?: number[];
-  /** エリアの状態（インスタンス・侵攻・安全地帯など）が変わったとき */
+  /** エリアの状態（インスタンス・安全地帯など）が変わったとき */
   area?: Record<string, unknown>;
   ev?: GameEvent[];
 }

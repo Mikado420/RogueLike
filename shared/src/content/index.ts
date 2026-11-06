@@ -31,7 +31,6 @@ import difficulties from '../../../data/difficulties.json';
 import dungeons from '../../../data/dungeons.json';
 import tower from '../../../data/tower.json';
 import raid from '../../../data/raid.json';
-import invasion from '../../../data/invasion.json';
 import missions from '../../../data/missions.json';
 import titles from '../../../data/titles.json';
 import achievements from '../../../data/achievements.json';
@@ -55,7 +54,7 @@ export const CONTENT = {
   drops, materials, areas, npcs, shops, tiles, text, uniques, mythics, sets, crystals, refine, storage, looks, time,
   maps: { lumina, ember, arena },
   palettes, weather, ambience, music,
-  difficulties, dungeons, tower, raids: raid.raids, invasion, missions, titles, achievements, codex, base, gathering, subjobs, recipes, pets, tutorial, social, market,
+  difficulties, dungeons, tower, raids: raid.raids, missions, titles, achievements, codex, base, gathering, subjobs, recipes, pets, tutorial, social, market,
 } as unknown as Content;
 
 /** 袋に入るもの（素材・消耗品・結晶）の名前と色 */

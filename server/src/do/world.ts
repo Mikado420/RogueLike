@@ -1,5 +1,5 @@
 import { logger } from '../util/log';
-import { CONTENT, Rng, createItem, invasionTier, invasionWindow, pickBase, tierFor, type InstanceSpec, type MailItem } from '../../../shared/src';
+import { CONTENT, type InstanceSpec } from '../../../shared/src';
 import type { Env } from '../env';
 import { loadConfig } from '../config';
 import { call, dispatch } from '../util/http';
@@ -11,7 +11,7 @@ interface MatchEntry { a: string; sid: string; key: string; name: string; level:
 
 /**
  * WorldDO：全体で1つ。チャンネルの割り当て、救援の一覧、パーティ募集の掲示板、ダンジョンの自動マッチング。
- * （ワールド通知・侵攻・フィールドボスは O7）
+ * （ワールド通知・フィールドボスは O7）
  */
 export class WorldDO {
   private channels = new Map<string, { n: number; at: number }>();
@@ -20,8 +20,6 @@ export class WorldDO {
   private queues = new Map<string, MatchEntry[]>();
   private loaded = false;
   private cfg;
-  /** 侵攻：今の区切りの、キャラごとの貢献度（全チャンネルの合計） */
-  private invasion: { slot: number; contrib: Record<string, { a: string; name: string; level: number; pts: number }>; rewarded: number } = { slot: -1, contrib: {}, rewarded: -1 };
   /** フィールドボスを倒した区切り（エリアごと） */
   private fieldBoss: Record<string, number> = {};
   /** 最近配った知らせ（同じものを何度も配らない） */
@@ -37,41 +35,11 @@ export class WorldDO {
     if (this.loaded) return;
     this.rescues = (await this.state.storage.get<RescueEntry[]>('rescues')) ?? [];
     this.recruits = (await this.state.storage.get<RecruitEntry[]>('recruits')) ?? [];
-    this.invasion = (await this.state.storage.get<WorldDO['invasion']>('invasion')) ?? this.invasion;
     this.fieldBoss = (await this.state.storage.get<Record<string, number>>('fieldBoss')) ?? {};
     this.taBuffer = (await this.state.storage.get<WorldDO['taBuffer']>('taBuffer')) ?? [];
     this.loaded = true;
   }
 
-  private clockView(now: number) { return { clock: now, content: CONTENT } as unknown as Parameters<typeof invasionWindow>[0]; }
-
-  /** 侵攻が終わった区切りの報酬を、貢献した全員の郵便受けへ（番号つきなので2回は届かない） */
-  private async rewardInvasion(now: number) {
-    const inv = this.invasion;
-    if (inv.slot < 0 || inv.rewarded === inv.slot) return;
-    const win = invasionWindow(this.clockView(now));
-    if (win.slot === inv.slot && win.active) return;
-    const rng = new Rng((inv.slot * 2654435761) >>> 0);
-    const pool = CONTENT.invasion.matPool;
-    for (const [charId, c] of Object.entries(inv.contrib)) {
-      const tier = invasionTier({ content: CONTENT }, c.pts);
-      if (tier < 0) continue;
-      const t = CONTENT.invasion.tiers[tier];
-      const id = `inv:${inv.slot}:${charId}`;
-      const mails: MailItem[] = [{ id: `${id}:gold`, from: 'invasion', gold: t.gold, at: now }];
-      const mats: Record<string, number> = {};
-      for (let i = 0; i < t.mats; i++) { const m = rng.pick(pool); mats[m] = (mats[m] ?? 0) + 1; }
-      for (const [m, n] of Object.entries(mats)) mails.push({ id: `${id}:${m}`, from: 'invasion', bag: { id: m, n }, at: now });
-      if (rng.chance(t.epicChance)) {
-        const uid = rng.int(1, 0x3ffffff) * 0x4000000 + rng.int(0, 0x3ffffff);
-        mails.push({ id: `${id}:epic`, from: 'invasion', item: createItem(uid, pickBase(rng, { weapon: 2, sub: 1, body: 1, head: 1, accessory: 1 }, CONTENT), tierFor(c.level, CONTENT), c.level, 'epic', rng, CONTENT), at: now });
-      }
-      for (const mail of mails) await call(this.env.ACCOUNT.get(this.env.ACCOUNT.idFromName(c.a)), 'mailAdd', { mail }).catch((e) => logger.warn('invasion mail', e));
-    }
-    inv.rewarded = inv.slot;
-    await this.state.storage.put('invasion', inv);
-    logger.info('invasionReward', { slot: inv.slot, n: Object.keys(inv.contrib).length });
-  }
 
   /** 全エリアに知らせる */
   private async broadcast(key: string, args: (string | number)[], rare: boolean) {
@@ -101,7 +69,6 @@ export class WorldDO {
     const times = [now + 3600_000];
     if ([...this.queues.values()].some((q) => q.length)) times.push(now + 5000);
     if (this.taBuffer.length) times.push(this.taFlushAt || now + this.cfg.d1FlushSec * 1000);
-    if (this.invasion.slot >= 0 && this.invasion.rewarded !== this.invasion.slot) times.push(Math.max(now + 1000, invasionWindow(this.clockView(now)).end + 2000));
     await this.state.storage.setAlarm(Math.min(...times));
   }
 
@@ -116,7 +83,6 @@ export class WorldDO {
     await this.load();
     const now = platform.now();
     await this.runMatches(now);
-    await this.rewardInvasion(now);
     if (this.taBuffer.length && now >= this.taFlushAt) await this.flushTa();
     await this.schedule();
   }
@@ -164,25 +130,14 @@ export class WorldDO {
       population: (b: { key: string; n: number }) => { this.channels.set(b.key, { n: b.n, at: platform.now() }); return { ok: true }; },
 
       // ───── 世界の共有 ─────
-      /** エリアからの同期：侵攻の貢献度（差分）とフィールドボスを送り、全体の今を返す */
-      sync: async (b: { key: string; area: string; fieldBoss?: number | null; contrib?: Record<string, { a: string; name: string; level: number; pts: number }>; slot: number; n: number }) => {
+      /** エリアからの同期：フィールドボスを送り、全体の今を返す */
+      sync: async (b: { key: string; area: string; fieldBoss?: number | null; n: number }) => {
         const now = platform.now();
         this.channels.set(b.key, { n: b.n, at: now });
         let dirty = false;
         if (b.fieldBoss !== undefined && b.fieldBoss !== null && (this.fieldBoss[b.area] ?? -1) < b.fieldBoss) { this.fieldBoss[b.area] = b.fieldBoss; dirty = true; }
-        const inv = this.invasion;
-        if (b.slot > inv.slot) { await this.rewardInvasion(now); this.invasion = { slot: b.slot, contrib: {}, rewarded: -1 }; dirty = true; }
-        if (b.contrib && b.slot === this.invasion.slot) {
-          for (const [ch, c] of Object.entries(b.contrib)) {
-            const cur = this.invasion.contrib[ch] ?? { a: c.a, name: c.name, level: c.level, pts: 0 };
-            cur.pts += Math.max(0, c.pts);
-            cur.level = c.level;
-            this.invasion.contrib[ch] = cur;
-            dirty = true;
-          }
-        }
-        if (dirty) { await this.state.storage.put({ invasion: this.invasion, fieldBoss: this.fieldBoss }); await this.schedule(); }
-        return { fieldBoss: this.fieldBoss, invasion: { slot: this.invasion.slot, contribution: Object.fromEntries(Object.entries(this.invasion.contrib).map(([k, v]) => [k, v.pts])) } };
+        if (dirty) { await this.state.storage.put({ fieldBoss: this.fieldBoss }); await this.schedule(); }
+        return { fieldBoss: this.fieldBoss };
       },
       /** ワールド通知（同じものは10分に1回） */
       announce: async (b: { key: string; args: (string | number)[]; rare?: boolean; dedupe: string }) => {
@@ -205,7 +160,7 @@ export class WorldDO {
       /** 管理：お知らせ（重複を気にせず全エリアへ） */
       adminNotice: async (b: { text: string }) => { await this.broadcast('notice.admin', [b.text], true); return { ok: true, areas: this.channels.size }; },
       /** テスト・管理用：時間を進める */
-      worldTick: async (b: { now: number }) => { await this.rewardInvasion(b.now); await this.flushTa(); return { ok: true }; },
+      worldTick: async () => { await this.flushTa(); return { ok: true }; },
       channels: () => ({ channels: [...this.channels.entries()].map(([key, v]) => ({ key, ...v })) }),
 
       // ───── 救援 ─────

@@ -16,7 +16,6 @@ import type { AreaDef } from '../content/types';
 import { generateField, type GeneratedField } from '../mapgen';
 import { spawnFieldMonster, updateField, updateFieldBoss, updateWeatherNotices } from './spawner';
 import { buildInstance, updateInstance } from './instance';
-import { updateInvasion } from './events';
 import { ensureMissions } from './quest';
 import { placeNodes, updateNodes } from './crafting';
 import { updatePets } from './pets';
@@ -41,7 +40,7 @@ export interface AreaWorldOptions {
   shared?: SharedWorldState;
 }
 
-export const newSharedState = (): SharedWorldState => ({ fieldBoss: {}, invasion: { slot: -1, contribution: {}, rewarded: [] } });
+export const newSharedState = (): SharedWorldState => ({ fieldBoss: {} });
 
 /** 1つのエリアのワールドを作る（まだ誰もいない） */
 export function createAreaWorld(opts: AreaWorldOptions): World {
@@ -274,7 +273,6 @@ export function buildArea(w: World, areaId: string): AreaInstance {
     safeZoneAt: 0,
     safeZonePower: 0,
     safeZoneOwner: -1,
-    invasion: null,
     nodes: placeNodes(w, areaId, map),
   };
   return area;
@@ -285,7 +283,7 @@ export function makeArea(w: World, type: AreaInstance['type'], name: string, map
   return {
     id: 'instance', type, name, map, level, monsters: [], strikes: [], projectiles: [], drops: [], npcs: [], spawns: [],
     playerSpawn: { ...spawn }, safeRadius: 0, exits: [], spawnPoints: {}, spots: {}, spawnTimer: 0, fieldBossSlot: -1,
-    instance: null, safeZones: [], safeZoneAt: 0, safeZonePower: 0, safeZoneOwner: -1, invasion: null, nodes: [],
+    instance: null, safeZones: [], safeZoneAt: 0, safeZonePower: 0, safeZoneOwner: -1, nodes: [],
   };
 }
 
@@ -320,7 +318,7 @@ export function spawnMonster(w: World, sp: SpawnState, opts: SpawnOpts = {}): Mo
     ai: 'wander', targetId: -1, homeX: sp.x, homeY: sp.y, wanderX: sp.x, wanderY: sp.y,
     timer: w.rng.int(0, 40), busy: 0, globalCd: 0, cds: {}, pending: null, spawnKey: sp.key,
     enraged: false, poise: poiseMax, poiseMax, breaks: 0, lastHitTick: 0, phase: 0, shielded: false,
-    brokenUntil: 0, scale, damageBy: {}, hidden: false, fieldBoss: false, summonedBy: -1, invader: false,
+    brokenUntil: 0, scale, damageBy: {}, hidden: false, fieldBoss: false, summonedBy: -1,
   };
   sp.monsterId = m.id;
   w.area.monsters.push(m);
@@ -358,7 +356,6 @@ export function step(w: World, inputs: Map<number, PlayerInput>, now?: number): 
   if (w.tick % 20 === 0) for (const p of w.players) ensureMissions(w, p);
   updateField(w);
   updateInstance(w);
-  updateInvasion(w);
   updateNodes(w);
   for (const fn of areaUpdaters) fn(w);
   for (const p of w.players) { p.char.playTime += 1 / w.content.balance.tickRate; updateTutorial(w, p); }

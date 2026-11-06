@@ -51,7 +51,7 @@ export function capture(w: World, p: Player, item: string): string | null {
   }
   if (!target) return 'err.noTarget';
   const def = c.monsters[target.defId];
-  if (!def.capturable || def.boss || target.summonedBy > 0 || target.invader) return 'err.cantCapture';
+  if (!def.capturable || def.boss || target.summonedBy > 0) return 'err.cantCapture';
   if ((target.hp / target.stats.maxHp) * 100 > c.pets.hpThreshold) return 'err.notWeak';
   takeFromBag(p.char, item, 1);
   const ok = w.rng.next() * 100 < captureChance(w, p, target, item);
@@ -99,7 +99,7 @@ function makePetActor(w: World, owner: Player, data: PetData): Monster {
     stagger: 0, moving: false, statsDirty: false, ai: 'wander', targetId: -1, homeX: owner.x, homeY: owner.y, wanderX: 0, wanderY: 0,
     timer: 0, busy: 0, globalCd: 0, cds: {}, pending: null, spawnKey: `pet:${data.uid}`, enraged: false, poise: 1, poiseMax: 1, breaks: 0,
     lastHitTick: 0, phase: 0, shielded: false, brokenUntil: 0, scale, damageBy: {}, hidden: false, fieldBoss: false,
-    summonedBy: owner.id, invader: false,
+    summonedBy: owner.id,
   };
 }
 

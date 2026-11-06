@@ -104,7 +104,7 @@ export interface AccountData {
   /** 倉庫はアカウントで共有 */
   storage: StorageData;
   /** 世界の状態（オフライン用。オンライン化したらサーバー側に移す） */
-  world: { fieldBoss: Record<string, number>; invasion: { slot: number; contribution: Record<string, number>; rewarded: string[] } };
+  world: { fieldBoss: Record<string, number> };
   /** 拠点（段階3でギルド共有にする） */
   base: { levels: Record<string, number>; paidDay: number };
   /** タイムアタックの記録（段階3でサーバーのランキングに移す） */
@@ -309,7 +309,6 @@ export interface Monster extends ActorBase {
   fieldBoss: boolean;
   /** 呼び出したボス（シールドの判定用） */
   summonedBy: number;
-  invader: boolean;
   /** 誰がどれだけ削ったか（経験値の分配用） */
   damageBy: Record<number, number>;
 }
@@ -423,7 +422,6 @@ export interface AreaInstance {
   safeZoneAt: number;
   safeZonePower: number;
   safeZoneOwner: number;
-  invasion: InvasionState | null;
   nodes: GatherNode[];
 }
 
@@ -444,7 +442,6 @@ export interface InstanceState {
   timeLimitTick: number;
 }
 
-export interface InvasionState { slot: number; wave: number; nextWaveTick: number; endClock: number; finished: boolean }
 
 /** ダンジョン・塔・レイドを作るための指定（行き先のワールドが自分で作る） */
 export interface InstanceSpec {
@@ -472,10 +469,9 @@ export interface Transition {
   rescuer?: boolean;
 }
 
-/** ワールド全体で共有するもの（フィールドボスを倒した区切り・侵攻の貢献度）。サーバーでは WorldDO が持つ */
+/** ワールド全体で共有するもの（フィールドボスを倒した区切り）。サーバーでは WorldDO が持つ */
 export interface SharedWorldState {
   fieldBoss: Record<string, number>;
-  invasion: { slot: number; contribution: Record<string, number>; rewarded: string[] };
 }
 
 /** 1つのエリア（街・フィールド・インスタンス）のワールド。中に何人でも入れる */
@@ -541,7 +537,6 @@ export type GameEvent =
   | { type: 'worldNotice'; key: string; args: (string | number)[]; rare?: boolean }
   | { type: 'instance'; playerId: number; what: 'cleared' | 'failed' | 'floor'; time?: number; best?: boolean; floor?: number }
   | { type: 'achievement'; playerId: number; id: string }
-  | { type: 'invasion'; what: 'start' | 'wave' | 'end'; wave?: number; tier?: number }
   | { type: 'gather'; playerId: number; node: number; id: string; n: number; x: number; y: number }
   | { type: 'crafted'; playerId: number; kind: 'smith' | 'cook' | 'alchemy'; uid?: number; id?: string }
   | { type: 'subLevel'; playerId: number; job: string; level: number }

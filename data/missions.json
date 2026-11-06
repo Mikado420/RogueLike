@@ -196,18 +196,6 @@
    }
   },
   {
-   "id": "invasion",
-   "counter": "invasions",
-   "n": [
-    1,
-    3
-   ],
-   "reward": {
-    "gold": 4000,
-    "exp": 3
-   }
-  },
-  {
    "id": "field_boss",
    "counter": "fieldBossKills",
    "n": [

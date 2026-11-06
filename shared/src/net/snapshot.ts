@@ -53,7 +53,7 @@ function rounded(o: EntityState): EntityState {
 
 export function areaState(a: AreaInstance): Record<string, unknown> {
   return {
-    instance: a.instance, invasion: a.invasion, safeZones: a.safeZones, safeZoneAt: a.safeZoneAt, safeZonePower: a.safeZonePower,
+    instance: a.instance, safeZones: a.safeZones, safeZoneAt: a.safeZoneAt, safeZonePower: a.safeZonePower,
     name: a.name, level: a.level, fieldBossSlot: a.fieldBossSlot,
   };
 }

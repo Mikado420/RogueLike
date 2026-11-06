@@ -34,6 +34,23 @@ export function ensureMissions(w: World, p: Player) {
   const d = dayIndex(w.clock), wk = weekIndex(w.clock);
   if (ch.missions.day !== d) { ch.missions.day = d; ch.missions.daily = makeMissions(w.content, ch, 'daily', d); }
   if (ch.missions.week !== wk) { ch.missions.week = wk; ch.missions.weekly = makeMissions(w.content, ch, 'weekly', wk); }
+  replaceRemoved(w.content, ch, 'daily');
+  replaceRemoved(w.content, ch, 'weekly');
+}
+
+/** なくなったミッション（侵攻など）が残っていたら、まだ出ていない別のものに差し替える（ほかの進み具合はそのまま） */
+function replaceRemoved(c: Content, ch: CharacterData, kind: 'daily' | 'weekly') {
+  const cur = kind === 'daily' ? ch.missions.daily : ch.missions.weekly;
+  if (cur.every((m) => missionTemplate(c, kind, m.id))) return;
+  const list = kind === 'daily' ? c.missions.daily : c.missions.weekly;
+  const rng = new Rng(hash32('missions-fix', kind, kind === 'daily' ? ch.missions.day : ch.missions.week));
+  for (let i = 0; i < cur.length; i++) {
+    if (missionTemplate(c, kind, cur[i].id)) continue;
+    const pool = list.filter((t) => !cur.some((m) => m.id === t.id));
+    if (!pool.length) { cur.splice(i--, 1); continue; }
+    const t = pool[Math.floor(rng.next() * pool.length)];
+    cur[i] = { id: t.id, counter: t.counter, n: rng.int(t.n[0], t.n[1]), base: ch.counters[t.counter] ?? 0, claimed: false };
+  }
 }
 
 export function missionProgress(ch: CharacterData, m: MissionState): number {

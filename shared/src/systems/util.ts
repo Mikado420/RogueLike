@@ -46,8 +46,7 @@ export function notice(w: World, playerId: number, key: string, ...args: (string
 /** フィールドの入口・出現位置のまわり（モンスターが出ず、追ってもこない） */
 export function inSafeZone(w: World, x: number, y: number, extra = 0): boolean {
   const a = w.area;
-  const base = a.type === 'field' ? a.safeRadius
-    : a.type === 'town' && a.invasion && !a.invasion.finished ? w.content.invasion.sanctuary ?? 0 : 0;
+  const base = a.type === 'field' ? a.safeRadius : 0;
   if (!(base > 0)) return false;
   const r = base + extra;
   if (Math.hypot(x - a.playerSpawn.x, y - a.playerSpawn.y) < r) return true;

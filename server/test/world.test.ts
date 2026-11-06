@@ -30,35 +30,6 @@ describe('世界の共有', () => {
     for (const c of [a, b]) expect(c.msgs.filter((m: any) => m.t === 'notice' && m.world && m.key === 'notice.mythicDrop').length).toBe(1);
   });
 
-  it('侵攻：別々のチャンネルの貢献度を合計し、終わったら全員の郵便受けに報酬が届く', async () => {
-    const every = CONTENT.invasion.every * 60000;
-    const slot = 1000;
-    let now = slot * every + 60_000;
-    platform.now = () => now;
-    const env = makeEnv({ CONFIG: JSON.stringify({ channelCap: 1 }) });
-    const a = await join(env, 'A', 'lumina'), b = await join(env, 'B', 'lumina');
-    expect(a.key).not.toBe(b.key);
-    for (const [c, pts] of [[a, 1500], [b, 7000]] as const) {
-      const ar = area(env, c.key);
-      const p = playerOf(env, c);
-      ar.host.world.shared.invasion.slot = slot;
-      ar.host.world.shared.invasion.contribution[p.char.id] = pts;
-      await ar.sync();
-    }
-    // A は合計では一番下の段に届かない（1500 < 2000）が、B は届く
-    const goldA = playerOf(env, a).char.gold, goldB = playerOf(env, b).char.gold;
-    now = slot * every + CONTENT.invasion.duration * 60000 + 5000;
-    await call(world(env), 'worldTick', { now });
-    await tickAll(env, 4); await flush(20); await tickAll(env, 4);
-    expect(playerOf(env, a).char.gold).toBe(goldA);
-    expect(playerOf(env, b).char.gold).toBe(goldB + CONTENT.invasion.tiers[1].gold);
-    // もう一度回しても2回は届かない
-    await call(world(env), 'worldTick', { now: now + 1000 });
-    await tickAll(env, 4); await flush(20);
-    expect(playerOf(env, b).char.gold).toBe(goldB + CONTENT.invasion.tiers[1].gold);
-    platform.now = realNow;
-  });
-
   it('フィールドボスはどこかのチャンネルで倒されると、ほかのチャンネルからも去る', async () => {
     const env = makeEnv({ CONFIG: JSON.stringify({ channelCap: 1 }) });
     const a = await join(env, 'A'), b = await join(env, 'B');

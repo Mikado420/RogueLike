@@ -43,7 +43,6 @@ export const MIGRATIONS: Record<number, (d: Raw) => Raw> = {
       ch.tower = { best: 0 };
     }
     const world = (d.world as Raw | undefined) ?? { fieldBoss: {} };
-    world.invasion = { slot: -1, contribution: {}, rewarded: [] };
     d.world = world;
     d.base = { levels: {}, paidDay: -1 };
     d.records = { timeAttack: {} };
@@ -86,7 +85,7 @@ export function newAccount(now: number, seed: number): AccountData {
     characters: [],
     lastCharacterId: null,
     storage: { items: [], bag: {}, capacity: CONTENT.storage.base },
-    world: { fieldBoss: {}, invasion: { slot: -1, contribution: {}, rewarded: [] } },
+    world: { fieldBoss: {} },
     base: { levels: {}, paidDay: -1 },
     records: { timeAttack: {} },
   };
@@ -204,9 +203,8 @@ export function migrateAccount(raw: unknown, c: Content = CONTENT): AccountData 
   acc.storage.items ??= [];
   acc.storage.bag ??= {};
   acc.storage.capacity ??= c.storage.base;
-  acc.world ??= { fieldBoss: {}, invasion: { slot: -1, contribution: {}, rewarded: [] } };
+  acc.world ??= { fieldBoss: {} };
   acc.world.fieldBoss ??= {};
-  acc.world.invasion ??= { slot: -1, contribution: {}, rewarded: [] };
   acc.base ??= { levels: {}, paidDay: -1 };
   acc.records ??= { timeAttack: {} };
   // uid が重ならないように

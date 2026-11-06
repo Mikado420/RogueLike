@@ -309,7 +309,7 @@ function renderStorage(ctx: Ctx, body: HTMLElement, _npc: string, st: NpcState) 
 
 const hhmm = (ms: number) => { const d = new Date(ms); return `${d.getHours()}:${String(d.getMinutes()).padStart(2, '0')}`; };
 
-/** 掲示板に後から足すタブ（M5 のミッション・侵攻・タイムアタック） */
+/** 掲示板に後から足すタブ（M5 のミッション・タイムアタック） */
 export const extraBoardTabs: { id: string; label: string; render: (ctx: Ctx, body: HTMLElement, st: NpcState) => void }[] = [];
 
 function renderBoard(ctx: Ctx, body: HTMLElement, _npc: string, st: NpcState) {

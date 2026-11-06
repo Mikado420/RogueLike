@@ -5,8 +5,8 @@ const rankings = new Map<string, { time: number; names: string }[]>();
 setInterval(() => rankings.clear(), 60_000);
 
 import {
-  CONTENT, DIFFICULTIES, canStartTower, codexPct, codexTotals, contribution, facilityCost, facilityLevel, invasionWindow,
-  missionProgress, nextInvasionAt, txt, upkeepCost, baseActive, baseOf, dayIndex, ensureMissions, type ModKey,
+  CONTENT, DIFFICULTIES, canStartTower, codexPct, codexTotals, facilityCost, facilityLevel,
+  missionProgress, txt, upkeepCost, baseActive, baseOf, dayIndex, ensureMissions, type ModKey,
 } from '../../../shared/src';
 import { btn, h, kv } from './dom';
 import { modText, type Ctx } from './ctx';
@@ -16,7 +16,6 @@ import type { Menu } from './menu';
 /** M5 の画面（ダンジョン・塔・レイドの門、拠点、掲示板のタブ、図鑑・実績） */
 
 const fmtTime = (s: number) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
-const hhmm = (ms: number) => { const d = new Date(ms); return `${d.getHours()}:${String(d.getMinutes()).padStart(2, '0')}`; };
 
 function diffPicker(st: NpcState, onPick: (d: string) => void) {
   const row = h('div', 'seg');
@@ -124,19 +123,6 @@ export function registerContentPanels(npc: NpcPanels, menu: Menu, ctx: Ctx) {
   });
 
   extraBoardTabs.push({ id: 'missions', label: txt('board.missions'), render: (c, body) => renderMissions(c, body) });
-  extraBoardTabs.push({ id: 'invasion', label: txt('board.invasion'), render: (c, body) => {
-    const w = c.world;
-    const win = invasionWindow(w);
-    body.append(kv(win.active ? txt('invasion.now') : txt('invasion.next'), hhmm(win.active ? win.start : nextInvasionAt(w))));
-    body.append(kv(txt('invasion.points'), contribution(w, c.me()).toLocaleString()));
-    const tiers = h('div', 'shop-list');
-    CONTENT.invasion.tiers.forEach((t) => {
-      const r = h('div', 'shop-row');
-      r.append(h('span', 'name', `${t.min.toLocaleString()}+`), h('span', 'price', `${t.gold.toLocaleString()} G`));
-      tiers.append(r);
-    });
-    body.append(tiers);
-  } });
   extraBoardTabs.push({ id: 'ranking', label: txt('board.ranking'), render: (c, body) => {
     for (const [id, d] of Object.entries(CONTENT.dungeons.dungeons)) {
       for (const diff of DIFFICULTIES) {

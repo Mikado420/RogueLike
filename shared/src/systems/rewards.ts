@@ -5,7 +5,6 @@ import { rollEquipDrops, sellPrice } from './loot';
 import { procOnKill } from './effects';
 import { currentWeather, weatherDef } from './weather';
 import { isNight } from './time';
-import { addContribution } from './events';
 import { recordCodex } from './quest';
 import { petGainExp, petOwner } from './pets';
 import { rarityRank } from '../core';
@@ -51,7 +50,6 @@ export function onMonsterKilled(w: World, m: Monster, by: Actor | null) {
     if (m.elite) { addCounter(w, p, 'kills.elite', 1); addCounter(w, p, `kills.w.${wt}.elite`, 1); }
     if (isBoss(w, m)) addCounter(w, p, 'bossKills', 1);
     if (m.fieldBoss) addCounter(w, p, 'fieldBossKills', 1);
-    if (m.invader) addContribution(w, p, c.invasion.contribution.kill);
     recordCodex(w, p, 'monsters', m.defId);
   }
 

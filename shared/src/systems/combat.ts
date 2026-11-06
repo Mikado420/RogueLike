@@ -9,7 +9,6 @@ import { onMonsterKilled, onPlayerKilled } from './rewards';
 import { procOnHit, tryCheatDeath } from './effects';
 import { weaponHitMods, weaponOnHit } from './weapons';
 import { envElementMul } from './weather';
-import { addContribution } from './events';
 
 /** 攻撃定義と使い手から命中仕様を作る */
 export function buildSpec(
@@ -267,7 +266,6 @@ export function applyHit(w: World, src: Actor, tgt: Actor, spec: HitSpec, combo:
   }, w.rng, c.balance.damage);
   tgt.hp -= r.amount;
   if (tgt.kind === 'monster') tgt.damageBy[src.id] = (tgt.damageBy[src.id] ?? 0) + r.amount;
-  if (tgt.kind === 'monster' && tgt.invader && src.kind === 'player') addContribution(w, src, r.amount * c.invasion.contribution.damage);
   if (tgt.kind === 'player') tgt.lastCombatTick = w.tick;
   if (src.kind === 'player') src.lastCombatTick = w.tick;
   const wasBroken = tgt.kind === 'monster' ? tgt.breaks : 0;

@@ -517,36 +517,19 @@ export class AreaDO {
     void call(w, 'population', { key: this.key, n: this.host.population }).catch(() => {});
   }
 
-  /** 侵攻の貢献度で、最後に WorldDO へ送った値 */
-  private reported: Record<string, number> = {};
   private syncing = false;
 
-  /** WorldDO と、侵攻の貢献度とフィールドボスを合わせる */
+  /** WorldDO と、フィールドボスを合わせる */
   async sync() {
     const host = this.host;
     if (!host || this.syncing) return;
     this.syncing = true;
     try {
       const w = host.world;
-      const local = { ...w.shared.invasion.contribution };
-      const contrib: Record<string, { a: string; name: string; level: number; pts: number }> = {};
-      for (const p of w.players) {
-        const d = (local[p.char.id] ?? 0) - (this.reported[p.char.id] ?? 0);
-        if (d > 0) contrib[p.char.id] = { a: p.account.id, name: p.char.name, level: p.char.level, pts: d };
-      }
-      const r = await call<{ fieldBoss: Record<string, number>; invasion: { slot: number; contribution: Record<string, number> } }>(this.env.WORLD.get(this.env.WORLD.idFromName('world')), 'sync', {
-        key: this.key, area: w.area.id, fieldBoss: w.shared.fieldBoss[w.area.id] ?? null, contrib, slot: w.shared.invasion.slot, n: host.population,
+      const r = await call<{ fieldBoss: Record<string, number> }>(this.env.WORLD.get(this.env.WORLD.idFromName('world')), 'sync', {
+        key: this.key, area: w.area.id, fieldBoss: w.shared.fieldBoss[w.area.id] ?? null, n: host.population,
       });
       w.shared.fieldBoss = { ...w.shared.fieldBoss, ...r.fieldBoss };
-      if (r.invasion.slot >= w.shared.invasion.slot) {
-        // 送ったあとに増えた分は残す
-        const now = w.shared.invasion.contribution;
-        const merged: Record<string, number> = { ...r.invasion.contribution };
-        for (const [k, v] of Object.entries(now)) merged[k] = (merged[k] ?? 0) + Math.max(0, v - (local[k] ?? 0));
-        if (r.invasion.slot > w.shared.invasion.slot) { w.shared.invasion.slot = r.invasion.slot; w.shared.invasion.rewarded = []; }
-        w.shared.invasion.contribution = merged;
-        this.reported = { ...r.invasion.contribution };
-      }
     } catch (e) {
       logger.warn('sync failed', [e]);
     } finally {

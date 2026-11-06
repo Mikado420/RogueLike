@@ -91,13 +91,6 @@
   "title": "scholar2"
  },
  {
-  "id": "invasion3",
-  "name": "侵攻防衛3",
-  "counter": "invasions",
-  "n": 3,
-  "title": "defender"
- },
- {
   "id": "raid1",
   "name": "巨神討伐",
   "counter": "raidClears",

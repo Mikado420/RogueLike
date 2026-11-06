@@ -428,13 +428,6 @@ export interface TowerDef {
   untradableFrom: number; crystal: { id: string; chance: number };
 }
 export interface RaidDef { name: string; boss: string; level: number; arena: number; timeLimit: number; minLevel: number; party: { hpPerPlayer: number; atkPerPlayer: number; maxPlayers: number }; drops: string; crystal: { id: string; chance: number } }
-export interface InvasionDef {
-  /** 襲撃中、街で起きる地点と入口のまわりの聖域（マス）。魔物はここにいる人を狙わない */
-  sanctuary?: number;
-  town: string; every: number; duration: number; waves: number; waveEvery: number; perWave: [number, number]; levelOffset: [number, number];
-  spawnEdges: string[]; pool: string[]; contribution: { damage: number; kill: number };
-  tiers: { min: number; gold: number; exp: number; mats: number; epicChance: number }[]; matPool: string[];
-}
 export interface MissionTemplate { id: string; counter: string; n: [number, number]; reward: { gold?: number; exp?: number; items?: Record<string, number> } }
 export interface AchievementDef { id: string; name: string; counter: string; n: number; title?: string }
 export interface FacilityDef { name: string; max: number; mods?: Mods; storage?: number; refineRate?: number; craftBonus?: number; foodDuration?: number; cost: { gold: [number, number]; mats: Record<string, [number, number]> } }
@@ -518,7 +511,6 @@ export interface Content {
   dungeons: { dungeons: Record<string, DungeonDef>; packs: [number, number]; bossRoomRadius: number; chestRolls: number; timeAttackTop: number };
   tower: TowerDef;
   raids: Record<string, RaidDef>;
-  invasion: InvasionDef;
   missions: { dailyCount: number; weeklyCount: number; daily: MissionTemplate[]; weekly: MissionTemplate[] };
   titles: Record<string, { name: string; mods: Mods }>;
   achievements: AchievementDef[];

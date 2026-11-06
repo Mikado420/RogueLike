@@ -1,6 +1,6 @@
 import {
   CONTENT, beatTicks, chargeLevel, comboMax, expToNext, freeSkillPoints, freeStatPoints, interactTarget, magazineSize,
-  slotSkill, txt, weaponTypeOf, currentWeather, dayPhase, contribution, bagInfo, type GameEvent, type Item, type Player, type World,
+  slotSkill, txt, weaponTypeOf, currentWeather, dayPhase, bagInfo, type GameEvent, type Item, type Player, type World,
 } from '../../shared/src';
 import { rarityColor, statusColor } from './colors';
 import type { Action, InputManager } from './input';
@@ -550,8 +550,6 @@ export class Hud {
       if (inst.kind === 'tower') ii = `${txt('inst.floor', inst.floor)}  ${a.monsters.filter((m) => !m.dead).length}`;
       else if (inst.kind === 'raid') ii = `${CONTENT.difficulties[inst.difficulty].name}  ${fmtTime(Math.max(0, (inst.timeLimitTick - this.world.tick) / tr))}`;
       else ii = `${CONTENT.difficulties[inst.difficulty].name}  ${fmtTime(el)}`;
-    } else if (a.invasion && !a.invasion.finished) {
-      ii = `${txt('invasion.wave')} ${a.invasion.wave}/${CONTENT.invasion.waves}  ${fmtTime(Math.max(0, (a.invasion.endClock - this.world.clock) / 1000))}  ${txt('invasion.points')} ${contribution(this.world, p).toLocaleString()}`;
     }
     if (this.instInfo.textContent !== ii) this.instInfo.textContent = ii;
     this.instInfo.style.display = ii ? '' : 'none';

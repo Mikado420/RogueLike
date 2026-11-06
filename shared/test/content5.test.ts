@@ -3,7 +3,6 @@ import { CONTENT } from '../src/content';
 import { enterArea, flushSolo } from '../src/systems/world';
 import { enterDungeon, enterRaid, enterTower, canStartTower, nextTowerFloor } from '../src/systems/instance';
 import { generateDungeon, reachable } from '../src/mapgen';
-import { invasionWindow } from '../src/systems/events';
 import { claimMission, codexPct, dayIndex, ensureMissions, missionProgress } from '../src/systems/quest';
 import { addCounter } from '../src/systems/counters';
 import { addToBag } from '../src/systems/items';
@@ -122,26 +121,6 @@ describe('レイド', () => {
     w.tick = w.area.instance!.timeLimitTick;
     tick(w, p);
     expect(w.area.instance!.failed).toBe(true);
-  });
-});
-
-describe('侵攻イベント', () => {
-  it('時間になると街に魔物が来て、倒した貢献度で報酬', () => {
-    const { w, p } = makeWorld(7);
-    const every = C.invasion.every * 60000;
-    w.clock = every * 100 + 1000;
-    expect(invasionWindow(w).active).toBe(true);
-    tick(w, p, {}, 80);
-    expect(w.area.invasion).not.toBeNull();
-    const invaders = w.area.monsters.filter((m) => m.invader);
-    expect(invaders.length).toBeGreaterThan(0);
-    w.shared.invasion.contribution[p.char.id] = 1e6;
-    const gold = p.char.gold;
-    w.clock = every * 100 + C.invasion.duration * 60000 + 1;
-    tick(w, p);
-    expect(w.area.invasion!.finished).toBe(true);
-    expect(p.char.gold).toBeGreaterThan(gold);
-    expect(p.char.counters.invasions).toBe(1);
   });
 });
 

@@ -84,7 +84,7 @@ export class AreaHost {
 
   /**
    * 眠っていたエリアが起きたとき：tick で数えていた待ち時間（魔物の復活・採集ポイント）は済んだことにする。
-   * 昼夜・天候・侵攻は時計で決まるので、次の step で自然に今に合う
+   * 昼夜・天候は時計で決まるので、次の step で自然に今に合う
    */
   wake(sleptMs: number) {
     const w = this.world;
