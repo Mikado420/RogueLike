@@ -1,6 +1,6 @@
 import {
   CONTENT, PRIMARY_STATS, bagInfo, canRebirth, forecast, nextFieldBossAt, crystalFits, refineCost, respecCost, sellPrice, storageExpandCost, txt,
-  type Item,
+  type Item, type WeaponType,
 } from '../../../shared/src';
 import { rarityColor } from '../colors';
 import { btn, h, kv } from './dom';
@@ -20,6 +20,7 @@ export class NpcPanels {
     storage: renderStorage,
     board: renderBoard,
     travel: renderTravel,
+    starter: renderStarter,
   };
   private state: NpcState;
   npc: string | null = null;
@@ -370,4 +371,30 @@ function renderTravel(ctx: Ctx, body: HTMLElement) {
     list.append(row);
   }
   body.append(list);
+}
+
+/** 武器の師範：最初の武器を 1 本だけ選んでもらう */
+function renderStarter(ctx: Ctx, body: HTMLElement) {
+  const ch = ctx.me().char;
+  const sec = h('div', 'npc-sec');
+  if (ch.starterWeapon) {
+    sec.append(h('p', 'npc-talk', txt('starter.done', starterWeapon(ch.starterWeapon)?.name ?? '')));
+    body.append(sec);
+    return;
+  }
+  sec.append(h('p', 'npc-talk', txt('starter.talk')));
+  const grid = h('div', 'starter-grid');
+  for (const base of CONTENT.balance.start.starterWeapons ?? []) {
+    const wd = starterWeapon(base);
+    const b = btn('', () => { ctx.send({ type: 'starterWeapon', base }); setTimeout(() => ctx.modal.refresh(), 300); }, 'starter-btn');
+    b.append(h('b', '', wd?.name ?? base), h('small', '', txt(`starter.type.${wd?.damageType ?? 'physical'}`)));
+    grid.append(b);
+  }
+  sec.append(grid);
+  body.append(sec);
+}
+
+function starterWeapon(base: string) {
+  const kind = CONTENT.equipment.bases[base]?.kind;
+  return kind ? CONTENT.weapons[kind as WeaponType] : undefined;
 }

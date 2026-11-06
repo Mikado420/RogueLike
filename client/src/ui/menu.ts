@@ -1,7 +1,7 @@
 import {
   CONTENT, EQUIP_SLOTS, PERSONAL_STATS, PRIMARY_STATS, RARITIES, bagInfo, canLearnSkill, expToNext, freeSkillPoints,
-  freeStatPoints, itemMods, lookSlotOf, primaryStats, scaled, slotsFor, staticMods, txt, weaponTypeOf,
-  type EquipSlot, type Item, type ModKey, type Rarity, type SkillDef, type WeaponType,
+  freeStatPoints, derivePlayerStats, itemMods, lookSlotOf, primaryStats, scaled, slotsFor, staticMods, txt, weaponTypeOf,
+  type EquipSlot, type Item, type ModKey, type PrimaryStat, type Rarity, type SkillDef, type WeaponType,
 } from '../../../shared/src';
 import { lookInfo } from '../colors';
 import { itemCell, itemInfo } from './itemview';
@@ -41,23 +41,54 @@ export class Menu {
     if (this.isOpen) this.ctx.modal.refresh();
   }
 
-  private render(body: HTMLElement) {
-    const tabs = h('div', 'tabs');
-    const all: { id: string; label: string }[] = [
+  /** 下のタブに出すもの（残りは「その他」にまとめる） */
+  private static MAIN = ['status', 'skills', 'items', 'missions'];
+
+  private allTabs(): { id: string; label: string }[] {
+    return [
       ...TABS.slice(0, 3).map((t) => ({ id: t, label: txt(`menu.${t}`) })),
       { id: 'look', label: txt('menu.look') },
       ...this.extraTabs.map((t) => ({ id: t.id, label: t.label })),
       { id: 'settings', label: txt('menu.settings') },
     ];
-    for (const t of all) {
-      const b = btn(t.label, () => { this.tab = t.id as MenuTab; this.refresh(); }, `tab${this.tab === t.id ? ' on' : ''}`);
-      if (t.id === 'status' && freeStatPoints(this.ctx.me().char, CONTENT) > 0) b.classList.add('has-dot');
-      if (t.id === 'skills' && freeSkillPoints(this.ctx.me().char, CONTENT) > 0) b.classList.add('has-dot');
-      tabs.append(b);
+  }
+
+  private render(body: HTMLElement) {
+    body.classList.add('menu-body');
+    const ch = this.ctx.me().char;
+    const all = this.allTabs();
+    const main = all.filter((t) => Menu.MAIN.includes(t.id));
+    const inMore = !Menu.MAIN.includes(this.tab);
+    const nav = h('div', 'menu-nav');
+    const icon: Record<string, string> = {
+      status: '<circle cx="12" cy="8" r="4"/><path d="M4 21c1-5 15-5 16 0"/>',
+      skills: '<path d="M13 2 4 14h7l-1 8 9-12h-7z"/>',
+      items: '<rect x="4" y="7" width="16" height="13" rx="2"/><path d="M9 7V4h6v3"/>',
+      missions: '<rect x="4" y="4" width="16" height="16" rx="3"/><path d="M9 12l2 2 4-4"/>',
+      more: '<circle cx="6" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="18" cy="12" r="1.6"/>',
+    };
+    const navBtn = (id: string, label: string, on: boolean, go: () => void, dot = false) => {
+      const b = btn('', go, `nav-btn${on ? ' on' : ''}${dot ? ' has-dot' : ''}`);
+      b.innerHTML = `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${icon[id] ?? icon.more}</svg><span>${label}</span>`;
+      nav.append(b);
+    };
+    for (const t of main) {
+      const dot = (t.id === 'status' && freeStatPoints(ch, CONTENT) > 0) || (t.id === 'skills' && freeSkillPoints(ch, CONTENT) > 0);
+      navBtn(t.id, t.label, this.tab === t.id, () => { this.tab = t.id as MenuTab; this.refresh(); }, dot);
     }
-    body.append(tabs);
+    navBtn('more', txt('menu.more'), inMore, () => { this.tab = 'more' as MenuTab; this.refresh(); });
     const content = h('div', 'tab-body');
-    body.append(content);
+    body.append(content, nav);
+    if ((this.tab as string) === 'more') {
+      const grid = h('div', 'more-grid');
+      for (const t of all.filter((x) => !Menu.MAIN.includes(x.id))) grid.append(btn(t.label, () => { this.tab = t.id as MenuTab; this.refresh(); }, 'more-btn'));
+      content.append(h('div', 'sub-title', txt('menu.more')), grid);
+      return;
+    }
+    if (inMore) {
+      const back = btn(`‹ ${txt('menu.more')}`, () => { this.tab = 'more' as MenuTab; this.refresh(); }, 'back-btn');
+      content.append(back);
+    }
     const extra = this.extraTabs.find((t) => t.id === this.tab);
     if (extra) extra.render(content);
     else if (this.tab === 'status') this.renderStatus(content);
@@ -65,6 +96,38 @@ export class Menu {
     else if (this.tab === 'items') this.renderItems(content);
     else if ((this.tab as string) === 'look') this.renderLook(content);
     else this.renderSettings(content);
+  }
+
+  /** 今の武器に合わせて、残りのポイントを振る（主な能力 6・次 2・VIT 2 の割合） */
+  private autoAllocate() {
+    const ch = this.ctx.me().char;
+    const free = freeStatPoints(ch, CONTENT);
+    if (free <= 0) return;
+    const wd = CONTENT.weapons[weaponTypeOf(ch)];
+    const sc = (wd?.scaling?.[wd.damageType === 'magic' ? 'matk' : 'atk'] ?? { str: 1 }) as Partial<Record<PrimaryStat, number>>;
+    const order = (Object.entries(sc) as [PrimaryStat, number][]).sort((a, b) => b[1] - a[1]).map(([k]) => k);
+    const plan = new Map<PrimaryStat, number>();
+    const main = order[0] ?? 'str', second = order[1] ?? 'vit';
+    const nVit = Math.floor(free * 0.2), nSecond = second === 'vit' ? 0 : Math.floor(free * 0.2);
+    plan.set('vit', nVit);
+    if (nSecond) plan.set(second, nSecond);
+    plan.set(main, (plan.get(main) ?? 0) + free - nVit - nSecond);
+    for (const [stat, n] of plan) if (n > 0) this.ctx.send({ type: 'allocateStat', stat, amount: n });
+  }
+
+  /** 能力を 1 上げたときに大きく変わる値（ATK 24→26 など） */
+  private preview(stat: PrimaryStat): string {
+    const p = this.ctx.me();
+    const now = p.stats;
+    const ch2 = { ...p.char, stats: { ...p.char.stats, [stat]: p.char.stats[stat] + 1 } };
+    const next = derivePlayerStats(ch2, p.statuses, CONTENT);
+    const keys: [keyof typeof now, string, number][] = [
+      ['atk', txt('d.atk'), 1], ['matk', txt('d.matk'), 1], ['maxHp', txt('d.hp'), 0.25], ['def', txt('d.def'), 1],
+      ['maxMp', txt('d.mp'), 0.25], ['mdef', txt('d.mdef'), 1], ['critRate', txt('d.crit'), 100], ['aspd', txt('d.aspd'), 100], ['evasion', txt('d.eva'), 1],
+    ];
+    const diffs = keys.map(([k, label, w]) => ({ k, label, d: ((next[k] as number) - (now[k] as number)) * w })).filter((x) => x.d > 0.001).sort((a, b) => b.d - a.d).slice(0, 2);
+    const fmt = (k: keyof typeof now, v: number) => (k === 'critRate' ? `${(v * 100).toFixed(1)}%` : k === 'aspd' ? `${Math.round(v * 100)}%` : k === 'evasion' ? `${v.toFixed(1)}%` : String(Math.round(v)));
+    return diffs.map((x) => `${x.label} ${fmt(x.k, now[x.k] as number)}→${fmt(x.k, next[x.k] as number)}`).join('  ');
   }
 
   // ───────── ステータス ─────────
@@ -83,25 +146,29 @@ export class Menu {
     const free = freeStatPoints(ch, CONTENT);
     const ptsRow = h('div', `points${free > 0 ? ' has' : ''}`);
     ptsRow.append(h('span', 'k', txt('stat.points')), h('span', 'v', String(free)));
+    if (free > 0) ptsRow.append(btn(txt('stat.auto'), () => this.autoAllocate(), 'auto-btn'));
     el.append(ptsRow);
 
     const m = staticMods(ch, CONTENT);
     const P = primaryStats(ch, m, CONTENT);
     const grid = h('div', 'alloc');
-    const row = (label: string, value: string, bonus: number, onAdd: (n: number) => void, disabled: boolean) => {
+    const row = (label: string, desc: string, value: string, bonus: number, onAdd: (n: number) => void, after: string) => {
       const r = h('div', 'alloc-row');
-      r.append(h('span', 'k', label));
+      const k = h('span', 'k', label);
+      k.append(h('small', 'desc', desc));
+      r.append(k);
       const v = h('span', 'v', value);
       if (bonus) v.append(h('em', '', ` +${bonus}`));
+      if (after && free > 0) v.append(h('small', 'after', after));
       r.append(v);
       const b1 = btn('+1', () => onAdd(1), 'mini');
       const b10 = btn('+10', () => onAdd(10), 'mini');
-      b1.disabled = disabled; b10.disabled = disabled;
+      b1.disabled = free < 1; b10.disabled = free < 10;
       r.append(b1, b10);
       grid.append(r);
     };
     for (const s of PRIMARY_STATS) {
-      row(txt(`stat.${s}`), String(P[s] - Math.round(m[s] ?? 0)), Math.round(m[s] ?? 0), (n) => this.ctx.send({ type: 'allocateStat', stat: s, amount: n }), free <= 0);
+      row(txt(`stat.${s}`), txt(`stat.desc.${s}`), String(P[s] - Math.round(m[s] ?? 0)), Math.round(m[s] ?? 0), (n) => this.ctx.send({ type: 'allocateStat', stat: s, amount: n }), free > 0 ? this.preview(s) : '');
     }
     el.append(grid);
 
@@ -111,6 +178,8 @@ export class Menu {
       const choose = h('div', 'seg');
       for (const t of PERSONAL_STATS) {
         const b = btn(txt(`personal.${t}`), () => this.ctx.send({ type: 'choosePersonal', personal: t }), `seg-btn${ch.personal.type === t ? ' on' : ''}`);
+        b.title = Object.entries(CONTENT.balance.personal[t].mods).map(([k, v]) => modText(k as ModKey, v as number)).join(' ');
+        b.append(h('small', 'desc', txt(`personal.desc.${t}`)));
         choose.append(b);
       }
       pers.append(choose);
@@ -121,7 +190,7 @@ export class Menu {
       r.append(h('span', 'k', txt(`personal.${ch.personal.type}`)), h('span', 'v', String(ch.personal.value)));
       const b1 = btn('+1', () => this.ctx.send({ type: 'allocateStat', stat: 'personal', amount: 1 }), 'mini');
       const b10 = btn('+10', () => this.ctx.send({ type: 'allocateStat', stat: 'personal', amount: 10 }), 'mini');
-      b1.disabled = free <= 0; b10.disabled = free <= 0;
+      b1.disabled = free < 1; b10.disabled = free < 10;
       r.append(b1, b10);
       g2.append(r);
       pers.append(g2);
@@ -142,8 +211,14 @@ export class Menu {
       [txt('d.element'), elName(st.element)], [txt('d.weapon'), CONTENT.weapons[weaponTypeOf(ch)]?.name ?? ''],
     ];
     for (const [k, v] of items) d.append(kv(k, v));
-    el.append(d);
-    el.append(subJobsBox(this.ctx));
+    const more = document.createElement('details');
+    more.className = 'fold';
+    more.append(h('summary', '', txt('stat.details')), d);
+    el.append(more);
+    const sub = document.createElement('details');
+    sub.className = 'fold';
+    sub.append(h('summary', '', txt('stat.subjobs')), subJobsBox(this.ctx));
+    el.append(sub);
   }
 
   // ───────── スキル ─────────

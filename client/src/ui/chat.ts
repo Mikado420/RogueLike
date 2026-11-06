@@ -22,7 +22,9 @@ export class ChatPanel {
 
   constructor(private ctx: Ctx, private social: SocialClient | null, private online: OnlineServices) {
     this.root = h('div', 'chat');
-    const toggle = h('button', 'pill chat-toggle', txt('chat.title'));
+    const toggle = h('button', 'pill icon-btn chat-toggle');
+    toggle.setAttribute('aria-label', txt('chat.title'));
+    toggle.innerHTML = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M4 5h16v11H9l-5 4z"/></svg>';
     toggle.addEventListener('click', () => this.setOpen(!this.open));
     document.querySelector('#ui .top-buttons')?.prepend(toggle);
     this.log = h('div', 'chat-log');

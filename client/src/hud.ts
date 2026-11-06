@@ -5,6 +5,7 @@ import {
 import { rarityColor, statusColor } from './colors';
 import type { Action, InputManager } from './input';
 import { keyLabel } from './keys';
+import { toScreen } from './iso';
 import type { Sfx } from './audio';
 import { h } from './ui/dom';
 
@@ -41,10 +42,19 @@ export class Hud {
   onCapture: (() => void) | null = null;
   private captureBtn: HTMLButtonElement;
   private keyChips: [HTMLElement, Action][] = [];
-  private tut: { root: HTMLDivElement; head: HTMLDivElement; name: HTMLDivElement; keys: HTMLDivElement; fill: HTMLDivElement };
+  private tut: { root: HTMLDivElement; head: HTMLDivElement; name: HTMLDivElement; keys: HTMLDivElement; fill: HTMLDivElement; hint: HTMLDivElement; dots: HTMLDivElement };
   private tutKey = '';
   private touch = false;
   private conn: HTMLDivElement;
+  private nameText: HTMLSpanElement;
+  private menuBtn: HTMLButtonElement;
+  private menuNote: HTMLSpanElement;
+  private stickBase!: HTMLDivElement;
+  private dodgeBtn!: HTMLButtonElement;
+  private attackBtn!: HTMLButtonElement;
+  private guide: { root: HTMLDivElement; arrow: HTMLDivElement; label: HTMLSpanElement };
+  private hitFrom = new Map<number, number>();
+  private focusEl: HTMLElement | null = null;
 
   constructor(private world: World, public myId: number, private input: InputManager, private sfx: Sfx) {
     this.root = document.getElementById('ui')!;
@@ -55,9 +65,10 @@ export class Hud {
 
     const bars = h('div', 'bars');
     const top = h('div', 'bar-top');
+    this.nameText = h('span', 'nm');
     this.lvText = h('span', 'lv');
     this.goldText = h('span', 'gold');
-    top.append(this.lvText, this.goldText);
+    top.append(this.nameText, this.lvText);
     bars.append(top);
     const mk = (cls: string, label: string): Bar => {
       const row = h('div', `bar ${cls}`);
@@ -75,6 +86,9 @@ export class Hud {
     this.expFill = h('div', 'exp-fill');
     exp.append(this.expFill);
     bars.append(exp);
+    const goldRow = h('div', 'gold-row');
+    goldRow.append(h('i', 'coin'), this.goldText);
+    bars.append(goldRow);
     this.buffs = h('div', 'buffs');
     bars.append(this.buffs);
     this.root.append(bars);
@@ -92,15 +106,20 @@ export class Hud {
     this.boss = { root: boss, name: bname, fill: bfill, brk };
 
     const topBtns = h('div', 'top-buttons');
-    const menu = h('button', 'pill', txt('hud.menu'));
+    const menu = h('button', 'pill icon-btn menu-btn');
+    menu.setAttribute('aria-label', txt('hud.menu'));
+    menu.innerHTML = '<svg width="22" height="22" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg>';
     this.menuBadge = h('span', 'badge');
-    menu.append(this.menuBadge);
+    this.menuNote = h('span', 'menu-note');
+    menu.append(this.menuBadge, this.menuNote);
     menu.addEventListener('click', () => { this.sfx.unlock(); this.onMenu?.(); });
+    this.menuBtn = menu;
     topBtns.append(menu);
     this.root.append(topBtns);
 
     const actions = h('div', 'actions');
     const atk = h('button', 'act attack');
+    this.attackBtn = atk;
     atk.append(h('span', 'act-name', txt('hud.attack')), this.chip('attack'));
     const hold = (v: boolean) => (e: PointerEvent) => { e.preventDefault(); this.sfx.unlock(); this.input.setAttackHeld(v); };
     atk.addEventListener('pointerdown', (e) => { atk.setPointerCapture(e.pointerId); hold(true)(e); });
@@ -113,11 +132,16 @@ export class Hud {
       const cd = h('div', 'cd');
       const cdText = h('span', 'cd-text');
       b.append(name, cd, cdText, this.chip(`skill${i + 1}` as Action));
-      b.addEventListener('pointerdown', (e) => { e.preventDefault(); this.sfx.unlock(); this.input.triggerSkill(i); });
+      b.addEventListener('pointerdown', (e) => {
+        e.preventDefault(); this.sfx.unlock();
+        // 空の枠はメニュー（スキル）を開く
+        if (b.classList.contains('empty')) this.onMenu?.(); else this.input.triggerSkill(i);
+      });
       actions.append(b);
       this.skillBtns.push({ btn: b, name, cd, cdText });
     }
     const dodge = h('button', 'act dodge');
+    this.dodgeBtn = dodge;
     dodge.append(h('span', 'act-name', txt('hud.dodge')), this.chip('dodge'));
     dodge.addEventListener('pointerdown', (e) => { e.preventDefault(); this.sfx.unlock(); this.input.triggerDodge(); });
     actions.append(dodge);
@@ -173,9 +197,21 @@ export class Hud {
     tTrack.append(tFill);
     const skip = h('button', 'tut-skip', txt('tut.skip'));
     skip.addEventListener('click', () => this.input.pushCommand({ type: 'skipTutorial' }));
-    tut.append(tHead, tName, tKeys, tTrack, skip);
+    const tHint = h('div', 'tut-hint');
+    const tFoot = h('div', 'tut-foot');
+    const tDots = h('div', 'tut-dots');
+    tFoot.append(tDots, skip);
+    tut.append(tHead, tName, tHint, tKeys, tTrack, tFoot);
     this.root.append(tut);
-    this.tut = { root: tut, head: tHead, name: tName, keys: tKeys, fill: tFill };
+    this.tut = { root: tut, head: tHead, name: tName, keys: tKeys, fill: tFill, hint: tHint, dots: tDots };
+
+    // 行き先の矢印（チュートリアルの「街へ」など）
+    const guide = h('div', 'guide');
+    const arrow = h('div', 'guide-arrow');
+    const glabel = h('span', 'guide-label');
+    guide.append(arrow, glabel);
+    this.root.append(guide);
+    this.guide = { root: guide, arrow, label: glabel };
   }
 
   /** 接続の状態（つなぎ直し中だけ出す） */
@@ -201,12 +237,20 @@ export class Hud {
     const steps = CONTENT.tutorial.steps;
     const s = t && !t.done ? steps[t.step] : null;
     this.tut.root.classList.toggle('show', !!s);
-    if (!s) return;
+    this.updateGuide(p, s?.dir ? CONTENT.balance.world.startTown : null);
+    if (!s) { this.setFocus(null); return; }
     const key = `${t.step}`;
     if (key !== this.tutKey) {
       this.tutKey = key;
       this.tut.head.textContent = `${txt('tut.title')}  ${t.step + 1} / ${steps.length}`;
       this.tut.name.textContent = s.text;
+      this.tut.hint.textContent = (this.touch ? s.touch : s.hint) ?? '';
+      this.tut.dots.replaceChildren(...steps.map((_, i) => h('i', i < t.step ? 'done' : i === t.step ? 'on' : '')));
+      const focus: Record<string, HTMLElement | undefined> = {
+        move: this.touch ? this.stickBase : undefined, hit: this.attackBtn, dodge: this.dodgeBtn,
+        learn: this.menuBtn, stats: this.menuBtn, equip: this.menuBtn, skill: this.skillBtns[0]?.btn,
+      };
+      this.setFocus(focus[s.type] ?? null);
       const chips: string[] = [];
       const b = this.input.currentBindings;
       if (s.dir) chips.push(txt(`dir.${s.dir}`));
@@ -218,6 +262,29 @@ export class Hud {
     this.tut.fill.parentElement!.classList.toggle('hide', s.n <= 1);
   }
 
+  /** 操作してほしい場所を光らせる */
+  private setFocus(el: HTMLElement | null) {
+    if (this.focusEl === el) return;
+    this.focusEl?.classList.remove('tut-focus');
+    el?.classList.add('tut-focus');
+    this.focusEl = el;
+  }
+
+  /** 行き先（エリアの出口）への矢印と距離 */
+  private updateGuide(p: Player, to: string | null) {
+    const ex = to ? this.world.area.exits.find((e) => e.to === to) : undefined;
+    this.guide.root.classList.toggle('show', !!ex && !p.dead);
+    if (!ex) return;
+    const tx = (ex.rect[0] + ex.rect[2]) / 2, ty = (ex.rect[1] + ex.rect[3]) / 2;
+    const a = toScreen(p.x, p.y), b = toScreen(tx, ty);
+    const ang = Math.atan2(b.y - a.y, b.x - a.x);
+    const r = Math.min(window.innerWidth, window.innerHeight) * 0.22;
+    this.guide.root.style.transform = `translate(calc(-50% + ${Math.cos(ang) * r}px), calc(-50% + ${Math.sin(ang) * r}px))`;
+    this.guide.arrow.style.transform = `rotate(${ang}rad)`;
+    const d = Math.round(Math.hypot(tx - p.x, ty - p.y));
+    this.guide.label.textContent = `${CONTENT.areas[to!]?.name ?? ''}  ${d}m`;
+  }
+
   setWorld(w: World) { this.world = w; }
 
   private me(): Player {
@@ -227,6 +294,8 @@ export class Hud {
   private makeStick(): HTMLElement {
     const zone = h('div', 'stick-zone');
     const base = h('div', 'stick-base');
+    this.stickBase = base;
+    base.append(h('span', 'stick-label', txt('hud.move')));
     const knob = h('div', 'stick-knob');
     base.append(knob);
     zone.append(base);
@@ -284,6 +353,16 @@ export class Hud {
       }
       if (e.type === 'notice' && e.playerId === this.myId) {
         this.toast(txt(e.key, ...(e.args ?? [])), e.key.startsWith('err.') ? '#ff8a7a' : '#9fe8ff');
+      }
+      if (e.type === 'damage' && e.tgt === this.myId && e.amount > 0) {
+        // だれから何ダメージ受けたか（同じ相手は少し間をあけて）
+        const now = performance.now();
+        if (now - (this.hitFrom.get(e.src) ?? 0) > 900) {
+          this.hitFrom.set(e.src, now);
+          const m = this.world.area.monsters.find((x) => x.id === e.src);
+          const who = m ? CONTENT.monsters[m.defId]?.name : this.world.players.find((x) => x.id === e.src)?.char.name;
+          if (who) this.toast(txt('hud.hitFrom', who, e.amount), '#ff9a8a', 'hit');
+        }
       }
       if (e.type === 'levelUp' && e.playerId === this.myId) this.toast(txt('notice.levelUp', e.level), '#ffe14a');
       if (e.type === 'refine' && e.playerId === this.myId) this.toast(txt(e.success ? 'smith.success' : 'smith.failed', e.level), e.success ? '#ffe14a' : '#ff8a7a');
@@ -383,8 +462,9 @@ export class Hud {
     set(this.bars.hp, p.hp, p.stats.maxHp);
     set(this.bars.mp, p.mp, p.stats.maxMp);
     set(this.bars.st, p.st, p.stats.maxSt);
+    if (this.nameText.textContent !== ch.name) this.nameText.textContent = ch.name;
     this.lvText.textContent = `${txt('stat.level')} ${ch.level}${ch.rebirths > 0 ? ` ★${ch.rebirths}` : ''}`;
-    this.goldText.textContent = `${ch.gold.toLocaleString('ja-JP')} ${txt('stat.gold')}`;
+    this.goldText.textContent = ch.gold.toLocaleString('ja-JP');
     const need = expToNext(ch.level, CONTENT);
     this.expFill.style.width = `${Math.min(1, ch.exp / Math.max(1, need)) * 100}%`;
 
@@ -406,10 +486,13 @@ export class Hud {
     const k = ids.join();
     if (k !== this.skillKey) {
       this.skillKey = k;
+      // まだ何も覚えていなければ、空の枠は 1 つだけ（押すとメニューが開く）
+      const none = ids.every((x) => !x);
       ids.forEach((id, i) => {
         const b = this.skillBtns[i];
-        b.name.textContent = id ? CONTENT.skills[id].name : '';
+        b.name.textContent = id ? CONTENT.skills[id].name : none && i === 0 ? txt('hud.skillEmpty') : '';
         b.btn.classList.toggle('empty', !id);
+        b.btn.classList.toggle('hidden', !id && (none ? i > 0 : false));
       });
     }
     ids.forEach((id, i) => {
@@ -436,8 +519,11 @@ export class Hud {
     this.captureBtn.classList.toggle('show', (ch.bag.seal_stone ?? 0) + (ch.bag.seal_stone_hi ?? 0) > 0 && this.world.area.type !== 'town');
 
     const pts = freeStatPoints(ch, CONTENT) + freeSkillPoints(ch, CONTENT);
-    this.menuBadge.textContent = pts > 0 ? String(pts) : '';
+    this.menuBadge.textContent = pts > 0 ? '!' : '';
     this.menuBadge.classList.toggle('show', pts > 0);
+    const sp = freeStatPoints(ch, CONTENT), kp = freeSkillPoints(ch, CONTENT);
+    const note = [sp > 0 ? txt('hud.statPts', sp) : '', kp > 0 ? txt('hud.skillPts', kp) : ''].filter(Boolean).join(' ');
+    if (this.menuNote.textContent !== note) this.menuNote.textContent = note;
 
     // ボス
     const boss = this.world.area.monsters.find((m) => CONTENT.monsters[m.defId].boss && !m.dead && m.ai === 'chase');
@@ -453,7 +539,8 @@ export class Hud {
 
     this.updateWeaponRes(p);
     const a = this.world.area;
-    const lv = a.type === 'field' ? `  Lv${a.level[0]}-${a.level[1]}` : '';
+    const lv = a.type === 'field' ? ` · Lv${a.level[0]}–${a.level[1]}` : '';
+    this.areaInfo.classList.toggle('danger', a.type === 'field' && a.level[0] > ch.level);
     const inst = a.instance;
     this.leaveBtn.style.display = inst ? '' : 'none';
     let ii = '';
@@ -469,7 +556,7 @@ export class Hud {
     if (this.instInfo.textContent !== ii) this.instInfo.textContent = ii;
     this.instInfo.style.display = ii ? '' : 'none';
     const wt = CONTENT.weather.types[currentWeather(this.world)]?.name ?? '';
-    const info = a.instance ? a.name : `${a.name}${lv}  ${txt(`phase.${dayPhase(this.world)}`)}  ${wt}`;
+    const info = a.instance ? a.name : `${a.name}${lv} · ${txt(`phase.${dayPhase(this.world)}`)} · ${wt}`;
     if (this.areaInfo.textContent !== info) this.areaInfo.textContent = info;
 
     this.death.root.classList.toggle('show', p.dead);
