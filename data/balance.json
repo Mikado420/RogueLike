@@ -52,7 +52,9 @@
     "cspdPerDex": 0.003,
     "cspdMax": 2.0,
     "evasionPerAgi": 0.03,
-    "refineStatPerLevel": 0.05
+    "refineStatPerLevel": 0.05,
+    "softCap": [{ "upTo": 255, "rate": 1 }, { "upTo": 600, "rate": 0.6 }, { "rate": 0.35 }],
+    "evasionMax": 40
   },
   "personal": {
     "crt": {
@@ -89,7 +91,9 @@
     }
   },
   "progression": {
-    "maxLevel": 100,
+    "maxLevel": 300,
+    "rebirthLevel": 100,
+    "expKillsHigh": { "from": 100, "base": 23, "per": 0.06 },
     "startStatPoints": 5,
     "statPointsPerLevel": 3,
     "startSkillPoints": 1,
@@ -171,6 +175,7 @@
     "blockReduce": 50
   },
   "monster": {
+    "hpHigh": { "from": 100, "pow": 0.95 },
     "hp": [
       80,
       18,
@@ -229,7 +234,7 @@
   },
   "magicStone": {
     "id": "refine_stone", "base": 0.22, "perLevel": 0.01, "hpExp": 0.7, "elite": 4, "golem": 3,
-    "golems": ["golem", "magma_golem", "ice_golem"], "boss": 40, "raidBoss": 120, "excludeTags": ["dummy"]
+    "golems": ["golem", "magma_golem", "ice_golem", "star_golem", "void_golem"], "boss": 40, "raidBoss": 120, "excludeTags": ["dummy"]
   },
   "start": {
     "gold": 100,

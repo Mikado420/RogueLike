@@ -1,6 +1,6 @@
 import {
   CONTENT, EQUIP_SLOTS, PERSONAL_STATS, PRIMARY_STATS, RARITIES, bagInfo, canLearnSkill, expToNext, freeSkillPoints,
-  ensureMissions, freeStatPoints, missionProgress, derivePlayerStats, itemMods, lookSlotOf, primaryStats, scaled, slotsFor, staticMods, txt, weaponTypeOf,
+  ensureMissions, freeStatPoints, missionProgress, derivePlayerStats, itemMods, lookSlotOf, primaryStats, rawPrimaryStats, scaled, slotsFor, staticMods, txt, weaponTypeOf,
   type EquipSlot, type Item, type ModKey, type PrimaryStat, type Rarity, type SkillDef, type WeaponType,
 } from '../../../shared/src';
 import { lookInfo } from '../colors';
@@ -214,14 +214,16 @@ export class Menu {
 
     const m = staticMods(ch, CONTENT);
     const P = primaryStats(ch, m, CONTENT);
+    const R = rawPrimaryStats(ch, m, CONTENT);
     const grid = h('div', 'alloc');
-    const row = (label: string, desc: string, value: string, bonus: number, onAdd: (n: number) => void, after: string) => {
+    const row = (label: string, desc: string, value: string, bonus: number, onAdd: (n: number) => void, after: string, eff = '') => {
       const r = h('div', 'alloc-row');
       const k = h('span', 'k', label);
       k.append(h('small', 'desc', desc));
       r.append(k);
       const v = h('span', 'v', value);
       if (bonus) v.append(h('em', '', ` +${bonus}`));
+      if (eff) v.append(h('small', 'eff', eff));
       if (after && free > 0) v.append(h('small', 'after', after));
       r.append(v);
       const b1 = btn('+1', () => onAdd(1), 'mini');
@@ -231,7 +233,8 @@ export class Menu {
       grid.append(r);
     };
     for (const s of PRIMARY_STATS) {
-      row(txt(`stat.${s}`), txt(`stat.desc.${s}`), String(P[s] - Math.round(m[s] ?? 0)), Math.round(m[s] ?? 0), (n) => this.ctx.send({ type: 'allocateStat', stat: s, amount: n }), free > 0 ? this.preview(s) : '');
+      row(txt(`stat.${s}`), txt(`stat.desc.${s}`), String(R[s] - Math.round(m[s] ?? 0)), Math.round(m[s] ?? 0), (n) => this.ctx.send({ type: 'allocateStat', stat: s, amount: n }), free > 0 ? this.preview(s) : '',
+        P[s] < R[s] ? txt('stat.effective', Math.floor(P[s])) : '');
     }
     el.append(grid);
 

@@ -94,9 +94,28 @@ export function staticMods(char: CharacterData, c: Content): Mods {
 }
 
 /** 基礎ステ（振った分＋基礎値＋装備などの加算） */
-export function primaryStats(char: CharacterData, m: Mods, c: Content): Record<PrimaryStat, number> {
+/** 振った値（＋装備）から実際に効く値へ。softCap の段ごとに効き目が下がる */
+export function effectiveStat(raw: number, c: Content): number {
+  let out = 0, prev = 0;
+  for (const t of c.balance.stats.softCap) {
+    const cap = t.upTo ?? Infinity;
+    if (raw > prev) out += (Math.min(raw, cap) - prev) * t.rate;
+    prev = cap;
+  }
+  return out;
+}
+
+/** 振った値＋装備の合計（効き目を下げる前） */
+export function rawPrimaryStats(char: CharacterData, m: Mods, c: Content): Record<PrimaryStat, number> {
   const out = {} as Record<PrimaryStat, number>;
   for (const s of PRIMARY_STATS) out[s] = c.balance.stats.statBase + char.stats[s] + Math.round(m[s] ?? 0);
+  return out;
+}
+
+/** 実際に効く主ステータス */
+export function primaryStats(char: CharacterData, m: Mods, c: Content): Record<PrimaryStat, number> {
+  const out = rawPrimaryStats(char, m, c);
+  for (const s of PRIMARY_STATS) out[s] = effectiveStat(out[s], c);
   return out;
 }
 
@@ -124,6 +143,14 @@ export function derivePlayerStats(char: CharacterData, statuses: StatusInstance[
   const def = (lv * k.defPerLevel + P.vit * k.defPerVit + (m.def ?? 0)) * (1 + (m.defPct ?? 0) / 100);
   const mdef = (lv * k.mdefPerLevel + P.int * k.mdefPerInt + (m.mdef ?? 0)) * (1 + (m.mdefPct ?? 0) / 100);
 
+  // AGI が攻撃速度に効くのは statMax まで（上限撤廃で AGI 武器だけが速くなりすぎないように）。
+  // それを超えた分と、攻撃速度の上限に当たった分は回避へ。会心率 100% を超えた DEX は会心ダメージへ
+  const agiSpd = Math.min(P.agi, k.statMax);
+  const aspdRaw = 1 + agiSpd * k.aspdPerAgi + (m.aspdPct ?? 0) / 100;
+  const overAgi = (P.agi - agiSpd) + (aspdRaw > k.aspdMax ? Math.min(agiSpd, (aspdRaw - k.aspdMax) / k.aspdPerAgi) : 0);
+  const critRaw = k.critBase + P.dex * k.critPerDex + (m.critRate ?? 0);
+  const overDex = critRaw > 100 ? Math.min(P.dex, (critRaw - 100) / k.critPerDex) : 0;
+
   return {
     level: lv,
     atk: Math.max(1, Math.round(atk)),
@@ -134,11 +161,11 @@ export function derivePlayerStats(char: CharacterData, statuses: StatusInstance[
     maxMp: Math.max(10, Math.round(maxMp)),
     maxSt: Math.round(c.balance.player.maxStaminaBase + (m.maxSt ?? 0)),
     critRate: clamp((k.critBase + P.dex * k.critPerDex + (m.critRate ?? 0)) / 100, 0, 1),
-    critDamage: (k.critDamage + P.str * k.critDamagePerStr + (m.critDamage ?? 0)) / 100,
-    aspd: clamp(1 + P.agi * k.aspdPerAgi + (m.aspdPct ?? 0) / 100, 0.3, k.aspdMax),
+    critDamage: (k.critDamage + (P.str + overDex) * k.critDamagePerStr + (m.critDamage ?? 0)) / 100,
+    aspd: clamp(aspdRaw, 0.3, k.aspdMax),
     cspd: clamp(1 + P.dex * k.cspdPerDex + (m.cspdPct ?? 0) / 100, 0.3, k.cspdMax),
     moveSpeed: clamp(k.moveSpeedBase * (1 + P.agi * k.moveSpeedPerAgi + (m.moveSpeedPct ?? 0) / 100), 0.5, k.moveSpeedMax),
-    evasion: P.agi * k.evasionPerAgi + (m.evasion ?? 0),
+    evasion: Math.min(k.evasionMax, (P.agi + overAgi) * k.evasionPerAgi + (m.evasion ?? 0)),
     element: char.equipment.weapon?.element ?? 'neutral',
     m,
   };
@@ -157,7 +184,9 @@ export function difficultyScale(c: Content, d: Difficulty): MonsterScale {
 export function monsterStats(def: MonsterDef, level: number, c: Content, scale: MonsterScale, statuses: StatusInstance[] = []): CombatStats {
   const mb = c.balance.monster;
   const dk = c.balance.damage;
-  const hpCurve = mb.hp[0] + mb.hp[1] * Math.pow(level, mb.hp[2]);
+  const hpAt = (l: number) => mb.hp[0] + mb.hp[1] * Math.pow(l, mb.hp[2]);
+  const hi = mb.hpHigh;
+  const hpCurve = hi && level > hi.from ? hpAt(hi.from) * Math.pow(level / hi.from, hi.pow) : hpAt(level);
   const atkCurve = mb.atk[0] + mb.atk[1] * level;
   const K = dk.defenseKBase + dk.defenseKPerLevel * level;
   const m = statusMods(statuses, c);

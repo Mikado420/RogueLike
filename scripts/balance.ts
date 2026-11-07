@@ -5,7 +5,7 @@
  */
 import check from '../data/balance_check.json';
 import {
-  CONTENT, PRIMARY_STATS, WEAPON_TYPES, createItem, createWorld, emptyInput, isOnBeat, chargeLevel, newAccount,
+  CONTENT, PRIMARY_STATS, monsterStats, NO_SCALE, WEAPON_TYPES, createItem, createWorld, emptyInput, isOnBeat, chargeLevel, newAccount,
   newCharacter, Rng, slotSkill, spawnMonster, step, tierFor, type PlayerInput, type PrimaryStat, type WeaponType, type World,
 } from '../shared/src';
 import { economyReport } from './economy';
@@ -21,7 +21,7 @@ function setupWorld(weapon: WeaponType, level: number, targets: number): World {
   // ステ振り
   const preset = (check.weapons as Record<string, { stats: Partial<Record<PrimaryStat, number>>; range: string }>)[weapon];
   const total = CONTENT.balance.progression.startStatPoints + CONTENT.balance.progression.statPointsPerLevel * (level - 1);
-  const max = CONTENT.balance.stats.statMax - CONTENT.balance.stats.statBase;
+  const max = Infinity; // 1つのステータスに上限はない（効き目は softCap で下がる）
   let left = total;
   for (const s of PRIMARY_STATS) ch.stats[s] = 0;
   const order = Object.entries(preset.stats).sort((a, b) => (b[1] ?? 0) - (a[1] ?? 0));
@@ -110,6 +110,13 @@ function dpsReport() {
   console.log('\n■ 武器ごとの DPS（中央値に対する割合）');
   console.table(rows);
   const bad = WEAPON_TYPES.filter((wt) => cols.slice(0, check.levels.length).some((c) => Math.abs(results[wt][c] / med[c] - 1) > check.tolerance));
+  // 倒すまでの時間（同じ敵を各レベルにしたとき）。Lv100 を 1 とした比。企画では 0.9〜1.2 に収める
+  const ref = CONTENT.monsters[check.ttkMonster];
+  const ttk = (lv: number) => monsterStats(ref, lv, CONTENT, NO_SCALE).maxHp / med[`Lv${lv}`];
+  if (med['Lv100']) {
+    console.log(`\n■ 倒すまでの時間（${ref.name}・中央値の武器、Lv100 = 1）`);
+    console.table(check.levels.map((lv) => ({ Lv: lv, 秒: ttk(lv).toFixed(2), 比: (ttk(lv) / ttk(100)).toFixed(2) })));
+  }
   if (bad.length) console.log(`  ※ 中央値から ±${check.tolerance * 100}% を超える武器: ${bad.map((w) => CONTENT.weapons[w].name).join('、')}`);
   else console.log(`  すべての武器が中央値の ±${check.tolerance * 100}% 以内`);
 }

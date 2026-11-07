@@ -325,7 +325,7 @@
   "icon": "fist",
   "scaling": {
    "atk": {
-    "agi": 1.35,
+    "agi": 1.25,
     "str": 0.8,
     "dex": 0.4
    },

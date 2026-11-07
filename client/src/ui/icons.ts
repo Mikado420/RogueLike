@@ -582,6 +582,8 @@ const BAG: Record<string, [Bag, ...unknown[]]> = {
   crab_shell: [shell], hydra_fang: [fang], hell_fang: [fang], wolf_fang: [fang],
   magma_core: [(c) => orb(c)], frost_core: [(c) => orb(c)], bat_wing: [wing], ancient_bark: [bark],
   fairy_dust: [pouch], dark_silk: [spool],
+  star_fragment: [crystalCluster], void_crystal: [crystalCluster], sky_feather: [wing], abyss_fang: [fang],
+  meteor_iron: [(c) => rock('#4a4250', c)], skyroot_wood: [log], nether_wood: [log],
   copper_ore: [(c) => rock('#8a8478', c)], iron_ore: [(c) => rock('#7a7a82', c)], mithril_ore: [(c) => rock('#6a7280', c)], star_ore: [(c) => rock('#5a5a6a', c)],
   herb_green: [sprig], moon_herb: [sprig], fire_herb: [sprig], shade_herb: [sprig], snow_lotus: [lotus],
   oak_wood: [log], marsh_wood: [log], ash_wood: [log], elder_wood: [log], frost_wood: [log],

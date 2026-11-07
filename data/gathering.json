@@ -295,6 +295,101 @@
      }
     ]
    }
+  },
+  "starfall": {
+   "count": {
+    "ore": 5,
+    "herb": 3,
+    "wood": 4,
+    "fish": 3
+   },
+   "tables": {
+    "ore": [
+     {
+      "id": "meteor_iron",
+      "w": 8
+     },
+     {
+      "id": "star_ore",
+      "w": 4
+     },
+     {
+      "id": "storm_crystal",
+      "w": 3,
+      "weather": "storm"
+     }
+    ],
+    "herb": [
+     {
+      "id": "snow_lotus",
+      "w": 6
+     },
+     {
+      "id": "moon_herb",
+      "w": 4
+     }
+    ],
+    "wood": [
+     {
+      "id": "skyroot_wood",
+      "w": 10
+     }
+    ],
+    "fish": [
+     {
+      "id": "ice_fish",
+      "w": 8
+     },
+     {
+      "id": "golden_fish",
+      "w": 3,
+      "weather": "aurora"
+     }
+    ]
+   }
+  },
+  "abyss": {
+   "count": {
+    "ore": 6,
+    "herb": 3,
+    "wood": 4,
+    "fish": 2
+   },
+   "tables": {
+    "ore": [
+     {
+      "id": "void_crystal",
+      "w": 6
+     },
+     {
+      "id": "meteor_iron",
+      "w": 6
+     }
+    ],
+    "herb": [
+     {
+      "id": "shade_herb",
+      "w": 10
+     }
+    ],
+    "wood": [
+     {
+      "id": "nether_wood",
+      "w": 10
+     }
+    ],
+    "fish": [
+     {
+      "id": "lava_crab",
+      "w": 6
+     },
+     {
+      "id": "golden_fish",
+      "w": 2,
+      "weather": "bloodmoon"
+     }
+    ]
+   }
   }
  }
 }

@@ -382,6 +382,7 @@ export interface Balance {
     breakDmgTakenPct: number;
   };
   stats: {
+    /** statMax は「効き目が下がり始める値」の目安（振れる上限ではない） */
     statBase: number; statMax: number; personalMax: number;
     hpBase: number; hpPerLevel: number; hpPerVit: number;
     mpBase: number; mpPerInt: number;
@@ -393,10 +394,18 @@ export interface Balance {
     aspdPerAgi: number; aspdMax: number; cspdPerDex: number; cspdMax: number;
     evasionPerAgi: number;
     refineStatPerLevel: number;
+    /** 振った量に対する効き目の段（upTo まで rate 倍。最後の段は上限なし） */
+    softCap: { upTo?: number; rate: number }[];
+    /** 回避の上限（%） */
+    evasionMax: number;
   };
   personal: Record<PersonalStat, PersonalDef>;
   progression: {
     maxLevel: number;
+    /** 転生できるレベル */
+    rebirthLevel: number;
+    /** このレベルより上は、必要討伐数を base + per×(Lv−from) にする */
+    expKillsHigh?: { from: number; base: number; per: number };
     startStatPoints: number; statPointsPerLevel: number;
     startSkillPoints: number; skillPointsPerLevel: number;
     expKills: [number, number];
@@ -416,6 +425,8 @@ export interface Balance {
   };
   monster: {
     hp: [number, number, number]; atk: [number, number]; def: number; mdef: number;
+    /** このレベルより上の HP は HP(from)×(Lv/from)^pow */
+    hpHigh?: { from: number; pow: number };
     gold: [number, number, number];
     hpRegenOnReturn: number; wanderRadius: number; wanderSpeedRatio: number;
     enrageThreshold: number; enrageCooldownRatio: number; recovery: number;

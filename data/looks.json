@@ -1,7 +1,7 @@
 {
   "bodyColors": ["#3b6fd8", "#d8453b", "#3bb86a", "#9a5ad8", "#e0a02a", "#4a4f5c"],
   "hairColors": ["#5a3a22", "#1e1e24", "#e8d27a", "#c8462a", "#e6e6ee", "#6a8cff"],
-  "tierColors": ["#9a8a72", "#a8b0bc", "#c8d0dc", "#e6eef8", "#7fe0ff", "#c08aff", "#ff8a5a", "#ffe28a", "#ffffff"],
+  "tierColors": ["#9a8a72", "#a8b0bc", "#c8d0dc", "#e6eef8", "#7fe0ff", "#c08aff", "#ff8a5a", "#ffe28a", "#ffffff", "#9fb6ff", "#5ad1ff", "#b05aff", "#ffb3e0"],
   "names": {
     "sword": "片手剣", "greatsword": "両手剣", "dual": "双剣", "spear": "槍", "bow": "弓", "staff": "杖", "fist": "手甲", "gun": "銃",
     "scythe": "鎌", "lute": "リュート", "light": "軽鎧", "heavy": "重鎧", "cloth": "法衣", "helm": "兜", "hat": "帽子", "hood": "頭巾"

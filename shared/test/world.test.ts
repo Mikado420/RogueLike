@@ -30,7 +30,8 @@ describe('アイテム生成とドロップ', () => {
   it('装備レベルが上がると段（tier）が上がり、数値も上がる', () => {
     const rng = new Rng(2);
     expect(tierFor(1, CONTENT)).toBe(0);
-    expect(tierFor(100, CONTENT)).toBe(CONTENT.equipment.tiers.length - 1);
+    expect(tierFor(300, CONTENT)).toBe(CONTENT.equipment.tiers.length - 1);
+    expect(CONTENT.equipment.tiers[tierFor(100, CONTENT)].level).toBe(100);
     const lo = createItem(1, 'w_oneHandSword', tierFor(1, CONTENT), 1, 'common', rng, CONTENT);
     const hi = createItem(2, 'w_oneHandSword', tierFor(60, CONTENT), 60, 'common', rng, CONTENT);
     expect(hi.stats.atk!).toBeGreaterThan(lo.stats.atk!);

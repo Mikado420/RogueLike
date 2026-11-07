@@ -2,7 +2,7 @@
  "name": "無限の塔",
  "baseLevel": 5,
  "levelPerFloor": 1.2,
- "maxLevel": 130,
+ "maxLevel": 300,
  "monstersBase": 5,
  "monstersPerFloor": 0.25,
  "monstersMax": 14,
@@ -34,7 +34,15 @@
   "frost_wyvern",
   "yeti",
   "golem",
-  "wisp"
+  "wisp",
+  "star_golem",
+  "sky_wolf",
+  "comet_wyvern",
+  "starfall_knight",
+  "void_golem",
+  "abyss_hound",
+  "void_wraith",
+  "abyss_knight"
  ],
  "bosses": [
   "king_slime",
@@ -46,7 +54,9 @@
   "elder_treant",
   "shadow_queen",
   "frost_dragon",
-  "ice_lich"
+  "ice_lich",
+  "astral_dragon",
+  "nether_dragon"
  ],
  "bossDrops": "tower_boss",
  "untradableFrom": 50,

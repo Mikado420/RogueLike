@@ -3247,5 +3247,1264 @@
    }
   ],
   "raid": true
+ },
+ "star_golem": {
+  "name": "星晶ゴーレム",
+  "sprite": "golem",
+  "colors": [
+   "#bfe6ff",
+   "#ffffff"
+  ],
+  "element": "light",
+  "radius": 0.6,
+  "speed": 1.0,
+  "aggroRange": 6,
+  "leashRange": 13,
+  "attackInterval": 0.6,
+  "hp": 2.99,
+  "atk": 1.4,
+  "matk": 0.6,
+  "def": 2.2,
+  "mdef": 0.9,
+  "poise": 3.9,
+  "drops": "field",
+  "attacks": [
+   {
+    "id": "slam",
+    "delivery": "strike",
+    "anchor": "self",
+    "shape": {
+     "type": "circle",
+     "radius": 2.0
+    },
+    "windup": 1.0,
+    "cooldown": 3.0,
+    "power": 1.5,
+    "range": 1.8,
+    "weight": 1,
+    "breakPower": 2,
+    "status": [
+     {
+      "id": "freeze",
+      "chance": 20,
+      "duration": 1.0
+     }
+    ]
+   },
+   {
+    "id": "shard",
+    "delivery": "projectile",
+    "windup": 0.6,
+    "cooldown": 3.0,
+    "power": 0.9,
+    "range": 5.5,
+    "weight": 1,
+    "projectile": {
+     "count": 1,
+     "spread": 0,
+     "speed": 9,
+     "range": 7,
+     "radius": 0.3,
+     "pierce": 1,
+     "sprite": "crystal"
+    },
+    "damageType": "magic",
+    "status": [
+     {
+      "id": "slow",
+      "chance": 70,
+      "duration": 3
+     }
+    ],
+    "element": "light"
+   }
+  ],
+  "exp": 2.2,
+  "gold": 2,
+  "mats": [
+   {
+    "id": "star_fragment",
+    "chance": 0.35
+   },
+   {
+    "id": "meteor_iron",
+    "chance": 0.2
+   }
+  ],
+  "capturable": true
+ },
+ "sky_wolf": {
+  "name": "天狼",
+  "sprite": "beast",
+  "colors": [
+   "#e8f0ff",
+   "#9fb6ff"
+  ],
+  "element": "wind",
+  "radius": 0.42,
+  "speed": 3.68,
+  "aggroRange": 6,
+  "leashRange": 13,
+  "attackInterval": 0.54,
+  "hp": 1.1,
+  "atk": 1.2,
+  "matk": 0.5,
+  "def": 0.9,
+  "mdef": 0.9,
+  "poise": 1.0,
+  "drops": "field",
+  "attacks": [
+   {
+    "id": "bite",
+    "delivery": "strike",
+    "anchor": "self",
+    "shape": {
+     "type": "arc",
+     "range": 1.3,
+     "arc": 100
+    },
+    "windup": 0.35,
+    "cooldown": 1.2,
+    "power": 1.0,
+    "range": 1.2,
+    "weight": 2,
+    "status": [
+     {
+      "id": "slow",
+      "chance": 20,
+      "duration": 2
+     }
+    ]
+   },
+   {
+    "id": "lunge",
+    "delivery": "strike",
+    "anchor": "self",
+    "shape": {
+     "type": "line",
+     "range": 3.2,
+     "width": 1.0
+    },
+    "windup": 0.5,
+    "cooldown": 3.0,
+    "power": 1.3,
+    "range": 2.9000000000000004,
+    "weight": 1,
+    "breakPower": 2
+   }
+  ],
+  "mats": [
+   {
+    "id": "sky_feather",
+    "chance": 0.3
+   }
+  ],
+  "capturable": true
+ },
+ "comet_wyvern": {
+  "name": "コメットワイバーン",
+  "sprite": "drake",
+  "colors": [
+   "#ffb07a",
+   "#fff0d0"
+  ],
+  "element": "fire",
+  "radius": 0.55,
+  "speed": 2.6,
+  "aggroRange": 6,
+  "leashRange": 13,
+  "attackInterval": 0.6,
+  "hp": 1.5,
+  "atk": 1.2,
+  "matk": 1.3,
+  "def": 1.0,
+  "mdef": 1.1,
+  "poise": 1.0,
+  "drops": "field",
+  "attacks": [
+   {
+    "id": "ice_breath",
+    "delivery": "projectile",
+    "windup": 0.7,
+    "cooldown": 2.6,
+    "power": 1.2,
+    "range": 7.5,
+    "weight": 1,
+    "projectile": {
+     "count": 1,
+     "spread": 0,
+     "speed": 10,
+     "range": 9,
+     "radius": 0.3,
+     "pierce": 1,
+     "sprite": "aqua"
+    },
+    "damageType": "magic",
+    "status": [
+     {
+      "id": "freeze",
+      "chance": 15,
+      "duration": 1.0
+     }
+    ],
+    "element": "water"
+   },
+   {
+    "id": "bite",
+    "delivery": "strike",
+    "anchor": "self",
+    "shape": {
+     "type": "arc",
+     "range": 1.6,
+     "arc": 120
+    },
+    "windup": 0.5,
+    "cooldown": 2.0,
+    "power": 1.2,
+    "range": 1.5,
+    "weight": 2
+   },
+   {
+    "id": "lunge",
+    "delivery": "strike",
+    "anchor": "self",
+    "shape": {
+     "type": "line",
+     "range": 3.2,
+     "width": 1.0
+    },
+    "windup": 0.5,
+    "cooldown": 3.0,
+    "power": 1.3,
+    "range": 2.9000000000000004,
+    "weight": 1,
+    "breakPower": 2
+   }
+  ],
+  "tags": [
+   "flying"
+  ],
+  "mats": [
+   {
+    "id": "sky_feather",
+    "chance": 0.35
+   }
+  ],
+  "capturable": true,
+  "scale": 0.9,
+  "exp": 1.4
+ },
+ "starfall_knight": {
+  "name": "星屑の騎士",
+  "sprite": "humanoid",
+  "colors": [
+   "#c8d0f0",
+   "#5a6aa0"
+  ],
+  "element": "light",
+  "radius": 0.6,
+  "speed": 1.6,
+  "aggroRange": 6,
+  "leashRange": 13,
+  "attackInterval": 0.6,
+  "hp": 2.0,
+  "atk": 1.5,
+  "matk": 0.4,
+  "def": 1.4,
+  "mdef": 0.9,
+  "poise": 2.5,
+  "drops": "field",
+  "attacks": [
+   {
+    "id": "slam",
+    "delivery": "strike",
+    "anchor": "self",
+    "shape": {
+     "type": "circle",
+     "radius": 1.8
+    },
+    "windup": 0.9,
+    "cooldown": 2.8,
+    "power": 1.5,
+    "range": 1.6,
+    "weight": 1,
+    "breakPower": 2,
+    "status": [
+     {
+      "id": "stun",
+      "chance": 20,
+      "duration": 1.0
+     }
+    ]
+   },
+   {
+    "id": "swipe",
+    "delivery": "strike",
+    "anchor": "self",
+    "shape": {
+     "type": "arc",
+     "range": 1.6,
+     "arc": 130
+    },
+    "windup": 0.5,
+    "cooldown": 1.8,
+    "power": 1.2,
+    "range": 1.5,
+    "weight": 2
+   },
+   {
+    "id": "ice_breath",
+    "delivery": "projectile",
+    "windup": 0.7,
+    "cooldown": 2.6,
+    "power": 1.2,
+    "range": 7.5,
+    "weight": 1,
+    "projectile": {
+     "count": 1,
+     "spread": 0,
+     "speed": 10,
+     "range": 9,
+     "radius": 0.3,
+     "pierce": 1,
+     "sprite": "aqua"
+    },
+    "damageType": "magic",
+    "status": [
+     {
+      "id": "freeze",
+      "chance": 15,
+      "duration": 1.0
+     }
+    ],
+    "element": "light"
+   }
+  ],
+  "exp": 1.8,
+  "gold": 1.6,
+  "mats": [
+   {
+    "id": "meteor_iron",
+    "chance": 0.3
+   }
+  ],
+  "capturable": true,
+  "scale": 1.3
+ },
+ "star_wisp": {
+  "name": "流星ウィスプ",
+  "sprite": "orb",
+  "element": "light",
+  "radius": 0.32,
+  "speed": 2.3,
+  "aggroRange": 7,
+  "leashRange": 13,
+  "attackInterval": 0.54,
+  "keepDistance": 4,
+  "hp": 0.9,
+  "atk": 0.4,
+  "matk": 1.1,
+  "def": 0.5,
+  "mdef": 1.6,
+  "poise": 0.8,
+  "exp": 1.2,
+  "gold": 1.1,
+  "drops": "field",
+  "mats": [
+   {
+    "id": "star_fragment",
+    "chance": 0.35
+   }
+  ],
+  "capturable": true,
+  "attacks": [
+   {
+    "id": "shadow_bolt",
+    "delivery": "projectile",
+    "damageType": "magic",
+    "windup": 0.5,
+    "cooldown": 2.0,
+    "power": 1.0,
+    "range": 6.5,
+    "weight": 1,
+    "status": [
+     {
+      "id": "blind",
+      "chance": 10,
+      "duration": 3
+     }
+    ],
+    "projectile": {
+     "count": 1,
+     "spread": 0,
+     "speed": 7,
+     "range": 8,
+     "radius": 0.3,
+     "pierce": 1,
+     "sprite": "shadow"
+    }
+   }
+  ],
+  "tags": [
+   "flying"
+  ],
+  "colors": [
+   "#9fb6ff",
+   "#ffffff"
+  ],
+  "nightOnly": true
+ },
+ "meteor_spider": {
+  "name": "メテオスパイダー",
+  "sprite": "spider",
+  "colors": [
+   "#ffb07a",
+   "#5a3a2a"
+  ],
+  "element": "fire",
+  "radius": 0.45,
+  "speed": 2.8,
+  "aggroRange": 3.5,
+  "leashRange": 13,
+  "attackInterval": 0.6,
+  "hp": 1.3,
+  "atk": 1.4,
+  "matk": 0.6,
+  "def": 1.4,
+  "mdef": 1.0,
+  "poise": 1.0,
+  "drops": "field",
+  "attacks": [
+   {
+    "id": "fang",
+    "delivery": "strike",
+    "anchor": "self",
+    "shape": {
+     "type": "arc",
+     "range": 1.4,
+     "arc": 110
+    },
+    "windup": 0.3,
+    "cooldown": 1.3,
+    "power": 1.2,
+    "range": 1.2999999999999998,
+    "weight": 2,
+    "status": [
+     {
+      "id": "freeze",
+      "chance": 15,
+      "duration": 1.0
+     }
+    ]
+   },
+   {
+    "id": "shard",
+    "delivery": "projectile",
+    "windup": 0.6,
+    "cooldown": 3.0,
+    "power": 0.9,
+    "range": 5.5,
+    "weight": 1,
+    "projectile": {
+     "count": 1,
+     "spread": 0,
+     "speed": 9,
+     "range": 7,
+     "radius": 0.3,
+     "pierce": 1,
+     "sprite": "crystal"
+    },
+    "damageType": "magic",
+    "status": [
+     {
+      "id": "slow",
+      "chance": 70,
+      "duration": 3
+     }
+    ],
+    "element": "light"
+   }
+  ],
+  "ambush": true,
+  "mats": [
+   {
+    "id": "meteor_iron",
+    "chance": 0.35
+   }
+  ],
+  "capturable": true,
+  "exp": 1.5
+ },
+ "astral_dragon": {
+  "name": "星竜アストラリオン",
+  "sprite": "drake",
+  "colors": [
+   "#e0e8ff",
+   "#6a5ad0"
+  ],
+  "element": "light",
+  "radius": 1.4,
+  "speed": 1.8,
+  "aggroRange": 9,
+  "leashRange": 18,
+  "attackInterval": 0.85,
+  "hp": 36,
+  "atk": 1.6,
+  "matk": 1.6,
+  "def": 1.5,
+  "mdef": 1.4,
+  "poise": 18,
+  "drops": "boss_starfall",
+  "attacks": [
+   {
+    "id": "frost_breath",
+    "delivery": "strike",
+    "anchor": "self",
+    "shape": {
+     "type": "arc",
+     "range": 7,
+     "arc": 70
+    },
+    "telegraph": true,
+    "windup": 1.2,
+    "cooldown": 6,
+    "power": 2.2,
+    "range": 6.5,
+    "weight": 2,
+    "element": "water",
+    "damageType": "magic",
+    "status": [
+     {
+      "id": "freeze",
+      "chance": 30,
+      "duration": 1.2
+     }
+    ]
+   },
+   {
+    "id": "tail_sweep",
+    "delivery": "strike",
+    "anchor": "self",
+    "shape": {
+     "type": "circle",
+     "radius": 3.8
+    },
+    "telegraph": true,
+    "windup": 1.0,
+    "cooldown": 5,
+    "power": 1.8,
+    "range": 3.6,
+    "weight": 2,
+    "breakPower": 3
+   },
+   {
+    "id": "ice_meteor",
+    "delivery": "strike",
+    "anchor": "target",
+    "count": 5,
+    "scatter": 3.2,
+    "shape": {
+     "type": "circle",
+     "radius": 1.6
+    },
+    "telegraph": true,
+    "damageType": "magic",
+    "windup": 1.2,
+    "cooldown": 7,
+    "power": 1.7,
+    "range": 14,
+    "weight": 2,
+    "element": "water"
+   },
+   {
+    "id": "claw",
+    "delivery": "strike",
+    "anchor": "self",
+    "shape": {
+     "type": "arc",
+     "range": 3.0,
+     "arc": 120
+    },
+    "telegraph": true,
+    "windup": 0.7,
+    "cooldown": 2.2,
+    "power": 1.4,
+    "range": 2.8,
+    "weight": 3
+   }
+  ],
+  "boss": true,
+  "fieldBoss": true,
+  "exp": 24,
+  "gold": 20,
+  "scale": 2.2,
+  "ccResist": 0.75,
+  "mats": [
+   {
+    "id": "star_fragment",
+    "chance": 1,
+    "min": 2,
+    "max": 4
+   },
+   {
+    "id": "dragon_scale",
+    "chance": 0.5,
+    "min": 1,
+    "max": 2
+   }
+  ],
+  "crystal": {
+   "id": "cr_hunter",
+   "chance": 0.5
+  }
+ },
+ "void_golem": {
+  "name": "虚晶ゴーレム",
+  "sprite": "golem",
+  "colors": [
+   "#5a3a8a",
+   "#c08aff"
+  ],
+  "element": "dark",
+  "radius": 0.6,
+  "speed": 1.0,
+  "aggroRange": 6,
+  "leashRange": 13,
+  "attackInterval": 0.6,
+  "hp": 2.99,
+  "atk": 1.4,
+  "matk": 0.6,
+  "def": 2.0,
+  "mdef": 0.8,
+  "poise": 3.9,
+  "drops": "field",
+  "attacks": [
+   {
+    "id": "slam",
+    "delivery": "strike",
+    "anchor": "self",
+    "shape": {
+     "type": "circle",
+     "radius": 1.9
+    },
+    "windup": 1.0,
+    "cooldown": 3.0,
+    "power": 1.5,
+    "range": 1.7,
+    "weight": 1,
+    "breakPower": 2,
+    "status": [
+     {
+      "id": "burn",
+      "chance": 40,
+      "duration": 4,
+      "power": 0.1
+     }
+    ]
+   },
+   {
+    "id": "chill",
+    "delivery": "strike",
+    "anchor": "self",
+    "shape": {
+     "type": "circle",
+     "radius": 2.2
+    },
+    "windup": 0.8,
+    "cooldown": 4,
+    "power": 0.9,
+    "range": 1.7000000000000002,
+    "weight": 1,
+    "damageType": "magic",
+    "status": [
+     {
+      "id": "slow",
+      "chance": 50,
+      "duration": 3
+     }
+    ]
+   }
+  ],
+  "exp": 2.2,
+  "gold": 2,
+  "mats": [
+   {
+    "id": "void_crystal",
+    "chance": 0.3
+   }
+  ],
+  "capturable": true
+ },
+ "abyss_hound": {
+  "name": "深淵の猟犬",
+  "sprite": "beast",
+  "colors": [
+   "#2a2030",
+   "#ff5a8a"
+  ],
+  "element": "dark",
+  "radius": 0.42,
+  "speed": 3.68,
+  "aggroRange": 6,
+  "leashRange": 13,
+  "attackInterval": 0.54,
+  "hp": 1.1,
+  "atk": 1.2,
+  "matk": 0.5,
+  "def": 0.9,
+  "mdef": 0.9,
+  "poise": 1.0,
+  "drops": "field",
+  "attacks": [
+   {
+    "id": "bite",
+    "delivery": "strike",
+    "anchor": "self",
+    "shape": {
+     "type": "arc",
+     "range": 1.3,
+     "arc": 100
+    },
+    "windup": 0.35,
+    "cooldown": 1.2,
+    "power": 1.0,
+    "range": 1.2,
+    "weight": 2,
+    "status": [
+     {
+      "id": "slow",
+      "chance": 20,
+      "duration": 2
+     }
+    ]
+   },
+   {
+    "id": "lunge",
+    "delivery": "strike",
+    "anchor": "self",
+    "shape": {
+     "type": "line",
+     "range": 3.2,
+     "width": 1.0
+    },
+    "windup": 0.5,
+    "cooldown": 3.0,
+    "power": 1.3,
+    "range": 2.9000000000000004,
+    "weight": 1,
+    "breakPower": 2
+   },
+   {
+    "id": "shadow_bolt",
+    "delivery": "projectile",
+    "damageType": "magic",
+    "windup": 0.5,
+    "cooldown": 2.0,
+    "power": 1.0,
+    "range": 6.5,
+    "weight": 1,
+    "status": [
+     {
+      "id": "blind",
+      "chance": 10,
+      "duration": 3
+     }
+    ],
+    "projectile": {
+     "count": 1,
+     "spread": 0,
+     "speed": 7,
+     "range": 8,
+     "radius": 0.3,
+     "pierce": 1,
+     "sprite": "shadow"
+    }
+   }
+  ],
+  "mats": [
+   {
+    "id": "abyss_fang",
+    "chance": 0.35
+   }
+  ],
+  "capturable": true
+ },
+ "void_wraith": {
+  "name": "ヴォイドレイス",
+  "sprite": "ghost",
+  "colors": [
+   "#6a4a9a",
+   "#e0c0ff"
+  ],
+  "element": "dark",
+  "radius": 0.42,
+  "speed": 2.0,
+  "aggroRange": 6,
+  "leashRange": 13,
+  "attackInterval": 0.6,
+  "hp": 1.2,
+  "atk": 0.8,
+  "matk": 1.5,
+  "def": 0.6,
+  "mdef": 1.7,
+  "poise": 1.0,
+  "drops": "field",
+  "attacks": [
+   {
+    "id": "spit",
+    "delivery": "projectile",
+    "windup": 0.6,
+    "cooldown": 2.0,
+    "power": 1.1,
+    "range": 6.5,
+    "weight": 1,
+    "projectile": {
+     "count": 1,
+     "spread": 0,
+     "speed": 8,
+     "range": 8,
+     "radius": 0.3,
+     "pierce": 1,
+     "sprite": "aqua"
+    },
+    "damageType": "magic",
+    "status": [
+     {
+      "id": "freeze",
+      "chance": 20,
+      "duration": 1.0
+     }
+    ],
+    "element": "water"
+   },
+   {
+    "id": "chill",
+    "delivery": "strike",
+    "anchor": "self",
+    "shape": {
+     "type": "circle",
+     "radius": 2.2
+    },
+    "windup": 0.8,
+    "cooldown": 4,
+    "power": 0.9,
+    "range": 1.7000000000000002,
+    "weight": 1,
+    "damageType": "magic",
+    "status": [
+     {
+      "id": "slow",
+      "chance": 50,
+      "duration": 3
+     }
+    ]
+   }
+  ],
+  "mats": [
+   {
+    "id": "void_crystal",
+    "chance": 0.2
+   }
+  ],
+  "capturable": true,
+  "exp": 1.4
+ },
+ "abyss_knight": {
+  "name": "冥府の騎士",
+  "sprite": "humanoid",
+  "colors": [
+   "#3a2a4a",
+   "#b05aff"
+  ],
+  "element": "dark",
+  "radius": 0.38,
+  "speed": 2.4,
+  "aggroRange": 6,
+  "leashRange": 13,
+  "attackInterval": 0.6,
+  "hp": 1.15,
+  "atk": 1.3,
+  "matk": 0.9,
+  "def": 0.9,
+  "mdef": 1.2,
+  "poise": 1.3,
+  "drops": "field",
+  "attacks": [
+   {
+    "id": "dark_arrow",
+    "delivery": "projectile",
+    "windup": 0.6,
+    "cooldown": 1.8,
+    "power": 1.1,
+    "range": 8.5,
+    "weight": 1,
+    "projectile": {
+     "count": 1,
+     "spread": 0,
+     "speed": 14,
+     "range": 10,
+     "radius": 0.3,
+     "pierce": 1,
+     "sprite": "arrow"
+    },
+    "element": "dark"
+   },
+   {
+    "id": "dagger",
+    "delivery": "strike",
+    "anchor": "self",
+    "shape": {
+     "type": "arc",
+     "range": 1.3,
+     "arc": 100
+    },
+    "windup": 0.4,
+    "cooldown": 1.6,
+    "power": 1.0,
+    "range": 1.2,
+    "weight": 2
+   },
+   {
+    "id": "slam",
+    "delivery": "strike",
+    "anchor": "self",
+    "shape": {
+     "type": "circle",
+     "radius": 1.8
+    },
+    "windup": 0.9,
+    "cooldown": 2.8,
+    "power": 1.5,
+    "range": 1.6,
+    "weight": 1,
+    "breakPower": 2,
+    "status": [
+     {
+      "id": "stun",
+      "chance": 20,
+      "duration": 1.0
+     }
+    ]
+   }
+  ],
+  "keepDistance": 4,
+  "mats": [
+   {
+    "id": "abyss_fang",
+    "chance": 0.3
+   },
+   {
+    "id": "void_crystal",
+    "chance": 0.1
+   }
+  ],
+  "capturable": true,
+  "exp": 1.3
+ },
+ "shade_wyvern": {
+  "name": "シェイドワイバーン",
+  "sprite": "drake",
+  "colors": [
+   "#3a2a4a",
+   "#9a5aff"
+  ],
+  "element": "dark",
+  "radius": 0.55,
+  "speed": 2.6,
+  "aggroRange": 6,
+  "leashRange": 13,
+  "attackInterval": 0.6,
+  "hp": 1.5,
+  "atk": 1.2,
+  "matk": 1.3,
+  "def": 1.0,
+  "mdef": 1.1,
+  "poise": 1.0,
+  "drops": "field",
+  "attacks": [
+   {
+    "id": "ice_breath",
+    "delivery": "projectile",
+    "windup": 0.7,
+    "cooldown": 2.6,
+    "power": 1.2,
+    "range": 7.5,
+    "weight": 1,
+    "projectile": {
+     "count": 1,
+     "spread": 0,
+     "speed": 10,
+     "range": 9,
+     "radius": 0.3,
+     "pierce": 1,
+     "sprite": "aqua"
+    },
+    "damageType": "magic",
+    "status": [
+     {
+      "id": "freeze",
+      "chance": 15,
+      "duration": 1.0
+     }
+    ],
+    "element": "water"
+   },
+   {
+    "id": "bite",
+    "delivery": "strike",
+    "anchor": "self",
+    "shape": {
+     "type": "arc",
+     "range": 1.6,
+     "arc": 120
+    },
+    "windup": 0.5,
+    "cooldown": 2.0,
+    "power": 1.2,
+    "range": 1.5,
+    "weight": 2
+   }
+  ],
+  "tags": [
+   "flying"
+  ],
+  "mats": [
+   {
+    "id": "abyss_fang",
+    "chance": 0.3
+   }
+  ],
+  "capturable": true,
+  "scale": 0.9,
+  "exp": 1.4,
+  "nightOnly": true
+ },
+ "void_spider": {
+  "name": "ヴォイドスパイダー",
+  "sprite": "spider",
+  "colors": [
+   "#5a3a8a",
+   "#ff5ad0"
+  ],
+  "element": "dark",
+  "radius": 0.45,
+  "speed": 2.8,
+  "aggroRange": 3.5,
+  "leashRange": 13,
+  "attackInterval": 0.6,
+  "hp": 1.3,
+  "atk": 1.4,
+  "matk": 0.6,
+  "def": 1.4,
+  "mdef": 1.0,
+  "poise": 1.0,
+  "drops": "field",
+  "attacks": [
+   {
+    "id": "fang",
+    "delivery": "strike",
+    "anchor": "self",
+    "shape": {
+     "type": "arc",
+     "range": 1.4,
+     "arc": 110
+    },
+    "windup": 0.3,
+    "cooldown": 1.3,
+    "power": 1.2,
+    "range": 1.2999999999999998,
+    "weight": 2,
+    "status": [
+     {
+      "id": "freeze",
+      "chance": 15,
+      "duration": 1.0
+     }
+    ]
+   },
+   {
+    "id": "shard",
+    "delivery": "projectile",
+    "windup": 0.6,
+    "cooldown": 3.0,
+    "power": 0.9,
+    "range": 5.5,
+    "weight": 1,
+    "projectile": {
+     "count": 1,
+     "spread": 0,
+     "speed": 9,
+     "range": 7,
+     "radius": 0.3,
+     "pierce": 1,
+     "sprite": "crystal"
+    },
+    "damageType": "magic",
+    "status": [
+     {
+      "id": "slow",
+      "chance": 70,
+      "duration": 3
+     }
+    ],
+    "element": "light"
+   }
+  ],
+  "ambush": true,
+  "mats": [
+   {
+    "id": "void_crystal",
+    "chance": 0.3
+   }
+  ],
+  "capturable": true,
+  "exp": 1.5
+ },
+ "nether_dragon": {
+  "name": "冥竜ニヴルヘイム",
+  "sprite": "drake",
+  "colors": [
+   "#3a2a4a",
+   "#ff5a8a"
+  ],
+  "element": "dark",
+  "radius": 1.4,
+  "speed": 1.8,
+  "aggroRange": 9,
+  "leashRange": 18,
+  "attackInterval": 0.85,
+  "hp": 39.6,
+  "atk": 1.6,
+  "matk": 1.6,
+  "def": 1.5,
+  "mdef": 1.4,
+  "poise": 18,
+  "drops": "boss_abyss",
+  "attacks": [
+   {
+    "id": "frost_breath",
+    "delivery": "strike",
+    "anchor": "self",
+    "shape": {
+     "type": "arc",
+     "range": 7,
+     "arc": 70
+    },
+    "telegraph": true,
+    "windup": 1.2,
+    "cooldown": 6,
+    "power": 2.2,
+    "range": 6.5,
+    "weight": 2,
+    "element": "water",
+    "damageType": "magic",
+    "status": [
+     {
+      "id": "freeze",
+      "chance": 30,
+      "duration": 1.2
+     }
+    ]
+   },
+   {
+    "id": "tail_sweep",
+    "delivery": "strike",
+    "anchor": "self",
+    "shape": {
+     "type": "circle",
+     "radius": 3.8
+    },
+    "telegraph": true,
+    "windup": 1.0,
+    "cooldown": 5,
+    "power": 1.8,
+    "range": 3.6,
+    "weight": 2,
+    "breakPower": 3
+   },
+   {
+    "id": "ice_meteor",
+    "delivery": "strike",
+    "anchor": "target",
+    "count": 5,
+    "scatter": 3.2,
+    "shape": {
+     "type": "circle",
+     "radius": 1.6
+    },
+    "telegraph": true,
+    "damageType": "magic",
+    "windup": 1.2,
+    "cooldown": 7,
+    "power": 1.7,
+    "range": 14,
+    "weight": 2,
+    "element": "water"
+   },
+   {
+    "id": "claw",
+    "delivery": "strike",
+    "anchor": "self",
+    "shape": {
+     "type": "arc",
+     "range": 3.0,
+     "arc": 120
+    },
+    "telegraph": true,
+    "windup": 0.7,
+    "cooldown": 2.2,
+    "power": 1.4,
+    "range": 2.8,
+    "weight": 3
+   },
+   {
+    "id": "fang",
+    "delivery": "strike",
+    "anchor": "self",
+    "shape": {
+     "type": "arc",
+     "range": 2.6,
+     "arc": 120
+    },
+    "telegraph": true,
+    "windup": 0.6,
+    "cooldown": 2.0,
+    "power": 1.5,
+    "range": 2.4,
+    "weight": 1,
+    "status": [
+     {
+      "id": "poison",
+      "chance": 60,
+      "duration": 6,
+      "power": 0.1
+     }
+    ]
+   }
+  ],
+  "boss": true,
+  "fieldBoss": true,
+  "exp": 24,
+  "gold": 20,
+  "scale": 2.2,
+  "ccResist": 0.75,
+  "mats": [
+   {
+    "id": "void_crystal",
+    "chance": 1,
+    "min": 2,
+    "max": 4
+   },
+   {
+    "id": "dragon_scale",
+    "chance": 0.6,
+    "min": 1,
+    "max": 3
+   }
+  ],
+  "crystal": {
+   "id": "cr_hunter",
+   "chance": 0.5
+  }
  }
 }

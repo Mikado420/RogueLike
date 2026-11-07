@@ -109,7 +109,7 @@ function renderRebirth(ctx: Ctx, body: HTMLElement) {
   const rb = CONTENT.balance.rebirth;
   const sec = h('div', 'npc-sec');
   sec.append(kv(txt('stat.rebirths'), `${ch.rebirths} / ${rb.max}`));
-  sec.append(kv(txt('npc.need'), `${txt('stat.level')} ${CONTENT.balance.progression.maxLevel}`));
+  sec.append(kv(txt('npc.need'), `${txt('stat.level')} ${CONTENT.balance.progression.rebirthLevel}`));
   sec.append(kv(txt('npc.bonus'), `${txt('stat.points')} +${rb.statPoints}  ${txt('skill.sp')} +${rb.skillPoints}  ${txt('stat.exp')} +${rb.expPct}%`));
   const err = canRebirth(ch, CONTENT);
   const b = btn(txt('npc.rebirth'), () => ctx.send({ type: 'rebirth' }), 'btn primary');

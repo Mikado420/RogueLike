@@ -44,6 +44,26 @@
    "level": 92,
    "prefix": "天穹の",
    "mul": 14.5
+  },
+  {
+   "level": 100,
+   "prefix": "神鉄の",
+   "mul": 15.7
+  },
+  {
+   "level": 150,
+   "prefix": "蒼星の",
+   "mul": 23.0
+  },
+  {
+   "level": 200,
+   "prefix": "冥晶の",
+   "mul": 30.3
+  },
+  {
+   "level": 250,
+   "prefix": "黎明の",
+   "mul": 37.4
   }
  ],
  "subRules": {},

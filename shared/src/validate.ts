@@ -13,7 +13,7 @@ import { optionValue } from './systems/loot';
 
 export interface Removed { char: string | null; what: string; reason: string }
 
-export const LIMITS = { gold: 999_999_999, bagEach: 9999, maxIlvl: 130 };
+export const LIMITS = { gold: 999_999_999, bagEach: 9999, maxIlvl: 330 };
 
 const finite = (v: unknown, lo: number, hi: number): v is number => typeof v === 'number' && Number.isFinite(v) && v >= lo && v <= hi;
 
@@ -86,7 +86,7 @@ function checkCharacter(ch: CharacterData, c: Content, removed: Removed[], uids:
   if (!finite(ch.exp, 0, need)) { ch.exp = 0; }
   // ステ振り：合計が上限を超えたら振り直し
   const k = c.balance.stats;
-  let bad = !PRIMARY_STATS.every((s) => finite(ch.stats?.[s], 0, k.statMax - k.statBase) && Number.isInteger(ch.stats[s]));
+  let bad = !PRIMARY_STATS.every((s) => finite(ch.stats?.[s], 0, totalStatPoints(ch, c)) && Number.isInteger(ch.stats[s]));
   if (!finite(ch.personal?.value, 0, k.personalMax)) bad = true;
   if (ch.personal?.type && !c.balance.personal[ch.personal.type]) bad = true;
   const spent = bad ? Infinity : PRIMARY_STATS.reduce((s, x) => s + ch.stats[x], 0) + ch.personal.value;

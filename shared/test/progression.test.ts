@@ -62,11 +62,11 @@ describe('ステ振り', () => {
     expect(derivePlayerStats(ch, [], C).atk).toBeGreaterThan(before);
   });
 
-  it('上限（statMax）を超えない', () => {
+  it('1つのステータスに上限はなく、持っているポイントまで振れる', () => {
     const { ch } = makeWorld(7);
     ch.level = 100;
     allocateStat(ch, 'agi', 999, C);
-    expect(C.balance.stats.statBase + ch.stats.agi).toBe(C.balance.stats.statMax);
+    expect(ch.stats.agi).toBe(totalStatPoints(ch, C));
   });
 
   it('個性ステは種類を選んでから振る。振った後は変えられない', () => {

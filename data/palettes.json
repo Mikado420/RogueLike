@@ -9,6 +9,10 @@
                 "obstacles": [{ "tile": "forest", "sprite": "old_tree", "w": 7 }, { "tile": "moss", "sprite": "big_shroom", "w": 2 }, { "tile": "forest", "sprite": "rock", "w": 1 }], "density": 0.08, "ponds": [2, 2, 4] },
   "snow":     { "ground": ["snow", "snow2"], "path": "ice_path", "border": { "tile": "snow", "sprite": "pine" }, "liquid": { "tile": "ice_water", "solid": true },
                 "obstacles": [{ "tile": "snow", "sprite": "pine", "w": 6 }, { "tile": "snow", "sprite": "ice_rock", "w": 3 }, { "tile": "snow", "sprite": "crystal_rock", "w": 1 }], "density": 0.05, "ponds": [3, 3, 6] },
+  "starfall": { "ground": ["grass", "grass2"], "path": "dirt", "border": { "tile": "grass", "sprite": "rock" }, "liquid": { "tile": "water", "solid": true },
+                "obstacles": [{ "tile": "grass", "sprite": "crystal_rock", "w": 4 }, { "tile": "grass", "sprite": "rock", "w": 3 }, { "tile": "grass", "sprite": "bush", "w": 2 }], "density": 0.05, "ponds": [4, 3, 6] },
+  "abyss":    { "ground": ["ash", "basalt"], "path": "cinder", "border": { "tile": "basalt", "sprite": "crag" }, "liquid": { "tile": "void", "solid": true },
+                "obstacles": [{ "tile": "basalt", "sprite": "crag", "w": 4 }, { "tile": "ash", "sprite": "crystal_rock", "w": 3 }, { "tile": "basalt", "sprite": "pillar", "w": 1 }], "density": 0.06, "ponds": [3, 3, 7] },
   "dungeon":  { "ground": ["dungeon", "dungeon2"], "path": "dungeon", "border": { "tile": "wall", "sprite": "wall" }, "liquid": { "tile": "void", "solid": true },
                 "obstacles": [{ "tile": "dungeon", "sprite": "pillar", "w": 1 }], "density": 0.0, "ponds": [0, 2, 3] }
 }

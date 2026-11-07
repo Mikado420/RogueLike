@@ -153,6 +153,74 @@
      "wyvern_scale",
      4
     ]
+   },
+   {
+    "tier": 9,
+    "level": 48,
+    "gold": 24000,
+    "ore": [
+     "meteor_iron",
+     8
+    ],
+    "wood": [
+     "skyroot_wood",
+     5
+    ],
+    "extra": [
+     "star_fragment",
+     4
+    ]
+   },
+   {
+    "tier": 10,
+    "level": 51,
+    "gold": 34000,
+    "ore": [
+     "meteor_iron",
+     12
+    ],
+    "wood": [
+     "skyroot_wood",
+     8
+    ],
+    "extra": [
+     "sky_feather",
+     6
+    ]
+   },
+   {
+    "tier": 11,
+    "level": 55,
+    "gold": 48000,
+    "ore": [
+     "void_crystal",
+     8
+    ],
+    "wood": [
+     "nether_wood",
+     6
+    ],
+    "extra": [
+     "abyss_fang",
+     5
+    ]
+   },
+   {
+    "tier": 12,
+    "level": 59,
+    "gold": 66000,
+    "ore": [
+     "void_crystal",
+     12
+    ],
+    "wood": [
+     "nether_wood",
+     8
+    ],
+    "extra": [
+     "dragon_scale",
+     4
+    ]
    }
   ],
   "rarity": {

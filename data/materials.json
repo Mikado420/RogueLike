@@ -525,5 +525,54 @@
   "use": {
    "capture": 2.2
   }
+ },
+ "meteor_iron": {
+  "name": "隕鉄",
+  "kind": "material",
+  "icon": "mat",
+  "color": "#8a7a9a",
+  "price": 240
+ },
+ "skyroot_wood": {
+  "name": "天根木",
+  "kind": "material",
+  "icon": "mat",
+  "color": "#c8d8a8",
+  "price": 180
+ },
+ "star_fragment": {
+  "name": "星晶のかけら",
+  "kind": "material",
+  "icon": "mat",
+  "color": "#bfe6ff",
+  "price": 170
+ },
+ "sky_feather": {
+  "name": "天翼の羽",
+  "kind": "material",
+  "icon": "mat",
+  "color": "#e8f0ff",
+  "price": 150
+ },
+ "void_crystal": {
+  "name": "虚晶",
+  "kind": "material",
+  "icon": "mat",
+  "color": "#9a5aff",
+  "price": 320
+ },
+ "nether_wood": {
+  "name": "冥樹の枝",
+  "kind": "material",
+  "icon": "mat",
+  "color": "#5a4a6a",
+  "price": 220
+ },
+ "abyss_fang": {
+  "name": "深淵の牙",
+  "kind": "material",
+  "icon": "mat",
+  "color": "#3a2a4a",
+  "price": 200
  }
 }

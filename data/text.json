@@ -738,5 +738,6 @@
   "alchemy.oneTitle": "1つ付け替え　{0} G・触媒 ×{1}",
   "alchemy.reroll": "振り直す",
   "alchemy.valuesBtn": "数値だけ全部振り直す　{0} G・触媒 ×{1}",
-  "hub.refineEq": "装備中で精錬できる {0}（全部で {1}）"
+  "hub.refineEq": "装備中で精錬できる {0}（全部で {1}）",
+  "stat.effective": "実効 {0}"
 }

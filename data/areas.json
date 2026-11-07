@@ -537,6 +537,11 @@
     "edge": "north",
     "to": "forest",
     "spawn": "south"
+   },
+   {
+    "edge": "south",
+    "to": "starfall",
+    "spawn": "north"
    }
   ],
   "density": 20,
@@ -617,5 +622,145 @@
    1,
    1
   ]
+ },
+ "starfall": {
+  "name": "星降りの高原",
+  "type": "field",
+  "level": [
+   100,
+   200
+  ],
+  "gen": {
+   "seed": 606,
+   "width": 64,
+   "height": 64,
+   "palette": "starfall"
+  },
+  "genExits": [
+   {
+    "edge": "north",
+    "to": "snow",
+    "spawn": "south"
+   },
+   {
+    "edge": "south",
+    "to": "abyss",
+    "spawn": "north"
+   }
+  ],
+  "density": 22,
+  "monsters": [
+   {
+    "id": "star_golem",
+    "w": 2
+   },
+   {
+    "id": "sky_wolf",
+    "w": 3
+   },
+   {
+    "id": "comet_wyvern",
+    "w": 2
+   },
+   {
+    "id": "starfall_knight",
+    "w": 2
+   }
+  ],
+  "night": [
+   {
+    "id": "star_wisp",
+    "w": 3
+   }
+  ],
+  "ambush": [
+   {
+    "id": "meteor_spider",
+    "w": 1
+   }
+  ],
+  "fieldBoss": {
+   "id": "astral_dragon",
+   "spot": [
+    0.5,
+    0.7
+   ],
+   "level": 200
+  },
+  "weather": {
+   "clear": 45,
+   "rain": 10,
+   "storm": 10,
+   "fog": 12,
+   "aurora": 20,
+   "bloodmoon": 3
+  }
+ },
+ "abyss": {
+  "name": "虚ろの深淵",
+  "type": "field",
+  "level": [
+   200,
+   300
+  ],
+  "gen": {
+   "seed": 707,
+   "width": 64,
+   "height": 64,
+   "palette": "abyss"
+  },
+  "genExits": [
+   {
+    "edge": "north",
+    "to": "starfall",
+    "spawn": "south"
+   }
+  ],
+  "density": 22,
+  "monsters": [
+   {
+    "id": "void_golem",
+    "w": 2
+   },
+   {
+    "id": "abyss_hound",
+    "w": 3
+   },
+   {
+    "id": "void_wraith",
+    "w": 2
+   },
+   {
+    "id": "abyss_knight",
+    "w": 2
+   }
+  ],
+  "night": [
+   {
+    "id": "shade_wyvern",
+    "w": 3
+   }
+  ],
+  "ambush": [
+   {
+    "id": "void_spider",
+    "w": 1
+   }
+  ],
+  "fieldBoss": {
+   "id": "nether_dragon",
+   "spot": [
+    0.5,
+    0.72
+   ],
+   "level": 300
+  },
+  "weather": {
+   "clear": 40,
+   "fog": 30,
+   "storm": 15,
+   "bloodmoon": 10,
+   "aurora": 5
+  }
  }
 }

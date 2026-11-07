@@ -9,7 +9,8 @@ import { setCounterMax } from './counters';
 /** 次のレベルまでに必要な経験値 = (a + b×Lv) × (c + d×Lv^p) */
 export function expToNext(level: number, c: Content): number {
   const pr = c.balance.progression;
-  const kills = pr.expKills[0] + pr.expKills[1] * level;
+  const hi = pr.expKillsHigh;
+  const kills = hi && level > hi.from ? hi.base + hi.per * (level - hi.from) : pr.expKills[0] + pr.expKills[1] * level;
   const per = pr.expMonster[0] + pr.expMonster[1] * Math.pow(level, pr.expMonster[2]);
   return Math.round(kills * per);
 }
@@ -84,10 +85,8 @@ export function allocateStat(ch: CharacterData, stat: PrimaryStat | 'personal', 
     return null;
   }
   if (!PRIMARY_STATS.includes(stat)) return 'err.invalid';
-  const room = k.statMax - (k.statBase + ch.stats[stat]);
-  const add = Math.min(n, free, room);
-  if (add <= 0) return 'err.statMax';
-  ch.stats[stat] += add;
+  // 1つのステータスに上限はない（256以上は効き目が下がる：effectiveStat）
+  ch.stats[stat] += Math.min(n, free);
   return null;
 }
 
@@ -224,7 +223,7 @@ export function loadBuild(ch: CharacterData, slot: number, c: Content, equip: (u
 }
 
 export function canRebirth(ch: CharacterData, c: Content): string | null {
-  if (ch.level < c.balance.progression.maxLevel) return 'err.levelLow';
+  if (ch.level < c.balance.progression.rebirthLevel) return 'err.levelLow';
   if (ch.rebirths >= c.balance.rebirth.max) return 'err.rebirthMax';
   return null;
 }

@@ -2,14 +2,18 @@
   "levels": [
     30,
     60,
-    100
+    100,
+    200,
+    300
   ],
   "duration": 60,
   "rarity": "rare",
   "skillLevel": {
     "30": 5,
     "60": 8,
-    "100": 10
+    "100": 10,
+    "200": 10,
+    "300": 10
   },
   "distance": {
     "melee": 0.95,
@@ -89,5 +93,6 @@
       },
       "range": "ranged"
     }
-  }
+  },
+  "ttkMonster": "snow_wolf"
 }
