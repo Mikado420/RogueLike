@@ -112,7 +112,10 @@ function renderRebirth(ctx: Ctx, body: HTMLElement) {
   sec.append(kv(txt('npc.need'), `${txt('stat.level')} ${CONTENT.balance.progression.rebirthLevel}`));
   sec.append(kv(txt('npc.bonus'), `${txt('stat.points')} +${rb.statPoints}  ${txt('skill.sp')} +${rb.skillPoints}  ${txt('stat.exp')} +${rb.expPct}%`));
   const err = canRebirth(ch, CONTENT);
-  const b = btn(txt('npc.rebirth'), () => ctx.send({ type: 'rebirth' }), 'btn primary');
+  const b = btn(txt('npc.rebirth'), () => ctx.modal.confirm({
+    title: txt('confirm.rebirth', ch.level), body: txt('confirm.rebirthBody'), ok: txt('npc.rebirth'), danger: true,
+    onOk: () => ctx.send({ type: 'rebirth' }),
+  }), 'btn primary');
   b.disabled = !!err;
   sec.append(b);
   body.append(sec);

@@ -169,13 +169,21 @@ export class Menu {
     const wd = CONTENT.weapons[weaponTypeOf(ch)];
     const sc = (wd?.scaling?.[wd.damageType === 'magic' ? 'matk' : 'atk'] ?? { str: 1 }) as Partial<Record<PrimaryStat, number>>;
     const order = (Object.entries(sc) as [PrimaryStat, number][]).sort((a, b) => b[1] - a[1]).map(([k]) => k);
-    const plan = new Map<PrimaryStat, number>();
     const main = order[0] ?? 'str', second = order[1] ?? 'vit';
-    const nVit = Math.floor(free * 0.2), nSecond = second === 'vit' ? 0 : Math.floor(free * 0.2);
-    plan.set('vit', nVit);
-    if (nSecond) plan.set(second, nSecond);
-    plan.set(main, (plan.get(main) ?? 0) + free - nVit - nSecond);
-    for (const [stat, n] of plan) if (n > 0) this.ctx.send({ type: 'allocateStat', stat, amount: n });
+    // 256 以上は効き目が下がるので、1つに全部ではなく「主 6・副 2・VIT 2」の割合に近づくよう振る
+    const ratio = new Map<PrimaryStat, number>([[main, 0.6]]);
+    ratio.set('vit', (ratio.get('vit') ?? 0) + 0.2);
+    ratio.set(second, (ratio.get(second) ?? 0) + 0.2);
+    const total = PRIMARY_STATS.reduce((s, k) => s + ch.stats[k], 0) + free;
+    const want = [...ratio].map(([stat, r]) => ({ stat, lack: Math.max(0, Math.round(total * r) - ch.stats[stat]) }));
+    const lackSum = want.reduce((s, x) => s + x.lack, 0);
+    let left = free;
+    for (const x of want) {
+      const n = lackSum > 0 ? Math.min(left, Math.floor((free * x.lack) / lackSum)) : 0;
+      x.lack = n; left -= n;
+    }
+    want[0].lack += left; // 端数は主ステへ
+    for (const x of want) if (x.lack > 0) this.ctx.send({ type: 'allocateStat', stat: x.stat, amount: x.lack });
   }
 
   /** 能力を 1 上げたときに大きく変わる値（ATK 24→26 など） */

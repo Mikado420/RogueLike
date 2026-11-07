@@ -94,7 +94,8 @@ export function codexPct(ch: CharacterData, c: Content): number {
 }
 
 export function codexMods(ch: CharacterData, c: Content): Mods {
-  const pct = codexPct(ch, c);
+  // 一度届いた段の効果は、図鑑の総数が増えて割合が下がっても失わない（記録の最大値で判定）
+  const pct = Math.max(codexPct(ch, c), ch.counters?.codexPct ?? 0);
   const m: Mods = {};
   for (const th of c.codex.thresholds) if (pct >= th.pct) addMods(m, th.mods);
   return m;

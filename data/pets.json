@@ -10,7 +10,7 @@
  "eliteMul": 0.5,
  "range": 3.0,
  "maxPets": 20,
- "maxLevel": 100,
+ "maxLevel": 300,
  "expShare": 0.5,
  "expCurve": [
   0.6,

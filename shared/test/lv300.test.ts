@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { CONTENT as C } from '../src/content';
-import { canRebirth, expToNext, gainExp, rebirth, totalStatPoints } from '../src/systems/progression';
+import { canRebirth, expToNext, gainExp, rebirth } from '../src/systems/progression';
 import { derivePlayerStats, effectiveStat, monsterStats, NO_SCALE } from '../src/systems/stats';
 import { sanitizeAccount } from '../src/validate';
 import { makeWorld } from './helpers';
@@ -108,5 +108,30 @@ describe('新しいフィールド', () => {
       for (const [id] of [t.ore, t.wood, t.extra]) expect(C.materials[id]).toBeDefined();
       expect(t.level).toBeLessThanOrEqual(C.subjobs.maxLevel);
     }
+  });
+});
+
+describe('第1段階のデバッグで見つけた不具合', () => {
+  it('図鑑の総数が増えても、一度届いた段の効果は失わない', async () => {
+    const { codexMods } = await import('../src/systems/quest');
+    const { ch } = makeWorld(6);
+    ch.counters.codexPct = 100;
+    expect(codexMods(ch, C).atkPct ?? 0).toBeGreaterThan(0);
+  });
+
+  it('Lv100 を超えて捕まえたペットがセーブの確認で消されない', () => {
+    const made = makeWorld(7);
+    const acc = JSON.parse(JSON.stringify(made.acc));
+    const ch = acc.characters[0];
+    ch.level = 250;
+    ch.pets = [{ uid: 9999, species: 'abyss_hound', name: 'テスト', level: 250, exp: 0, skills: [], elite: false }];
+    const { account } = sanitizeAccount(acc, C);
+    expect(account.characters[0].pets.length).toBe(1);
+  });
+
+  it('新しいフィールドに地形の起伏の設定がある', async () => {
+    const { TERRAIN } = await import('../src/terrain');
+    expect(TERRAIN.starfall).toBeDefined();
+    expect(TERRAIN.abyss).toBeDefined();
   });
 });

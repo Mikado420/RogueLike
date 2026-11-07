@@ -26,6 +26,8 @@ export const TERRAIN: Record<string, TerrainProfile> = {
   volcano: { hills: 3.5, amp: [30, 70], radius: [4, 8], rim: 110, rimWidth: 9, ripple: 6 },
   forest: { hills: 6, amp: [20, 48], radius: [3, 7], rim: 60, rimWidth: 6, ripple: 6 },
   snow: { hills: 4, amp: [40, 95], radius: [4, 9], rim: 90, rimWidth: 8, ripple: 5 },
+  starfall: { hills: 5, amp: [30, 80], radius: [5, 10], rim: 80, rimWidth: 7, ripple: 5 },
+  abyss: { hills: 3.5, amp: [35, 85], radius: [3, 7], rim: 120, rimWidth: 10, ripple: 7 },
   town: { hills: 3, amp: [6, 16], radius: [3, 6], rim: 34, rimWidth: 5, ripple: 2, only: ['town_grass', 'grass', 'grass2'], pinFade: 3 },
   dungeon: { hills: 3, amp: [6, 16], radius: [2, 4], rim: 18, rimWidth: 3, ripple: 3, rimFromWalls: true },
   arena: { hills: 0, amp: [0, 0], radius: [1, 1], rim: 26, rimWidth: 4, ripple: 2, rimFromWalls: true },

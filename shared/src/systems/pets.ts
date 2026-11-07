@@ -60,7 +60,7 @@ export function capture(w: World, p: Player, item: string): string | null {
   target.dead = true;
   target.hp = 0;
   const pet: PetData = {
-    uid: newUid(w), species: target.defId, name: def.name, level: Math.max(1, Math.min(target.level, p.char.level)), exp: 0,
+    uid: newUid(w), species: target.defId, name: def.name, level: Math.max(1, Math.min(target.level, p.char.level, c.pets.maxLevel)), exp: 0,
     skills: petSkillsFor(w, target.defId), role: 'battle', elite: target.elite,
   };
   p.char.pets.push(pet);
