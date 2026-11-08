@@ -1,5 +1,5 @@
 import { logger } from '../util/log';
-import { type MailItem, type TradeOp, CONTENT, LIMITS, migrateAccount, newAccount, newCharacter, normalizeCharacter, sanitizeAccount, type AccountData, type CharSummary, type Item, type Removed } from '../../../shared/src';
+import { type MailItem, type TradeOp, CONTENT, LIMITS, migrateAccount, repairSetItem, newAccount, newCharacter, normalizeCharacter, sanitizeAccount, type AccountData, type CharSummary, type Item, type Removed } from '../../../shared/src';
 import type { Env } from '../env';
 import { loadConfig } from '../config';
 import { HttpError, call, dispatch } from '../util/http';
@@ -64,6 +64,10 @@ export class AccountDO {
     this.mail = (await this.state.storage.get<MailItem[]>('mail')) ?? [];
     this.seen = (await this.state.storage.get<string[]>('seen')) ?? [];
     this.pending = (await this.state.storage.get<Pending[]>('pending')) ?? [];
+    // 名前と中身がずれたセット装備を直す（郵便受け・露店・送る途中の出品。持ち物と倉庫は migrateAccount が直す）
+    for (const m of this.mail) repairSetItem(m.item, CONTENT);
+    for (const s of this.meta?.stall ?? []) repairSetItem(s.item, CONTENT);
+    for (const p of this.pending) if (p.kind === 'list') repairSetItem(p.item, CONTENT);
   }
 
   /** アカウント・郵便受け・待ちの取引を一度に書く（どれかだけ書かれることはない） */
@@ -74,6 +78,7 @@ export class AccountDO {
   /** 郵便受けに入れる（同じ番号は1回だけ） */
   private addMail(m: MailItem): boolean {
     if (this.seen.includes(m.id)) return false;
+    repairSetItem(m.item, CONTENT);
     this.seen.push(m.id);
     this.mail.push(m);
     return true;

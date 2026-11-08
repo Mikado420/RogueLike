@@ -3,13 +3,13 @@ import type { Content } from './content/types';
 import { CONTENT } from './content';
 import type { AccountData, CharacterData } from './state';
 import { Rng, hash32 } from './rng';
-import { createItem } from './systems/loot';
+import { createItem, repairSetItem } from './systems/loot';
 
 /**
  * セーブデータの形。構造を変えたら SAVE_VERSION を上げ、MIGRATIONS に変換を足す。
  * 保存先（IndexedDB・サーバーのDB）は client 側の SaveStore が決める。
  */
-export const SAVE_VERSION = 7;
+export const SAVE_VERSION = 8;
 
 type Raw = Record<string, unknown>;
 
@@ -63,7 +63,37 @@ export const MIGRATIONS: Record<number, (d: Raw) => Raw> = {
     for (const ch of (d.characters as Raw[] | undefined) ?? []) ch.tutorial = { step: 0, count: 0, done: true };
     return d;
   },
+  /** 7 → 8：名前と中身（土台）がずれたセット装備を直す（翠風の護符なのに中身が盾、など） */
+  7: (d) => {
+    repairAccountSets(d as unknown as AccountData);
+    return d;
+  },
 };
+
+/**
+ * アカウントの中のセット装備を直す（持ち物・装備・倉庫）。
+ * 直した結果いまの武器に合わなくなったサブ武器は外して、持ち物（いっぱいなら倉庫）へ移す。
+ * 何度呼んでも同じ結果になる。直した数を返す
+ */
+export function repairAccountSets(acc: AccountData, c: Content = CONTENT): number {
+  let n = 0;
+  for (const ch of acc.characters ?? []) {
+    for (const it of ch.inventory ?? []) if (repairSetItem(it, c)) n++;
+    const eq = ch.equipment ?? ({} as CharacterData['equipment']);
+    for (const s of EQUIP_SLOTS) if (repairSetItem(eq[s], c)) n++;
+    const sub = eq.sub;
+    if (sub) {
+      const wt = eq.weapon?.kind ?? 'oneHandSword';
+      const allowed = (c.weapons as Record<string, { subs?: string[] }>)[wt]?.subs ?? [];
+      if (!allowed.includes(sub.kind)) {
+        if ((ch.inventory?.length ?? 0) < c.balance.player.inventorySize) { ch.inventory.push(sub); eq.sub = null; }
+        else if (acc.storage && acc.storage.items.length < acc.storage.capacity) { acc.storage.items.push(sub); eq.sub = null; }
+      }
+    }
+  }
+  for (const it of acc.storage?.items ?? []) if (repairSetItem(it, c)) n++;
+  return n;
+}
 
 export function newSub() {
   return { gather: { level: 1, exp: 0 }, smith: { level: 1, exp: 0 }, cook: { level: 1, exp: 0 }, alchemy: { level: 1, exp: 0 } };

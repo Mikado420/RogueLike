@@ -89,11 +89,46 @@ export function createSetPiece(uid: number, setId: string, ilvl: number, rarity:
   const slots = Object.keys(set.pieces) as EquipSlot[];
   const s = slot ?? rng.pick(slots);
   const name = set.pieces[s];
-  if (!name) return null;
-  const bases = Object.keys(c.equipment.bases).filter((id) => c.equipment.bases[id].slot === s);
-  const it = createItem(uid, rng.pick(bases), tierFor(ilvl, c), ilvl, rarity === 'common' ? 'rare' : rarity, rng, c, { set: setId });
+  const baseId = setPieceBase(setId, s, c);
+  if (!name || !baseId) return null;
+  const it = createItem(uid, baseId, tierFor(ilvl, c), ilvl, rarity === 'common' ? 'rare' : rarity, rng, c, { set: setId });
   it.name = name;
   return it;
+}
+
+/** セットのその部位の土台（data/sets.json の bases） */
+export function setPieceBase(setId: string, slot: EquipSlot, c: Content): string | null {
+  const id = c.sets[setId]?.bases?.[slot];
+  return id && c.equipment.bases[id]?.slot === slot ? id : null;
+}
+
+/**
+ * 以前のバグで「名前はセットの部位なのに、中身（土台）が別の種類」になったセット装備を直す。
+ * 土台・種類・見た目・基本の数値を正しい土台で作り直し、レアリティ・オプション・精錬・結晶・段・属性・固有効果はそのまま。
+ * 直したら true（何度呼んでも同じ結果になる）
+ */
+export function repairSetItem(it: Item | null | undefined, c: Content): boolean {
+  if (!it?.set) return false;
+  const baseId = setPieceBase(it.set, it.slot, c);
+  if (!baseId || it.base === baseId) return false;
+  const base = c.equipment.bases[baseId];
+  const tierIndex = Math.max(0, Math.min(c.equipment.tiers.length - 1, it.tier));
+  const tier = c.equipment.tiers[tierIndex];
+  const rd = c.rarities.defs[it.rarity] ?? c.rarities.defs.rare;
+  const stats: Item['stats'] = {};
+  for (const [k, v] of Object.entries(base.stats)) {
+    const key = k as keyof Item['stats'];
+    stats[key] = c.equipment.flatStats.includes(key)
+      ? Math.max(1, Math.round((v as number) * (1 + tierIndex * c.equipment.flatTierGrowth)))
+      : Math.max(1, Math.round((v as number) * tier.mul * rd.statMul));
+  }
+  it.base = baseId;
+  it.kind = base.kind;
+  it.stats = stats;
+  it.look = `${base.look}:${tierIndex}`;
+  const name = c.sets[it.set].pieces[it.slot];
+  if (name) it.name = name;
+  return true;
 }
 
 /** 部位の重みから装備の土台を選ぶ */

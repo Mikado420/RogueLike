@@ -1,5 +1,5 @@
 import { logger } from '../util/log';
-import { CONTENT, type Item, type MailItem } from '../../../shared/src';
+import { CONTENT, repairSetItem, type Item, type MailItem } from '../../../shared/src';
 import type { Env } from '../env';
 import { HttpError, call, dispatch } from '../util/http';
 import { platform } from '../util/platform';
@@ -25,8 +25,25 @@ export class MarketDO {
       CREATE INDEX IF NOT EXISTS listings_open ON listings(status, slot, rarity, price);
       CREATE INDEX IF NOT EXISTS listings_seller ON listings(seller, status);
       CREATE TABLE IF NOT EXISTS ops (id TEXT PRIMARY KEY, result TEXT NOT NULL);
-      CREATE TABLE IF NOT EXISTS outbox (id TEXT PRIMARY KEY, account TEXT NOT NULL, mail TEXT NOT NULL);`);
+      CREATE TABLE IF NOT EXISTS outbox (id TEXT PRIMARY KEY, account TEXT NOT NULL, mail TEXT NOT NULL);
+      CREATE TABLE IF NOT EXISTS fixes (id TEXT PRIMARY KEY);`);
+    this.repairSets();
     this.ready = true;
+  }
+
+  /** 1回だけ：名前と中身がずれたセット装備の出品を直す（data/sets.json の bases に合わせる） */
+  private repairSets() {
+    if (this.sql.exec("SELECT id FROM fixes WHERE id = 'setBases'").toArray().length) return;
+    const rows = this.sql.exec(`SELECT id, item FROM listings WHERE item LIKE '%"set":"%'`).toArray() as unknown as Pick<Row, 'id' | 'item'>[];
+    let n = 0;
+    for (const r of rows) {
+      const it = JSON.parse(r.item) as Item;
+      if (!repairSetItem(it, CONTENT)) continue;
+      this.sql.exec('UPDATE listings SET base = ?, name = ?, item = ? WHERE id = ?', it.base, it.name, JSON.stringify(it), r.id);
+      n++;
+    }
+    this.sql.exec("INSERT OR IGNORE INTO fixes (id) VALUES ('setBases')");
+    if (n) logger.info('market.repairedSets', { n });
   }
 
   /** 同じ操作がもう一度来たら、前の結果を返す */

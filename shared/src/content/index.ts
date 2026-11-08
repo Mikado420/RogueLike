@@ -74,6 +74,14 @@ export function txt(key: string, ...args: (string | number)[]): string {
   return s;
 }
 
+// セット装備の土台は、部位ごとに存在して部位が合っていること（名前と中身がずれないように）
+for (const [id, s] of Object.entries(CONTENT.sets)) {
+  for (const slot of Object.keys(s.pieces) as (keyof typeof s.pieces)[]) {
+    const b = s.bases?.[slot];
+    if (!b || CONTENT.equipment.bases[b]?.slot !== slot) throw new Error(`data/sets.json: ${id}.bases.${slot} が正しくない（${b}）`);
+  }
+}
+
 // 銘入り装備の固定効果は、ユニーク効果と同じ形で登録する（効果の処理と表示をそのまま使うため）
 for (const r of (CONTENT as unknown as { crafted: { recipes: { id: string; name: string; base: string; effect: object }[] } }).crafted.recipes) {
   const slot = (CONTENT as unknown as { equipment: { bases: Record<string, { slot: string }> } }).equipment.bases[r.base]?.slot;

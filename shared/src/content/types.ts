@@ -271,6 +271,8 @@ export interface SetDef {
   name: string;
   /** 部位 → その部位の名前 */
   pieces: Partial<Record<EquipSlot, string>>;
+  /** 部位 → その部位の土台（data/equipment.json の bases の id）。名前と中身を一致させる */
+  bases: Partial<Record<EquipSlot, string>>;
   bonus: { count: number; mods: Mods }[];
 }
 
