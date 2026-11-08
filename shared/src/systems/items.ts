@@ -9,6 +9,7 @@ import { heal } from './combat';
 import { sellPrice } from './loot';
 import { nearRole } from './interact';
 import { accountOf, notice } from './util';
+import { gainSubExp } from './crafting';
 
 /** 装備できるか。できないなら理由のキー */
 export function canEquip(ch: CharacterData, it: Item, w: World): string | null {
@@ -271,6 +272,9 @@ export function refineItem(w: World, p: Player, uid: number): string | null {
     it.refinePity += c.refine.pityPerFail;
   }
   if (it.trade === 'free') it.trade = 'once';
+  // 精錬も鍛冶の腕を上げる（成功・失敗どちらでも）
+  const smithRefine = c.subjobs.smith?.refine ?? 0;
+  if (smithRefine > 0) gainSubExp(w, p, 'smith', smithRefine);
   w.events.push({ type: 'refine', playerId: p.id, uid, success: ok, level: it.refine });
   return null;
 }

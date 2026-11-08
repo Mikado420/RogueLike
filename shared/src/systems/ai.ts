@@ -5,7 +5,7 @@ import { lineOfSight, moveCircle } from '../map';
 import { buildSpec, launchAttack } from './combat';
 import { cannotAct, regenPoise } from './status';
 import { monsterStats } from './stats';
-import { DT, findActor, inSafeZone, isBoss, sec } from './util';
+import { DT, findActor, inSafeZone, isBoss, isoSpeedMul, sec } from './util';
 import { bossHooks } from './boss';
 import { isNight } from './time';
 
@@ -140,7 +140,7 @@ export function moveToward(w: World, m: Monster, tx: number, ty: number, speed: 
   const dx = tx - m.x, dy = ty - m.y;
   const d = Math.hypot(dx, dy);
   if (d <= stopDist || d < 1e-4) return;
-  const v = Math.min(d, speed * DT(w));
+  const v = Math.min(d, speed * DT(w) * isoSpeedMul(dx, dy, w.content));
   if (v <= 0) return;
   m.facing = Math.atan2(dy, dx);
   let moved = moveCircle(w.area.map, m, m.r, (dx / d) * v, (dy / d) * v);

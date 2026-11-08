@@ -16,9 +16,10 @@
  "maxLevel": 60,
  "expBase": 40,
  "expPerLevel": 25,
+ "smith": { "tierBonus": 0.6, "namedMul": 1.5, "refine": 12 },
  "gain": {
   "gather": 6,
-  "smith": 30,
+  "smith": 90,
   "cook": 15,
   "alchemy": 20
  },

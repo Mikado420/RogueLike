@@ -13,5 +13,11 @@
     "bonus": [ { "count": 2, "mods": { "critRate": 6, "critDamage": 10 } }, { "count": 4, "mods": { "darkDmgPct": 15, "lightDmgPct": 15, "lifestealPct": 2 } } ] },
   "set_frost":  { "name": "白銀", "pieces": { "head": "白銀の冠", "body": "白銀の鎧", "accessory": "白銀の首飾り", "sub": "白銀の護符" },
     "bases": {"head": "h_helm", "body": "a_heavy", "accessory": "x_amulet", "sub": "s_talisman"},
-    "bonus": [ { "count": 2, "mods": { "atkPct": 6, "matkPct": 6 } }, { "count": 4, "mods": { "skillDmgPct": 12, "bossDmgPct": 12, "statusResistPct": 20 } } ] }
+    "bonus": [ { "count": 2, "mods": { "atkPct": 6, "matkPct": 6 } }, { "count": 4, "mods": { "skillDmgPct": 12, "bossDmgPct": 12, "statusResistPct": 20 } } ] },
+  "set_starlight": { "name": "星辰", "pieces": { "head": "星辰の冠", "body": "星辰の聖衣", "accessory": "星辰の首飾り", "sub": "星辰の魔導書" },
+    "bases": {"head": "h_helm", "body": "a_cloth", "accessory": "x_amulet", "sub": "s_grimoire"},
+    "bonus": [ { "count": 2, "mods": { "matkPct": 8, "maxMp": 40 } }, { "count": 4, "mods": { "lightDmgPct": 18, "skillDmgPct": 10, "cooldownPct": -8 } } ] },
+  "set_void": { "name": "虚冥", "pieces": { "head": "虚冥の兜", "body": "虚冥の鎧", "accessory": "虚冥の指輪", "sub": "虚冥の短剣" },
+    "bases": {"head": "h_helm", "body": "a_heavy", "accessory": "x_ring", "sub": "s_dagger"},
+    "bonus": [ { "count": 2, "mods": { "atkPct": 8, "critDamage": 15 } }, { "count": 4, "mods": { "darkDmgPct": 18, "bossDmgPct": 12, "lifestealPct": 2 } } ] }
 }

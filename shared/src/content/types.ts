@@ -414,6 +414,8 @@ export interface Balance {
     expMonster: [number, number, number];
     levelDiffPenalty: number; levelDiffBonus: number; levelDiffMinMul: number; levelDiffMaxMul: number;
     tierLevels: number[];
+    /** 限界突破：level に達すると上限 +upTo まで、その区間は1レベル cost ポイント。効き目は超えた分 × efficiency */
+    limitBreak?: { efficiency: number; steps: { level: number; upTo: number; cost: number }[] };
   };
   respec: { costBase: number; costPerLevel: number };
   rebirth: { statPoints: number; skillPoints: number; expPct: number; max: number; titles: { count: number; title: string }[] };
@@ -424,6 +426,8 @@ export interface Balance {
     autoTargetRange: number; pickupRange: number; inventorySize: number; skillSlots: number;
     interactRange: number; mpRegenOutOfCombat: number; hpRegenOutOfCombat: number; combatTimeout: number;
     blockReduce: number;
+    /** 画面上の移動の速さをそろえる補正（タイルの縦÷横。0 で補正なし） */
+    isoMoveAspect?: number;
   };
   monster: {
     hp: [number, number, number]; atk: [number, number]; def: number; mdef: number;
@@ -467,6 +471,8 @@ export interface GatheringDef {
 }
 export interface SubJobsDef {
   jobs: Record<SubJob, { name: string }>; maxLevel: number; expBase: number; expPerLevel: number; gain: Record<SubJob, number>;
+  /** 鍛冶：段が1つ上がるごとの経験値の上乗せ（0.6 なら 1 段で +60%）・銘入り装備の倍率・精錬1回ぶん */
+  smith?: { tierBonus: number; namedMul: number; refine: number };
   effects: { gatherYieldPct: number; gatherRarePct: number; smithRarePct: number; cookDoublePct: number; alchemyCostPct: number; alchemyRollMin: number };
 }
 export interface RecipesDef {

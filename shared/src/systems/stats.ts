@@ -5,6 +5,12 @@ import {
 import type { Content, MonsterDef } from '../content/types';
 import type { CharacterData, CombatStats, Item, StatusInstance } from '../state';
 
+/** スキルの効き目のレベル（限界突破で上限を超えた分は efficiency 倍。data/balance.json の progression.limitBreak） */
+export function effSkillLevel(d: { maxLevel: number }, lv: number, c: Content): number {
+  if (lv <= d.maxLevel) return lv;
+  return d.maxLevel + (lv - d.maxLevel) * (c.balance.progression.limitBreak?.efficiency ?? 1);
+}
+
 /** 今の武器種（武器を持っていないときは片手剣扱い） */
 export function weaponTypeOf(char: CharacterData): WeaponType {
   return (char.equipment.weapon?.kind as WeaponType | undefined) ?? 'oneHandSword';
@@ -52,7 +58,7 @@ export function passiveMods(char: CharacterData, weapon: WeaponType, c: Content)
     if (d.weapon && d.weapon !== weapon) continue;
     for (const k in d.mods) {
       const key = k as ModKey;
-      m[key] = (m[key] ?? 0) + scaled(d.mods[key], lv);
+      m[key] = (m[key] ?? 0) + scaled(d.mods[key], effSkillLevel(d, lv, c));
     }
   }
   return m;

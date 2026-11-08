@@ -1,5 +1,5 @@
 import {
-  BTN_ATTACK, BTN_DODGE, BTN_INTERACT, CONTENT, LocalHub, applySnapshot, createMirrorWorld, moveCircle,
+  BTN_ATTACK, BTN_DODGE, BTN_INTERACT, CONTENT, LocalHub, applySnapshot, createMirrorWorld, isoSpeedMul, moveCircle,
   type AccountData, type CharacterData, type ClientMsg, type GameEvent, type GameMap, type Player, type PlayerInput, type ServerMsg, type World,
 } from '../../../shared/src';
 import { LagTransport, WsTransport, type Transport } from './transport';
@@ -88,7 +88,20 @@ export class NetSession {
     this.onState?.(s);
   }
 
+  /** つなぎ始めてから welcome が来ないまま止まらないよう見張る */
+  private watchdog: ReturnType<typeof setTimeout> | null = null;
+
   private connect(ticket: string) {
+    if (this.watchdog) clearTimeout(this.watchdog);
+    this.watchdog = setTimeout(() => {
+      this.watchdog = null;
+      if (this.state === 'online' || this.state === 'closed' || this.kicked) return;
+      // 12 秒たってもつながらない：今のつながりを捨てて、最初からやり直す
+      const t = this.transport;
+      if (t) { t.onMessage = null; t.onClose = null; t.close(); }
+      this.resume = '';
+      void this.onClosed(4999);
+    }, 12_000);
     const old = this.transport;
     if (old) { old.onMessage = null; old.onClose = null; old.close(); }
     let t: Transport = new WsTransport(ticket);
@@ -120,6 +133,7 @@ export class NetSession {
   private onMessage(m: ServerMsg) {
     switch (m.t) {
       case 'welcome': {
+        if (this.watchdog) { clearTimeout(this.watchdog); this.watchdog = null; }
         this.retries = 0;
         this.resume = m.resume;
         this.key = m.key;
@@ -210,7 +224,7 @@ export class NetSession {
   private correct(me: Player, sx: number, sy: number) {
     if (!this.pred || me.dead) { this.pred = { x: sx, y: sy, dodge: 0, dir: { x: 0, y: 0 } }; this.prevPred = { x: sx, y: sy }; this.corr = { x: 0, y: 0 }; return; }
     const lead = Math.min(0.3, (this.rtt / 2 + this.snapshotMs / 2) / 1000);
-    const speed = me.stats.moveSpeed;
+    const speed = me.stats.moveSpeed * isoSpeedMul(this.lastMove.x, this.lastMove.y, CONTENT);
     const tx = sx + this.lastMove.x * speed * lead, ty = sy + this.lastMove.y * speed * lead;
     const dx = tx - this.pred.x, dy = ty - this.pred.y;
     const d = Math.hypot(dx, dy);
@@ -267,10 +281,10 @@ export class NetSession {
     this.lastMove = ml > 0.05 ? { x: mx, y: my } : { x: 0, y: 0 };
     if (this.pred.dodge > 0) {
       this.pred.dodge--;
-      const v = CONTENT.balance.player.dodgeSpeed * dt;
+      const v = CONTENT.balance.player.dodgeSpeed * dt * isoSpeedMul(this.pred.dir.x, this.pred.dir.y, CONTENT);
       moveCircle(map, p, me.r, this.pred.dir.x * v, this.pred.dir.y * v);
     } else if (!me.dead && me.lock <= 0 && ml > 0.05 && !me.statuses.some((s) => CONTENT.statuses[s.id]?.cannotAct)) {
-      const v = me.stats.moveSpeed * dt;
+      const v = me.stats.moveSpeed * dt * isoSpeedMul(mx, my, CONTENT);
       moveCircle(map, p, me.r, mx * v, my * v);
       me.facing = Math.atan2(my, mx);
     }
@@ -323,6 +337,7 @@ export class NetSession {
     this.send({ t: 'bye' });
     this.setState('closed');
     if (this.pingTimer) clearInterval(this.pingTimer);
+    if (this.watchdog) { clearTimeout(this.watchdog); this.watchdog = null; }
     setTimeout(() => this.transport?.close(), 200);
   }
 }

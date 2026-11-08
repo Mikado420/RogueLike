@@ -118,7 +118,8 @@
       30,
       45,
       60
-    ]
+    ],
+    "limitBreak": { "efficiency": 0.5, "steps": [ { "level": 100, "upTo": 5, "cost": 2 }, { "level": 200, "upTo": 10, "cost": 3 } ] }
   },
   "respec": {
     "costBase": 300,
@@ -172,6 +173,7 @@
     "mpRegenOutOfCombat": 4,
     "hpRegenOutOfCombat": 2,
     "combatTimeout": 5,
+    "isoMoveAspect": 0.5,
     "blockReduce": 50
   },
   "monster": {

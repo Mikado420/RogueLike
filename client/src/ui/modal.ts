@@ -1,5 +1,6 @@
 import { h } from './dom';
 import { txt } from '../../../shared/src';
+import { reportError } from '../errors';
 
 const CANCEL_LABEL = txt('ui.cancel');
 
@@ -42,7 +43,7 @@ export class Modal {
     head.append(close);
     const body = h('div', 'panel-body');
     panel.append(head, body);
-    this.renderFn(body);
+    try { this.renderFn(body); } catch (e) { reportError(`panel:${this.kind}`, e); body.append(h('div', 'muted', txt('err.panel'))); }
     this.el.replaceChildren(panel);
     body.scrollTop = scroll;
     this.el.querySelectorAll('[data-keep-scroll]').forEach((e, i) => { (e as HTMLElement).scrollTop = innerScroll[i] ?? 0; });

@@ -1,5 +1,5 @@
 import {
-  CONTENT, EQUIP_SLOTS, PERSONAL_STATS, PRIMARY_STATS, RARITIES, bagInfo, canLearnSkill, expToNext, freeSkillPoints,
+  CONTENT, EQUIP_SLOTS, PERSONAL_STATS, PRIMARY_STATS, RARITIES, bagInfo, canLearnSkill, effSkillLevel, expToNext, freeSkillPoints, skillMaxLevel, skillNextCost,
   ensureMissions, freeStatPoints, missionProgress, derivePlayerStats, itemMods, lookSlotOf, primaryStats, rawPrimaryStats, scaled, slotsFor, staticMods, txt, weaponTypeOf,
   type EquipSlot, type Item, type ModKey, type PrimaryStat, type Rarity, type SkillDef, type WeaponType,
 } from '../../../shared/src';
@@ -341,9 +341,10 @@ export class Menu {
         const err = canLearnSkill(ch, id, CONTENT);
         const locked = lv === 0 && (err === 'err.levelLow' || err === 'err.requires');
         const card = h('button', `skill-card${lv > 0 ? ' learned' : ''}${locked ? ' locked' : ''}${this.skillSel === id ? ' sel' : ''}${d.type === 'passive' ? ' passive' : ''}`);
-        card.append(h('span', 'sk-name', d.name), h('span', 'sk-lv', `${lv}/${d.maxLevel}`));
+        const max = skillMaxLevel(ch, d, CONTENT);
+        card.append(h('span', 'sk-name', d.name), h('span', `sk-lv${lv > d.maxLevel ? ' lb' : ''}`, `${lv}/${max}`));
         if (d.type === 'passive') card.append(h('span', 'sk-p', 'P'));
-        if (!err && sp > 0) card.classList.add('can');
+        if (!err) card.classList.add('can');
         card.addEventListener('click', () => { this.skillSel = id; this.refresh(); });
         rowEl.append(card);
       }
@@ -358,14 +359,16 @@ export class Menu {
   private skillDetail(id: string, d: SkillDef): HTMLElement {
     const ch = this.ctx.me().char;
     const lv = ch.skills[id] ?? 0;
+    const max = skillMaxLevel(ch, d, CONTENT);
     const shown = Math.max(1, lv);
-    const next = Math.min(d.maxLevel, lv + 1);
+    const next = Math.min(max, lv + 1);
     const det = h('div', 'detail');
     det.append(h('div', 'd-name', d.name));
     const tags = h('div', 'd-tags');
     tags.append(h('span', 'tag', txt(d.type === 'passive' ? 'skill.passive' : 'skill.active')));
     tags.append(h('span', 'tag', d.weapon ? CONTENT.weapons[d.weapon]?.name ?? CONTENT.trees[d.tree].name : txt('skill.anyWeapon')));
-    tags.append(h('span', 'tag', `Lv ${lv}/${d.maxLevel}`));
+    tags.append(h('span', 'tag', `Lv ${lv}/${max}`));
+    if (lv >= d.maxLevel && max > d.maxLevel) tags.append(h('span', 'tag lb', txt('skill.limitBreak')));
     det.append(tags);
     const lines = h('div', 'd-lines');
     lines.append(kv(txt('skill.req'), String(CONTENT.balance.progression.tierLevels[d.tier - 1] ?? 1)));
@@ -375,7 +378,8 @@ export class Menu {
       if (!ok) row.classList.add('bad');
       lines.append(row);
     }
-    const nowNext = (f: (l: number) => string) => (lv > 0 && lv < d.maxLevel ? `${f(shown)} → ${f(next)}` : f(lv > 0 ? lv : 1));
+    const eff = (l: number) => effSkillLevel(d, l, CONTENT);
+    const nowNext = (f: (l: number) => string) => (lv > 0 && lv < max ? `${f(eff(shown))} → ${f(eff(next))}` : f(eff(lv > 0 ? lv : 1)));
     if (d.type === 'active') {
       if (d.mp !== undefined) lines.append(kv(txt('skill.mp'), nowNext((l) => String(Math.round(scaled(d.mp, l))))));
       if (d.cooldown !== undefined) lines.append(kv(txt('skill.ct'), nowNext((l) => `${scaled(d.cooldown, l).toFixed(1)}s`)));
@@ -405,7 +409,9 @@ export class Menu {
     det.append(lines);
     const act = h('div', 'd-actions');
     const err = canLearnSkill(ch, id, CONTENT);
-    const learn = btn(lv > 0 ? txt('skill.levelUp') : txt('skill.learn'), () => this.ctx.send({ type: 'learnSkill', skill: id }), 'btn primary');
+    const cost = skillNextCost(d, lv, CONTENT);
+    const label = lv > 0 ? txt('skill.levelUp') : txt('skill.learn');
+    const learn = btn(cost > 1 && lv < max ? `${label}（${txt('skill.sp')}${cost}）` : label, () => this.ctx.send({ type: 'learnSkill', skill: id }), 'btn primary');
     learn.disabled = !!err;
     act.append(learn);
     det.append(act);

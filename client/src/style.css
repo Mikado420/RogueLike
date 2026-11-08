@@ -205,6 +205,8 @@ button:disabled { opacity: 0.4; cursor: default; }
 .skill-card.passive { border-style: dashed; }
 .sk-name { font-size: 12px; font-weight: 800; }
 .sk-lv { font-size: 11px; color: var(--muted); font-weight: 700; }
+.sk-lv.lb { color: #ffb84a; }
+.tag.lb { background: rgba(255, 184, 74, 0.18); color: #ffd08a; }
 .sk-p { position: absolute; top: 4px; right: 6px; font-size: 10px; color: var(--good); font-weight: 900; }
 .empty-tree { color: var(--muted); padding: 20px; text-align: center; }
 .slot-pick { display: flex; gap: 6px; align-items: center; margin-top: 8px; font-size: 12px; }

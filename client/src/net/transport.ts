@@ -1,5 +1,6 @@
 import type { ClientMsg, ServerMsg } from '../../../shared/src';
 import { WS_URL } from './api';
+import { reportError } from '../errors';
 
 /** サーバーとのつながり（WebSocket・遅延つき・手元の疑似サーバー） */
 export interface Transport {
@@ -20,7 +21,11 @@ export class WsTransport implements Transport {
   constructor(ticket: string) {
     this.ws = new WebSocket(`${WS_URL}/ws?ticket=${encodeURIComponent(ticket)}`);
     this.ws.onopen = () => this.onOpen?.();
-    this.ws.onmessage = (ev) => { try { this.onMessage?.(JSON.parse(String(ev.data))); } catch { /* noop */ } };
+    this.ws.onmessage = (ev) => {
+      let m: ServerMsg;
+      try { m = JSON.parse(String(ev.data)); } catch { return; }
+      try { this.onMessage?.(m); } catch (e) { reportError(`net:${(m as { t?: string }).t ?? '?'}`, e); }
+    };
     this.ws.onclose = (ev) => { if (!this.closedByMe) this.onClose?.(ev.code); };
   }
 

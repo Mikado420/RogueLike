@@ -3,7 +3,7 @@ import type { Content } from './content/types';
 import { EQUIP_SLOTS, PRIMARY_STATS, RARITIES } from './core';
 import type { AccountData, CharacterData, Item } from './state';
 import { migrateAccount, normalizeCharacter } from './save';
-import { expToNext, totalSkillPoints, totalStatPoints } from './systems/progression';
+import { expToNext, skillMaxLevel, sumSkillPoints, totalSkillPoints, totalStatPoints } from './systems/progression';
 import { optionValue } from './systems/loot';
 
 /**
@@ -99,10 +99,10 @@ function checkCharacter(ch: CharacterData, c: Content, removed: Removed[], uids:
   let skillBad = false;
   for (const [id, lv] of Object.entries(ch.skills ?? {})) {
     const d = c.skills[id];
-    if (!d || !finite(lv, 1, d.maxLevel) || !Number.isInteger(lv)) { skillBad = true; break; }
+    if (!d || !finite(lv, 1, skillMaxLevel(ch, d, c)) || !Number.isInteger(lv)) { skillBad = true; break; }
     if (ch.level < (pr.tierLevels[d.tier - 1] ?? 1) && ch.rebirths === 0) { skillBad = true; break; }
   }
-  const sp = Object.values(ch.skills ?? {}).reduce((s, v) => s + (Number(v) || 0), 0);
+  const sp = skillBad ? 0 : sumSkillPoints(ch.skills ?? {}, c);
   if (skillBad || sp > totalSkillPoints(ch, c)) {
     removed.push({ char: who, what: 'skills', reason: 'points' });
     ch.skills = {};

@@ -100,6 +100,44 @@
    "boss": "ice_lich",
    "set": "set_frost",
    "crystal": "cr_dawn"
+  },
+  "dg_starfall": {
+   "name": "星屑の天文台",
+   "field": "starfall",
+   "level": 150,
+   "rooms": [
+    9,
+    12
+   ],
+   "tint": "#1a1a3a",
+   "monsters": [
+    "star_golem",
+    "sky_wolf",
+    "comet_wyvern",
+    "starfall_knight"
+   ],
+   "boss": "star_oracle",
+   "set": "set_starlight",
+   "crystal": "cr_sage"
+  },
+  "dg_abyss": {
+   "name": "虚ろの大回廊",
+   "field": "abyss",
+   "level": 250,
+   "rooms": [
+    9,
+    12
+   ],
+   "tint": "#140a1a",
+   "monsters": [
+    "void_golem",
+    "abyss_hound",
+    "void_wraith",
+    "abyss_knight"
+   ],
+   "boss": "void_empress",
+   "set": "set_void",
+   "crystal": "cr_titan"
   }
  },
  "packs": [

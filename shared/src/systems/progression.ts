@@ -1,7 +1,8 @@
 import { PRIMARY_STATS, WEAPON_TYPES, type EquipSlot, type PersonalStat, type PrimaryStat, type WeaponType } from '../core';
-import type { Content, MonsterDef } from '../content/types';
+import type { Content, MonsterDef, SkillDef } from '../content/types';
 import type { BuildSnapshot, CharacterData, Player, World } from '../state';
 import { weaponTypeOf } from './stats';
+export { effSkillLevel } from './stats';
 import { setCounterMax } from './counters';
 
 // ───────── 経験値とレベル ─────────
@@ -105,21 +106,53 @@ export function totalSkillPoints(ch: CharacterData, c: Content): number {
   return pr.startSkillPoints + pr.skillPointsPerLevel * (ch.level - 1) + ch.rebirths * c.balance.rebirth.skillPoints;
 }
 
-export const spentSkillPoints = (ch: CharacterData) => Object.values(ch.skills).reduce((s, v) => s + v, 0);
-export const freeSkillPoints = (ch: CharacterData, c: Content) => totalSkillPoints(ch, c) - spentSkillPoints(ch);
+/**
+ * 限界突破：スキルの上限（ふつうは 10）を超えて上げられる。キャラのレベルで段階的に開き、超えた分は1レベルに 2〜3 ポイントかかる。
+ * 効き目は超えた分の半分ほど（data/balance.json の progression.limitBreak）
+ */
+export function skillMaxLevel(ch: CharacterData, d: SkillDef, c: Content): number {
+  let max = d.maxLevel;
+  for (const s of c.balance.progression.limitBreak?.steps ?? []) if (ch.level >= s.level) max = Math.max(max, d.maxLevel + s.upTo);
+  return max;
+}
+
+/** そのレベルにするまでに使うポイントの合計（上限までは1レベル1ポイント） */
+export function skillPointsFor(d: SkillDef, lv: number, c: Content): number {
+  if (lv <= d.maxLevel) return lv;
+  let n = d.maxLevel, from = 0;
+  for (const s of c.balance.progression.limitBreak?.steps ?? []) {
+    const k = Math.max(0, Math.min(lv - d.maxLevel, s.upTo) - from);
+    n += k * s.cost;
+    from = Math.max(from, s.upTo);
+  }
+  return n;
+}
+
+/** 次の1レベルにかかるポイント */
+export function skillNextCost(d: SkillDef, lv: number, c: Content): number {
+  return skillPointsFor(d, lv + 1, c) - skillPointsFor(d, lv, c);
+}
+
+export function sumSkillPoints(skills: Record<string, number>, c: Content): number {
+  let n = 0;
+  for (const [id, lv] of Object.entries(skills)) { const d = c.skills[id]; n += d ? skillPointsFor(d, lv, c) : (Number(lv) || 0); }
+  return n;
+}
+export const spentSkillPoints = (ch: CharacterData, c: Content) => sumSkillPoints(ch.skills, c);
+export const freeSkillPoints = (ch: CharacterData, c: Content) => totalSkillPoints(ch, c) - spentSkillPoints(ch, c);
 
 /** そのスキルを今1レベル上げられるか。できないなら理由のキー */
 export function canLearnSkill(ch: CharacterData, id: string, c: Content): string | null {
   const d = c.skills[id];
   if (!d) return 'err.invalid';
   const cur = ch.skills[id] ?? 0;
-  if (cur >= d.maxLevel) return 'err.skillMax';
+  if (cur >= skillMaxLevel(ch, d, c)) return 'err.skillMax';
   const need = c.balance.progression.tierLevels[d.tier - 1] ?? 1;
   if (ch.level < need) return 'err.levelLow';
   for (const r of d.requires ?? []) {
     if ((ch.skills[r.skill] ?? 0) < r.level) return 'err.requires';
   }
-  if (freeSkillPoints(ch, c) <= 0) return 'err.noPoints';
+  if (freeSkillPoints(ch, c) < skillNextCost(d, cur, c)) return 'err.noPoints';
   return null;
 }
 
@@ -212,8 +245,8 @@ export function loadBuild(ch: CharacterData, slot: number, c: Content, equip: (u
   if (!b) return 'err.empty';
   const statSum = PRIMARY_STATS.reduce((s, k) => s + (b.stats[k] ?? 0), 0) + b.personal.value;
   if (statSum > totalStatPoints(ch, c)) return 'err.noPoints';
-  const skillSum = Object.values(b.skills).reduce((s, v) => s + v, 0);
-  if (skillSum > totalSkillPoints(ch, c)) return 'err.noPoints';
+  if (sumSkillPoints(b.skills, c) > totalSkillPoints(ch, c)) return 'err.noPoints';
+  for (const [id, lv] of Object.entries(b.skills)) { const d = c.skills[id]; if (d && lv > skillMaxLevel(ch, d, c)) return 'err.skillMax'; }
   for (const s of PRIMARY_STATS) ch.stats[s] = b.stats[s] ?? 0;
   ch.personal = { ...b.personal };
   ch.skills = { ...b.skills };

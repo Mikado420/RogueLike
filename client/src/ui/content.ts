@@ -32,7 +32,7 @@ export function registerContentPanels(npc: NpcPanels, menu: Menu, ctx: Ctx) {
     const gate = c.world.area.npcs.find((x) => x.id === st.npcId);
     const id = gate?.data ?? '';
     const def = CONTENT.dungeons.dungeons[id];
-    if (!def) return;
+    if (!def || !c.me()) return;
     body.append(h('div', 'd-name', def.name));
     body.append(kv(txt('gate.difficulty'), ''));
     body.append(diffPicker(st, () => {}));
@@ -61,6 +61,7 @@ export function registerContentPanels(npc: NpcPanels, menu: Menu, ctx: Ctx) {
 
   npc.register('tower', (c, body) => {
     const p = c.me();
+    if (!p) return;
     const t = CONTENT.tower;
     body.append(kv(txt('tower.best'), `${p.char.tower.best}F`));
     body.append(h('div', 'sub-title', txt('tower.start')));

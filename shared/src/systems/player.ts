@@ -12,7 +12,7 @@ import { conditionalMods, procOnDodge } from './effects';
 import { baseMods, baseOf } from './base';
 import { petMods } from './pets';
 import { addMods } from '../core';
-import { DT, nearestMonster, sec } from './util';
+import { DT, isoSpeedMul, nearestMonster, sec } from './util';
 
 export function refreshPlayerStats(w: World, p: Player) {
   const ratioHp = p.stats.maxHp > 0 ? p.hp / p.stats.maxHp : 1;
@@ -90,7 +90,7 @@ export function updatePlayer(w: World, p: Player, input: PlayerInput) {
 
   if (p.dodgeTicks > 0) {
     p.dodgeTicks--;
-    const v = p.dashSpeed * DT(w);
+    const v = p.dashSpeed * DT(w) * isoSpeedMul(p.dodgeDir.x, p.dodgeDir.y, w.content);
     moveCircle(w.area.map, p, p.r, p.dodgeDir.x * v, p.dodgeDir.y * v);
     p.moving = true;
     p.prevAttack = input.attack;
@@ -101,7 +101,7 @@ export function updatePlayer(w: World, p: Player, input: PlayerInput) {
   if (!stunned) {
     const speed = p.lock > 0 ? 0 : p.stats.moveSpeed * (p.charge > sec(w, c.balance.combat.chargeMinMove) ? chargeMoveMul(w, p) : 1);
     if (ml > 0.05 && speed > 0) {
-      const v = speed * DT(w);
+      const v = speed * DT(w) * isoSpeedMul(mx, my, w.content);
       p.moving = moveCircle(w.area.map, p, p.r, mx * v, my * v);
       p.facing = Math.atan2(my, mx);
     }

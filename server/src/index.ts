@@ -32,6 +32,13 @@ type Route = (req: Request, env: Env, m: RegExpMatchArray) => Promise<Response>;
 
 const routes: [string, RegExp, Route][] = [
   ['GET', /^\/api\/health$/, async () => json({ ok: true, time: platform.now() })],
+  // ブラウザで起きたエラーの報告（ログに残すだけ。原因調べ用）
+  ['POST', /^\/api\/client-error$/, async (req) => {
+    const b = await readJson<{ where?: unknown; message?: unknown; stack?: unknown; ua?: unknown }>(req).catch(() => ({} as Record<string, unknown>));
+    const s = (v: unknown, n: number) => String(v ?? '').slice(0, n);
+    logger.warn('clientError', { where: s(b.where, 60), message: s(b.message, 300), stack: s(b.stack, 1500), ua: s(b.ua, 200) });
+    return json({ ok: true });
+  }],
   // ゲストのアカウントを作る
   ['POST', /^\/api\/guest$/, async (_req, env) => {
     const accountId = `a_${randomId(12)}`;

@@ -1,5 +1,5 @@
 import {
-  CONTENT, beatTicks, chargeLevel, comboMax, expToNext, freeSkillPoints, freeStatPoints, interactTarget, magazineSize,
+  CONTENT, beatTicks, chargeLevel, comboMax, effSkillLevel, expToNext, freeSkillPoints, freeStatPoints, interactTarget, magazineSize,
   slotSkill, txt, weaponTypeOf, currentWeather, dayPhase, bagInfo, type GameEvent, type Item, type Player, type World,
 } from '../../shared/src';
 import { rarityColor, statusColor } from './colors';
@@ -518,7 +518,7 @@ export class Hud {
       const frac = cd > 0 ? cd / Math.max(1, p.skillCdMax[id] ?? 1) : 0;
       b.cd.style.background = frac > 0 ? `conic-gradient(rgba(0,0,0,0.65) ${frac * 360}deg, transparent 0deg)` : '';
       b.cdText.textContent = cd > 0 ? (cd / CONTENT.balance.tickRate).toFixed(cd > 20 ? 0 : 1) : '';
-      const lv = ch.skills[id] ?? 1;
+      const lv = effSkillLevel(sd, ch.skills[id] ?? 1, CONTENT);
       const mpCost = Array.isArray(sd.mp) ? sd.mp[0] + sd.mp[1] * (lv - 1) : sd.mp ?? 0;
       b.btn.classList.toggle('nomp', p.mp < mpCost);
       b.btn.classList.toggle('ready', cd <= 0 && p.mp >= mpCost);

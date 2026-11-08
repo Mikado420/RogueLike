@@ -21,6 +21,8 @@ import { SocialClient } from './net/social';
 import { createOnline } from './net/online';
 import { OfflineServices, type OnlineServices } from '../../shared/src';
 import type { Ctx } from './ui/ctx';
+import { guard, reportError, setErrorToast } from './errors';
+import { txt } from '../../shared/src';
 
 
 /** 1人ぶんのゲーム（ワールド・描画・UI・保存）をまとめる */
@@ -100,10 +102,16 @@ export class Game {
       if (a === 'capture') this.useCapture();
       if (a === 'chat') this.chat.focus();
     };
-    this.tickFn = (t) => this.frame(t);
+    // 1 フレームで例外が出ても、ゲームの更新そのものは止めない（止まるとフリーズに見える）
+    this.tickFn = (t) => { try { this.frame(t); } catch (e) { this.acc = 0; reportError('frame', e); } };
+    setErrorToast((msg) => this.hud.toast(txt('err.client', msg), '#ff8a7a'));
     app.ticker.add(this.tickFn);
     session.onKick = (r) => this.onExit?.(r);
-    session.onState = (st) => this.hud.setConnection(st);
+    session.onState = (st) => {
+      this.hud.setConnection(st);
+      // エリアを移る（つなぎ直す）間は自分がいないので、開いている画面は閉じる
+      if (st === 'connecting' || st === 'reconnecting') this.modal.close();
+    };
     (window as unknown as { eg: unknown }).eg = { game: this, get world() { return self.world; }, get me() { return self.ctx.me(); } };
   }
 
@@ -175,11 +183,11 @@ export class Game {
 
   private handleEvents(events: GameEvent[]) {
     if (events.length === 0) return;
-    this.view.handleEvents(events);
-    this.hud.handleEvents(events);
+    guard('view.events', () => this.view.handleEvents(events));
+    guard('hud.events', () => this.hud.handleEvents(events));
     let refresh = false;
     for (const e of events) {
-      if (e.type === 'npc' && e.playerId === this.ctx.myId) this.npc.open(e.npc, e.npcId);
+      if (e.type === 'npc' && e.playerId === this.ctx.myId && this.ctx.me()) guard('npc.open', () => this.npc.open(e.npc, e.npcId));
       if ((e.type === 'charChanged' || e.type === 'equip' || e.type === 'gold') && e.playerId === this.ctx.myId) refresh = true;
       if (e.type === 'pickup' && e.playerId === this.ctx.myId) refresh = true;
       if (e.type === 'levelUp' && e.playerId === this.ctx.myId) refresh = true;
@@ -187,7 +195,8 @@ export class Game {
       if (e.type === 'say') this.chat.addArea(e.name, e.text);
       if (e.type === 'refine' && e.playerId === this.ctx.myId) { pushRefineLog(e); refresh = true; }
     }
-    if (refresh) { this.menu.refresh(); this.npc.refresh(); }
+    // 移動の直後などで自分がまだ見えていないときは描き直さない（画面が自分の情報を読むので）
+    if (refresh && this.ctx.me()) { guard('menu.refresh', () => this.menu.refresh()); guard('npc.refresh', () => this.npc.refresh()); }
   }
 
   destroy() {

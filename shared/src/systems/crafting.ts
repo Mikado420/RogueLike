@@ -23,6 +23,12 @@ export function subExpToNext(w: World, level: number): number {
   return s.expBase + s.expPerLevel * level;
 }
 
+/** 鍛冶で1つ作ったときの経験値（段が上がるほど多い） */
+export function smithExp(w: World, tier: number): number {
+  const c = w.content.subjobs;
+  return Math.round(c.gain.smith * (1 + tier * (c.smith?.tierBonus ?? 0.3)));
+}
+
 export function gainSubExp(w: World, p: Player, job: SubJob, amount: number) {
   const s = w.content.subjobs;
   const st = p.char.sub[job];
@@ -132,7 +138,7 @@ export function craftItem(w: World, p: Player, tier: number, baseId: string): st
   ch.inventory.push(it);
   ch.appearance.looks.includes(it.look) || ch.appearance.looks.push(it.look);
   recordCodex(w, p, 'items', baseId);
-  gainSubExp(w, p, 'smith', c.subjobs.gain.smith * (1 + tier * 0.3));
+  gainSubExp(w, p, 'smith', smithExp(w, tier));
   addCounter(w, p, 'crafts', 1);
   w.events.push({ type: 'crafted', playerId: p.id, kind: 'smith', uid: it.uid });
   return null;
@@ -163,7 +169,7 @@ export function craftNamed(w: World, p: Player, recipeId: string): string | null
   ch.inventory.push(it);
   ch.appearance.looks.includes(it.look) || ch.appearance.looks.push(it.look);
   recordCodex(w, p, 'items', r.base);
-  gainSubExp(w, p, 'smith', c.subjobs.gain.smith * (1 + r.tier * 0.3));
+  gainSubExp(w, p, 'smith', smithExp(w, r.tier) * (c.subjobs.smith?.namedMul ?? 1));
   addCounter(w, p, 'crafts', 1);
   addCounter(w, p, 'craftsNamed', 1);
   w.events.push({ type: 'crafted', playerId: p.id, kind: 'smith', uid: it.uid });

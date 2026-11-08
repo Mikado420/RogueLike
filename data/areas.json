@@ -679,7 +679,7 @@
     "w": 1
    }
   ],
-  "fieldBoss": {
+  "gate": {"spot": [0.25, 0.35], "dungeon": "dg_starfall"}, "fieldBoss": {
    "id": "astral_dragon",
    "spot": [
     0.5,
@@ -747,7 +747,7 @@
     "w": 1
    }
   ],
-  "fieldBoss": {
+  "gate": {"spot": [0.25, 0.35], "dungeon": "dg_abyss"}, "fieldBoss": {
    "id": "nether_dragon",
    "spot": [
     0.5,

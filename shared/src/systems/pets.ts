@@ -7,7 +7,7 @@ import { monsterStats } from './stats';
 import { takeFromBag } from './items';
 import { addCounter } from './counters';
 import { recordCodex } from './quest';
-import { DT, newId, newUid, sec } from './util';
+import { DT, isoSpeedMul, newId, newUid, sec } from './util';
 import { expToNext } from './progression';
 
 /**
@@ -147,7 +147,7 @@ export function updatePets(w: World) {
     const step = (tx: number, ty: number, speed: number) => {
       const dx = tx - pet.x, dy = ty - pet.y, d = Math.hypot(dx, dy);
       if (d < 0.05) return;
-      const v = Math.min(d, speed * DT(w));
+      const v = Math.min(d, speed * DT(w) * isoSpeedMul(dx, dy, w.content));
       pet.facing = Math.atan2(dy, dx);
       pet.moving = moveCircle(w.area.map, pet, pet.r, (dx / d) * v, (dy / d) * v);
     };
